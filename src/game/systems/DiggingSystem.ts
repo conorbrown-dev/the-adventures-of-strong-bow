@@ -171,6 +171,10 @@ export class DiggingSystem {
     return this.isInBounds(row, col) && this.dug[row][col];
   }
 
+  isCellLaddered(row: number, col: number): boolean {
+    return this.isInBounds(row, col) && this.laddered[row][col];
+  }
+
   ensureLadderAtCell(cell: DigCell): void {
     this.setLadder(cell.row, cell.col);
   }

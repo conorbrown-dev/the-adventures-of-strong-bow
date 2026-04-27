@@ -309,7 +309,34 @@ export class FossilDigScene extends Phaser.Scene {
       this.player.getCollisionFootprint();
     const collisionOffset = this.player.getCollisionCenterOffset();
     const nextBodyCenterX = nextX + collisionOffset.x;
-    const nextBodyCenterY = nextY + collisionOffset.y;
+    let nextBodyCenterY = nextY + collisionOffset.y;
+    let resolvedNextY = nextY;
+
+    if (Math.abs(input.y) > Math.abs(input.x) && input.y > 0) {
+      const currentCell = this.diggingSystem.getCellAtWorld(
+        this.player.x + collisionOffset.x,
+        this.player.y + collisionOffset.y
+      );
+
+      if (currentCell) {
+        const belowRow = currentCell.row + 1;
+        const belowBlocked =
+          !this.diggingSystem.isCellDug(belowRow, currentCell.col) ||
+          !this.diggingSystem.isCellLaddered(belowRow, currentCell.col);
+
+        if (belowBlocked) {
+          const cellBottomWorldY =
+            this.mode.config.undergroundTop +
+            (currentCell.row + 1) * this.mode.config.cellSize;
+          const maxBodyCenterY = cellBottomWorldY - bodyHeight / 2;
+
+          if (nextBodyCenterY > maxBodyCenterY) {
+            nextBodyCenterY = maxBodyCenterY;
+            resolvedNextY = nextBodyCenterY - collisionOffset.y;
+          }
+        }
+      }
+    }
 
     const canMove =
       Math.abs(input.y) > Math.abs(input.x)
@@ -333,7 +360,7 @@ export class FossilDigScene extends Phaser.Scene {
           );
 
     if (canMove) {
-      this.player.setPosition(nextX, nextY);
+      this.player.setPosition(nextX, resolvedNextY);
     }
   }
 
@@ -461,6 +488,7 @@ export class FossilDigScene extends Phaser.Scene {
       this.pickupInteractionLocked = true;
       this.audioFeedbackSystem.playIncorrectFeedback();
       await pickup.playIncorrectPickupFeedback();
+      await this.waitForPlayerToClearPickup(pickup);
       this.pickupInteractionLocked = false;
       return;
     }
@@ -522,6 +550,29 @@ export class FossilDigScene extends Phaser.Scene {
         }
       }
     }
+  }
+
+  private waitForPlayerToClearPickup(pickup: FossilPickup): Promise<void> {
+    return new Promise((resolve) => {
+      const poll = () => {
+        if (!this.player.active || !pickup.active || !pickup.visible) {
+          resolve();
+          return;
+        }
+
+        const playerBounds = this.player.body.getBounds();
+        const pickupBounds = pickup.body.getBounds();
+
+        if (!Phaser.Geom.Rectangle.Overlaps(playerBounds, pickupBounds)) {
+          resolve();
+          return;
+        }
+
+        this.time.delayedCall(50, poll);
+      };
+
+      poll();
+    });
   }
 
   private createSurfaceTiles(): void {

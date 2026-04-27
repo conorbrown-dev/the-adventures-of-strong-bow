@@ -6,6 +6,8 @@ import { ASSET_KEYS } from "../utils/assetKeys";
 export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
   declare body: Phaser.Physics.Arcade.Body;
 
+  private static readonly DISPLAY_SIZE = 68;
+
   readonly pickupId: string;
   readonly label: string;
   readonly learningType: LearningType;
@@ -37,7 +39,10 @@ export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
 
     this.setDepth(12);
     this.setImmovable(true);
-    this.setDisplaySize(68, 68);
+    this.setDisplaySize(
+      FossilPickup.DISPLAY_SIZE,
+      FossilPickup.DISPLAY_SIZE
+    );
 
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.allowGravity = false;
@@ -152,7 +157,10 @@ export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
     await this.wait(220);
 
     this.setVisible(true);
-    this.setScale(1);
+    this.setDisplaySize(
+      FossilPickup.DISPLAY_SIZE,
+      FossilPickup.DISPLAY_SIZE
+    );
     this.setAlpha(1);
     this.setAngle(0);
     this.labelText.setAlpha(1);

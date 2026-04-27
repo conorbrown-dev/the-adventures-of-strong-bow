@@ -36,6 +36,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   static readonly RUN_VISUAL_HEIGHT = 124;
   static readonly DIG_VISUAL_WIDTH = 104;
   static readonly DIG_VISUAL_HEIGHT = 104;
+  static readonly RUN_VISUAL_OFFSET_Y = -34;
+  static readonly DIG_VISUAL_OFFSET_Y = -28;
   static readonly BODY_WIDTH = 36;
   static readonly BODY_HEIGHT = 44;
   static readonly BODY_OFFSET_X = 34;
@@ -217,8 +219,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   override preUpdate(time: number, delta: number): void {
     super.preUpdate(time, delta);
-    this.runSprite.setPosition(this.x, this.y);
-    this.digSprite.setPosition(this.x, this.y);
+    const runOffset = this.getVisualOffset(
+      Player.RUN_VISUAL_WIDTH,
+      Player.RUN_VISUAL_HEIGHT,
+      Player.RUN_VISUAL_OFFSET_Y
+    );
+    const digOffset = this.getVisualOffset(
+      Player.DIG_VISUAL_WIDTH,
+      Player.DIG_VISUAL_HEIGHT,
+      Player.DIG_VISUAL_OFFSET_Y
+    );
+
+    this.runSprite.setPosition(this.x + runOffset.x, this.y + runOffset.y);
+    this.digSprite.setPosition(this.x + digOffset.x, this.y + digOffset.y);
     this.updateShovelPlacement();
   }
 
@@ -285,5 +298,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     return new Phaser.Math.Vector2(0, -18);
+  }
+
+  private getVisualOffset(
+    _visualWidth: number,
+    _visualHeight: number,
+    offsetY: number
+  ): Phaser.Math.Vector2 {
+    return new Phaser.Math.Vector2(
+      0,
+      offsetY
+    );
   }
 }
