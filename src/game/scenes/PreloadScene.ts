@@ -361,6 +361,10 @@ export class PreloadScene extends Phaser.Scene {
       frame.cutWidth,
       frame.cutHeight
     );
+    if (!canvasTexture) {
+      return;
+    }
+
     const ctx = canvasTexture.context;
 
     ctx.save();

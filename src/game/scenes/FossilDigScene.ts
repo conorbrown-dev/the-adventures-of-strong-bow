@@ -560,8 +560,20 @@ export class FossilDigScene extends Phaser.Scene {
           return;
         }
 
-        const playerBounds = this.player.body.getBounds();
-        const pickupBounds = pickup.body.getBounds();
+        const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
+        const pickupBody = pickup.body as Phaser.Physics.Arcade.Body;
+        const playerBounds = new Phaser.Geom.Rectangle(
+          playerBody.x,
+          playerBody.y,
+          playerBody.width,
+          playerBody.height
+        );
+        const pickupBounds = new Phaser.Geom.Rectangle(
+          pickupBody.x,
+          pickupBody.y,
+          pickupBody.width,
+          pickupBody.height
+        );
 
         if (!Phaser.Geom.Rectangle.Overlaps(playerBounds, pickupBounds)) {
           resolve();
