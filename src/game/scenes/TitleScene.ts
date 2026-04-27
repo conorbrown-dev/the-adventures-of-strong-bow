@@ -11,6 +11,9 @@ interface TitleMenuButton {
   onClick: () => void;
 }
 
+const TITLE_BUTTON_HEIGHT = 72;
+const TITLE_BUTTON_SELECTED_SCALE = 1.04;
+
 export class TitleScene extends Phaser.Scene {
   private selectedIndex = 0;
   private buttons: TitleMenuButton[] = [];
@@ -59,21 +62,21 @@ export class TitleScene extends Phaser.Scene {
 
     this.createButton(
       0,
-      460,
+      450,
       ASSET_KEYS.TITLE_BUTTON_START_ACTIVE,
       ASSET_KEYS.TITLE_BUTTON_START_INACTIVE,
       () => this.startGame()
     );
     this.createButton(
       1,
-      560,
+      540,
       ASSET_KEYS.TITLE_BUTTON_SETTINGS_ACTIVE,
       ASSET_KEYS.TITLE_BUTTON_SETTINGS_INACTIVE,
       () => this.showSettingsOverlay()
     );
     this.createButton(
       2,
-      660,
+      630,
       ASSET_KEYS.TITLE_BUTTON_EXIT_ACTIVE,
       ASSET_KEYS.TITLE_BUTTON_EXIT_INACTIVE,
       () => this.exitGame()
@@ -127,7 +130,7 @@ export class TitleScene extends Phaser.Scene {
       .image(GAME_WIDTH / 2, y, inactiveTextureKey)
       .setDepth(3);
     const source = button.texture.getSourceImage() as { width: number; height: number };
-    const scale = 88 / source.height;
+    const scale = TITLE_BUTTON_HEIGHT / source.height;
     const width = source.width * scale;
     const height = source.height * scale;
 
@@ -160,8 +163,10 @@ export class TitleScene extends Phaser.Scene {
         width: number;
         height: number;
       };
-      const baseScale = 88 / source.height;
-      entry.button.setScale(isSelected ? baseScale * 1.04 : baseScale);
+      const baseScale = TITLE_BUTTON_HEIGHT / source.height;
+      entry.button.setScale(
+        isSelected ? baseScale * TITLE_BUTTON_SELECTED_SCALE : baseScale
+      );
       entry.button.setAlpha(isSelected ? 1 : 0.96);
     });
   }
