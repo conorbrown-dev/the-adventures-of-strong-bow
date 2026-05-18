@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 
-import { COLORS, GAME_WIDTH, UNDERGROUND_TOP } from "../utils/constants";
+import { COLORS, GAME_WIDTH, HUD_HEIGHT } from "../utils/constants";
 
-interface CollectedEntry {
+export interface CollectedEntry {
   textureKey: string;
   label: string;
 }
@@ -17,26 +17,13 @@ export class CollectedFossilTray extends Phaser.GameObjects.Container {
   private readonly entries: CollectedEntry[] = [];
   private readonly slots: Phaser.GameObjects.Container[] = [];
 
-  constructor(scene: Phaser.Scene) {
-    super(scene, GAME_WIDTH / 2, UNDERGROUND_TOP - 12);
-
-    const bg = scene.add
-      .rectangle(0, 0, 860, 72, 0xf6edd7, 0.94)
-      .setStrokeStyle(3, 0x5e4127);
-    const title = scene.add
-      .text(-406, -20, "Found Fossils", {
-        fontFamily: "Trebuchet MS",
-        fontSize: "20px",
-        color: COLORS.TEXT_DARK,
-        fontStyle: "bold"
-      })
-      .setOrigin(0, 0.5);
-
-    this.add([bg, title]);
+  constructor(scene: Phaser.Scene, initialEntries: CollectedEntry[] = []) {
+    super(scene, GAME_WIDTH / 2, HUD_HEIGHT + 44);
     this.setDepth(97);
     this.setScrollFactor(0);
 
     scene.add.existing(this);
+    this.setEntries(initialEntries);
   }
 
   async addCollectedFossil(
@@ -49,11 +36,11 @@ export class CollectedFossilTray extends Phaser.GameObjects.Container {
     const targetSlot = this.getSlotPosition(this.entries.length);
     const floatingFossil = this.scene.add
       .image(0, 0, textureKey)
-      .setDisplaySize(72, 72);
+      .setDisplaySize(56, 56);
     const floatingWord = this.scene.add
-      .text(0, 62, label, {
+      .text(0, 48, label, {
         fontFamily: "Trebuchet MS",
-        fontSize: "28px",
+        fontSize: "22px",
         color: COLORS.TEXT_DARK,
         fontStyle: "bold"
       })
@@ -82,6 +69,24 @@ export class CollectedFossilTray extends Phaser.GameObjects.Container {
     this.renderEntries();
   }
 
+  setEntries(entries: CollectedEntry[]): void {
+    this.entries.length = 0;
+    this.entries.push(...entries);
+    this.renderEntries();
+  }
+
+  getEntryWorldPositions(): Array<CollectedEntry & { x: number; y: number }> {
+    return this.entries.map((entry, index) => {
+      const slot = this.getSlotPosition(index);
+
+      return {
+        ...entry,
+        x: slot.x,
+        y: slot.y
+      };
+    });
+  }
+
   private renderEntries(): void {
     this.slots.forEach((slot) => slot.destroy());
     this.slots.length = 0;
@@ -92,11 +97,11 @@ export class CollectedFossilTray extends Phaser.GameObjects.Container {
       const slotY = targetSlot.y - this.y;
       const fossil = this.scene.add
         .image(slotX, slotY, entry.textureKey)
-        .setDisplaySize(64, 64);
+        .setDisplaySize(48, 48);
       const word = this.scene.add
         .text(slotX, targetSlot.labelY - this.y, entry.label, {
           fontFamily: "Trebuchet MS",
-          fontSize: "22px",
+          fontSize: "18px",
           color: COLORS.TEXT_DARK,
           fontStyle: "bold"
         })
@@ -108,14 +113,14 @@ export class CollectedFossilTray extends Phaser.GameObjects.Container {
   }
 
   private getSlotPosition(index: number): SlotPosition {
-    const startX = -300;
-    const spacing = 124;
+    const startX = -240;
+    const spacing = 96;
     const slotX = this.x + startX + index * spacing;
 
     return {
       x: slotX,
-      y: this.y + 4,
-      labelY: this.y + 28
+      y: this.y - 6,
+      labelY: this.y + 18
     };
   }
 

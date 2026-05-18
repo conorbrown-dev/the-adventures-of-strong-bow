@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { getCvcVoiceAssetKey } from "../data/cvcWords";
 import { fossilTextureKeys } from "../data/fossils";
 import { FossilPickup } from "../entities/FossilPickup";
 import { GemPickup } from "../entities/GemPickup";
@@ -8,13 +9,15 @@ import { LearningType } from "../data/learningTypes";
 import { terrainTileFrames } from "../data/terrainTiles";
 import { FossilDigMode } from "../modes/fossil-dig/FossilDigMode";
 import type { FossilDigVariant } from "../modes/fossil-dig/FossilDigConfig";
-import {
-  resolveFossilDigStageTheme,
-  type FossilDigStageTheme
-} from "../modes/fossil-dig/FossilDigStageTheme";
+import type { FossilDigPickupContent } from "../modes/fossil-dig/FossilDigContent";
+import { type FossilDigStageTheme } from "../modes/fossil-dig/FossilDigStageTheme";
 import { CollisionSystem } from "../systems/CollisionSystem";
 import { DinoAssemblySystem } from "../systems/DinoAssemblySystem";
-import { DiggingSystem, type DigCell } from "../systems/DiggingSystem";
+import {
+  DiggingSystem,
+  type DigCell,
+  type DigTarget
+} from "../systems/DiggingSystem";
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
 import { LearningPromptSystem } from "../systems/LearningPromptSystem";
 import { PickupSystem } from "../systems/PickupSystem";
@@ -22,12 +25,13 @@ import { CollectedFossilTray } from "../ui/CollectedFossilTray";
 import { Hud } from "../ui/Hud";
 import { ASSET_KEYS } from "../utils/assetKeys";
 import {
+  CVC_DIG_SITE_WIDTH_BLOCKS,
+  DIG_PROTECTED_FLOOR_ROWS,
+  DIG_JUMP_DISTANCE_BLOCKS,
   COLORS,
-  DIG_TILE_DURATION_MS,
-  GAME_HEIGHT,
+  DIG_JUMP_DURATION_MS,
+  DIG_JUMP_HEIGHT_BLOCKS,
   GAME_WIDTH,
-  HUD_HEIGHT,
-  UNDERGROUND_TOP
 } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
@@ -43,8 +47,32 @@ interface PlacedFossil {
 }
 
 interface ActiveDigAction {
-  cell: DigCell;
+  target?: DigTarget;
+  blockedByStone: boolean;
   direction: Phaser.Math.Vector2;
+}
+
+interface ActiveMoveStep {
+  direction: Phaser.Math.Vector2;
+  startX: number;
+  startY: number;
+  targetX: number;
+  targetY: number;
+}
+
+interface ActiveJump {
+  direction: Phaser.Math.Vector2;
+  baseY: number;
+}
+
+interface CvcDigSite {
+  index: number;
+  startCol: number;
+  endCol: number;
+  targetLabel: string;
+  targetPickupId: string;
+  targetPickupIds: string[];
+  pickups: FossilDigPickupContent[];
 }
 
 export class FossilDigScene extends Phaser.Scene {
@@ -53,19 +81,44 @@ export class FossilDigScene extends Phaser.Scene {
   private mode!: FossilDigMode;
   private player!: Player;
   private diggingSystem!: DiggingSystem;
-  private pickupSystem!: PickupSystem;
+  private pickupSystem?: PickupSystem;
   private promptSystem!: LearningPromptSystem;
+  private hud!: Hud;
   private assemblySystem!: DinoAssemblySystem;
   private audioFeedbackSystem!: AudioFeedbackSystem;
   private collectedFossilTray?: CollectedFossilTray;
+  private gem?: GemPickup;
   private fossils: FossilPickup[] = [];
   private fossilPlacements: PlacedFossil[] = [];
-  private pendingCvcTargets: string[] = [];
+  private cvcDigSites: CvcDigSite[] = [];
+  private currentCvcSiteIndex = 0;
+  private activeCvcSiteIndex = 0;
+  private collectedCorrectFossils: Array<{
+    pickupId: string;
+    label: string;
+    textureKey: string;
+  }> = [];
+  private nextSiteArrow?: Phaser.GameObjects.Container;
+  private pendingSiteArrivalIndex?: number;
+  private pendingSurfaceAssembly = false;
+  private surfaceAssemblyStarted = false;
+  private surfaceTiles: Phaser.GameObjects.Sprite[] = [];
+  private surfaceTunnelTiles: Phaser.GameObjects.Image[] = [];
+  private surfaceLadders: Phaser.GameObjects.Image[] = [];
   private digKey?: Phaser.Input.Keyboard.Key;
+  private jumpKey?: Phaser.Input.Keyboard.Key;
+  private upKey?: Phaser.Input.Keyboard.Key;
+  private downKey?: Phaser.Input.Keyboard.Key;
   private pickupInteractionLocked = false;
+  private movementLocked = false;
   private transitionStarted = false;
   private activeDigAction?: ActiveDigAction;
-  private digTimer?: Phaser.Time.TimerEvent;
+  private activeMoveStep?: ActiveMoveStep;
+  private moveTween?: Phaser.Tweens.Tween;
+  private activeJump?: ActiveJump;
+  private jumpTween?: Phaser.Tweens.TweenChain;
+  private cameraScrollTween?: Phaser.Tweens.Tween;
+  private cameraTargetScrollY = 0;
 
   constructor() {
     super(SCENE_KEYS.FOSSIL_DIG);
@@ -74,60 +127,47 @@ export class FossilDigScene extends Phaser.Scene {
   init(data: FossilDigSceneData): void {
     this.variant = data.variant ?? "cvc";
     this.stageTheme = data.stageTheme;
+    this.pickupSystem = undefined;
+    this.gem = undefined;
     this.fossils = [];
     this.fossilPlacements = [];
-    this.pendingCvcTargets = [];
+    this.cvcDigSites = [];
+    this.currentCvcSiteIndex = 0;
+    this.activeCvcSiteIndex = 0;
+    this.collectedCorrectFossils = [];
+    this.nextSiteArrow?.destroy();
+    this.nextSiteArrow = undefined;
+    this.pendingSiteArrivalIndex = undefined;
+    this.pendingSurfaceAssembly = false;
+    this.surfaceAssemblyStarted = false;
+    this.surfaceTiles = [];
+    this.surfaceTunnelTiles = [];
+    this.surfaceLadders = [];
     this.activeDigAction = undefined;
-    this.digTimer?.remove(false);
-    this.digTimer = undefined;
+    this.activeMoveStep = undefined;
+    this.moveTween?.stop();
+    this.moveTween = undefined;
+    this.activeJump = undefined;
+    this.jumpTween?.stop();
+    this.jumpTween = undefined;
+    this.cameraScrollTween?.stop();
+    this.cameraScrollTween = undefined;
     this.pickupInteractionLocked = false;
+    this.movementLocked = false;
     this.transitionStarted = false;
+    this.cameraTargetScrollY = 0;
   }
 
   create(): void {
     this.mode = FossilDigMode.create(this.variant, this.stageTheme);
-    const stageThemeDetails = resolveFossilDigStageTheme(this.mode.stageTheme);
     const worldWidth = this.mode.config.worldCols * this.mode.config.cellSize;
     const worldHeight =
       this.mode.config.undergroundTop +
       this.mode.config.worldRows * this.mode.config.cellSize;
 
     this.cameras.main.setBackgroundColor(COLORS.SKY);
-    this.add.rectangle(
-      worldWidth / 2,
-      UNDERGROUND_TOP / 2,
-      worldWidth,
-      UNDERGROUND_TOP,
-      COLORS.SKY
-    );
+    this.createAboveGroundBackground(worldWidth);
     this.createSurfaceTiles();
-
-    this.add
-      .text(
-        GAME_WIDTH / 2,
-        UNDERGROUND_TOP - 44,
-        `Dig down to find the fossils! Boss: ${stageThemeDetails.bossDinoName} | Reward: ${stageThemeDetails.jewelName}`,
-        {
-          fontFamily: "Trebuchet MS",
-          fontSize: "26px",
-          color: "#2d1f14",
-          fontStyle: "bold"
-        }
-      )
-      .setOrigin(0.5, 0.5)
-      .setScrollFactor(0)
-      .setDepth(10);
-
-    this.add
-      .text(86, UNDERGROUND_TOP - 44, "Stage", {
-        fontFamily: "Trebuchet MS",
-        fontSize: "20px",
-        color: "#fff8e8",
-        backgroundColor: "#5e4127",
-        padding: { left: 10, right: 10, top: 5, bottom: 5 }
-      })
-      .setScrollFactor(0)
-      .setDepth(10);
 
     this.diggingSystem = new DiggingSystem(this, {
       width: worldWidth,
@@ -135,131 +175,151 @@ export class FossilDigScene extends Phaser.Scene {
       cellSize: this.mode.config.cellSize,
       undergroundTop: this.mode.config.undergroundTop
     });
+    this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
 
-    const hud = new Hud(this, this.mode.config.title);
+    this.hud = new Hud(this, this.mode.config.title);
     this.audioFeedbackSystem = new AudioFeedbackSystem(this);
     this.promptSystem = new LearningPromptSystem(
-      hud,
+      this.hud,
       this.mode.content.initialPrompt,
       this.mode.content.validationMode
     );
+    this.hud.setPromptAudioHandler(() => {
+      const prompt = this.promptSystem.getCurrentPrompt();
+      const spokenText = prompt.spokenText ?? prompt.displayText;
+      void this.audioFeedbackSystem.speakPhrase(spokenText, {
+        rate: 0.84,
+        pitch: 1.08
+      });
+    });
 
     if (this.variant === "letters") {
       this.promptSystem.showLetterScaffoldPrompt(LearningType.VOWEL);
     } else {
+      this.hud.setRepeatOnlyMode(true);
+      this.cvcDigSites = this.createCvcDigSites();
       this.collectedFossilTray = new CollectedFossilTray(this);
-      hud.setRepeatButtonLabel("Repeat Word");
-      hud.setRepeatHandler(() => {
+      this.hud.setRepeatHandler(() => {
         void this.audioFeedbackSystem.speakCurrentWord();
       });
-      hud.setRepeatButtonVisible(true);
-      hud.setRepeatButtonEnabled(true);
-      this.pendingCvcTargets = Phaser.Utils.Array.Shuffle(
-        this.mode.content.pickups.map((item) => item.label)
-      );
+      this.hud.setRepeatButtonVisible(true);
+      this.hud.setRepeatButtonEnabled(true);
+      this.updateCvcProgress();
     }
 
     const cursors = this.input.keyboard!.createCursorKeys();
-    const wasd = this.input.keyboard!.addKeys("W,A,S,D,SPACE") as {
-      W: Phaser.Input.Keyboard.Key;
-      A: Phaser.Input.Keyboard.Key;
-      S: Phaser.Input.Keyboard.Key;
-      D: Phaser.Input.Keyboard.Key;
-      SPACE: Phaser.Input.Keyboard.Key;
-    };
-    this.digKey = wasd.SPACE;
+    this.digKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.jumpKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.upKey = cursors.up;
+    this.downKey = cursors.down;
 
-    this.player = new Player(this, 164, 110);
+    const startingSurfaceCol = Phaser.Math.Clamp(
+      Math.round((164 - this.mode.config.cellSize / 2) / this.mode.config.cellSize),
+      0,
+      this.mode.config.worldCols - 1
+    );
+    this.player = new Player(
+      this,
+      this.getSurfaceColumnCenterX(startingSurfaceCol),
+      this.getSurfacePlayerY()
+    );
     this.player.configureForDigScene({
-      left: cursors.left ?? wasd.A,
-      right: cursors.right ?? wasd.D,
-      up: cursors.up ?? wasd.W,
-      down: cursors.down ?? wasd.S,
-      dig: wasd.SPACE
+      left: cursors.left,
+      right: cursors.right,
+      up: cursors.up,
+      down: cursors.down,
+      dig: this.digKey,
+      jump: this.jumpKey
     });
-    this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
-    this.cameras.main.setDeadzone(GAME_WIDTH * 0.46, GAME_HEIGHT * 0.36);
+    this.updateCameraPosition(true);
     this.cameras.main.roundPixels = true;
 
     this.fossils = this.createFossils();
-    const gem = new GemPickup(
+    const gemSpawnCell = this.findGemSpawnCell();
+    this.gem = new GemPickup(
       this,
-      (this.mode.config.worldCols - 2) * this.mode.config.cellSize +
+      gemSpawnCell.col * this.mode.config.cellSize +
         this.mode.config.cellSize / 2,
       this.mode.config.undergroundTop +
-        (this.mode.config.worldRows - 2) * this.mode.config.cellSize +
+        gemSpawnCell.row * this.mode.config.cellSize +
         this.mode.config.cellSize / 2,
       this.mode.rewardJewel.textureKey
     );
 
-    this.pickupSystem = new PickupSystem(this.mode.state, this.fossils, gem, {
-      onProgress: (progress) => hud.updateProgress(progress),
-      onAllFossilsCollected: () => {
-        this.promptSystem.showGemPrompt();
-      },
-      onGemCollected: () => {
-        void this.handleGemCollected();
-      }
-    });
+    if (this.variant !== "cvc" && this.gem) {
+      this.pickupSystem = new PickupSystem(this.mode.state, this.fossils, this.gem, {
+        onProgress: (progress) => this.hud.updateProgress(progress),
+        onAllFossilsCollected: () => {
+          this.promptSystem.showGemPrompt();
+        },
+        onGemCollected: () => {
+          void this.handleGemCollected();
+        }
+      });
+    } else {
+      this.gem.deactivate();
+    }
 
     this.assemblySystem = new DinoAssemblySystem(this);
 
     this.fossils.forEach((pickup) => {
-      if (this.variant === "cvc") {
-        pickup.setWorldLabelVisible(false);
-      }
-
       CollisionSystem.addOverlap(this, this.player, pickup, () => {
-        void this.handleFossilOverlap(pickup, hud);
+        void this.handleFossilOverlap(pickup);
       });
     });
 
-    CollisionSystem.addOverlap(this, this.player, gem, () => {
-      this.pickupSystem.collectGem();
-    });
-
-    this.add
-      .text(
-        GAME_WIDTH - 16,
-        HUD_HEIGHT + 12,
-        "Move: Arrow keys / WASD",
-        {
-          fontFamily: "Trebuchet MS",
-          fontSize: "20px",
-          color: "#fff8e8",
-          backgroundColor: "#5e4127",
-          padding: { left: 10, right: 10, top: 6, bottom: 6 }
+    if (this.gem) {
+      CollisionSystem.addOverlap(this, this.player, this.gem, () => {
+        if (this.variant === "cvc") {
+          void this.handleGemCollected();
+          return;
         }
-      )
-      .setOrigin(1, 0)
-      .setScrollFactor(0)
-      .setDepth(100);
-    this.add
-      .text(
-        GAME_WIDTH - 16,
-        HUD_HEIGHT + 40,
-        "Dig: Press Space + direction",
-        {
-          fontFamily: "Trebuchet MS",
-          fontSize: "20px",
-          color: "#fff8e8",
-          backgroundColor: "#5e4127",
-          padding: { left: 10, right: 10, top: 6, bottom: 6 }
-        }
-      )
-      .setOrigin(1, 0)
-      .setScrollFactor(0)
-      .setDepth(100);
 
-    if (this.variant === "cvc") {
-      void this.announceCurrentCvcTarget();
+        this.pickupSystem?.collectGem();
+      });
     }
+
+    void this.playOpeningAudioSequence();
   }
 
-  update(_time: number, delta: number): void {
+  update(_time: number, _delta: number): void {
     if (this.transitionStarted) {
       return;
+    }
+
+    this.updateCameraPosition();
+    if (this.pendingSurfaceAssembly && !this.surfaceAssemblyStarted) {
+      void this.tryBeginSurfaceAssembly();
+    }
+    this.checkForCvcSiteArrival();
+    const input = this.player.getDigInputVector();
+    const moveInput = this.getMoveInputVector(input);
+
+    if (this.movementLocked) {
+      this.player.updateDigAction(new Phaser.Math.Vector2(0, 0), false);
+      this.player.updateDigAnimation(new Phaser.Math.Vector2(0, 0));
+      return;
+    }
+
+    if (this.activeJump) {
+      this.player.playDigJumpAnimation(this.activeJump.direction);
+      return;
+    }
+
+    if (this.activeMoveStep) {
+      if (this.tryStartJump(moveInput)) {
+        return;
+      }
+
+      const stepDurationMs = this.getStepDurationMs();
+      this.player.updateDigAction(this.activeMoveStep.direction, false);
+      this.player.updateDigAnimation(this.activeMoveStep.direction, stepDurationMs);
+      return;
+    }
+
+    if (this.activeDigAction && this.digKey && Phaser.Input.Keyboard.JustUp(this.digKey)) {
+      this.cancelDigAction();
     }
 
     if (this.activeDigAction) {
@@ -272,17 +332,8 @@ export class FossilDigScene extends Phaser.Scene {
       if (!digStillHeld || !sameDirection) {
         this.cancelDigAction();
       } else {
-        this.player.updateDigAction(this.activeDigAction.direction, true);
         return;
       }
-    }
-
-    const input = this.player.getDigInputVector();
-    this.player.updateDigAnimation(input);
-    this.player.updateDigAction(input, false);
-
-    if (input.lengthSq() === 0) {
-      return;
     }
 
     if (this.digKey && Phaser.Input.Keyboard.JustDown(this.digKey)) {
@@ -290,100 +341,65 @@ export class FossilDigScene extends Phaser.Scene {
       return;
     }
 
-    const step = (this.player.getDigSpeed() * delta) / 1000;
-    const worldWidth = this.mode.config.worldCols * this.mode.config.cellSize;
-    const worldHeight =
-      this.mode.config.undergroundTop +
-      this.mode.config.worldRows * this.mode.config.cellSize;
-    const nextX = Phaser.Math.Clamp(
-      this.player.x + input.x * step,
-      18,
-      worldWidth - 18
-    );
-    const nextY = Phaser.Math.Clamp(
-      this.player.y + input.y * step,
-      90,
-      worldHeight - 56
-    );
-    const { width: bodyWidth, height: bodyHeight } =
-      this.player.getCollisionFootprint();
-    const collisionOffset = this.player.getCollisionCenterOffset();
-    const nextBodyCenterX = nextX + collisionOffset.x;
-    let nextBodyCenterY = nextY + collisionOffset.y;
-    let resolvedNextY = nextY;
-
-    if (Math.abs(input.y) > Math.abs(input.x) && input.y > 0) {
-      const currentCell = this.diggingSystem.getCellAtWorld(
-        this.player.x + collisionOffset.x,
-        this.player.y + collisionOffset.y
-      );
-
-      if (currentCell) {
-        const belowRow = currentCell.row + 1;
-        const belowBlocked =
-          !this.diggingSystem.isCellDug(belowRow, currentCell.col) ||
-          !this.diggingSystem.isCellLaddered(belowRow, currentCell.col);
-
-        if (belowBlocked) {
-          const cellBottomWorldY =
-            this.mode.config.undergroundTop +
-            (currentCell.row + 1) * this.mode.config.cellSize;
-          const maxBodyCenterY = cellBottomWorldY - bodyHeight / 2;
-
-          if (nextBodyCenterY > maxBodyCenterY) {
-            nextBodyCenterY = maxBodyCenterY;
-            resolvedNextY = nextBodyCenterY - collisionOffset.y;
-          }
-        }
-      }
+    if (this.tryStartFall()) {
+      return;
     }
 
-    const canMove =
-      Math.abs(input.y) > Math.abs(input.x)
-        ? this.diggingSystem.canMoveToWorldRect(
-            nextBodyCenterX,
-            nextBodyCenterY,
-            bodyWidth,
-            bodyHeight
-          ) &&
-          this.diggingSystem.canClimbWorldRect(
-            nextBodyCenterX,
-            nextBodyCenterY,
-            bodyWidth,
-            bodyHeight
-          )
-        : this.diggingSystem.canMoveToWorldRect(
-            nextBodyCenterX,
-            nextBodyCenterY,
-            bodyWidth,
-            bodyHeight
-          );
-
-    if (canMove) {
-      this.player.setPosition(nextX, resolvedNextY);
+    if (this.tryStartJump(moveInput)) {
+      return;
     }
+
+    if (this.tryStartClimbStep()) {
+      return;
+    }
+
+    if (this.tryStartHorizontalStep(moveInput)) {
+      return;
+    }
+
+    this.player.updateDigAction(input, false);
+    this.player.updateDigAnimation(new Phaser.Math.Vector2(0, 0));
   }
 
   private createFossils(): FossilPickup[] {
     const spawnCells = [
-      [3, 1],
-      [6, 4],
-      [9, 2],
-      [12, 6],
-      [15, 3],
-      [18, 7]
+      { colOffset: 1, row: 1 },
+      { colOffset: 3, row: 3 },
+      { colOffset: 5, row: 2 },
+      { colOffset: 7, row: 4 },
+      { colOffset: 9, row: 1 }
     ];
+    const occupiedCells = new Set<string>();
+    const cvcPickupItems =
+      this.variant === "cvc"
+        ? this.cvcDigSites.flatMap((site) => site.pickups.map((pickup) => ({ pickup, site })))
+        : [];
+    const pickupItems =
+      this.variant === "cvc"
+        ? cvcPickupItems
+        : this.mode.content.pickups.map((pickup) => ({ pickup, site: undefined }));
 
-    return this.mode.content.pickups.map((item, index) => {
-      const [col, row] = spawnCells[index % spawnCells.length];
+    return pickupItems.map(({ pickup: item, site }, index) => {
+      const spawnCell = spawnCells[index % spawnCells.length];
+      const baseCol =
+        (site?.startCol ?? 0) + spawnCell.colOffset;
+      const { col, row } = this.findDiggableSpawnCell(
+        spawnCell.row,
+        baseCol,
+        occupiedCells,
+        site?.startCol ?? 0,
+        site?.endCol ?? this.mode.config.worldCols - 1
+      );
+      occupiedCells.add(this.getCellKey(row, col));
       const x = col * this.mode.config.cellSize + this.mode.config.cellSize / 2;
       const y =
         this.mode.config.undergroundTop +
         row * this.mode.config.cellSize +
-        this.mode.config.cellSize / 2;
+        this.mode.config.cellSize / 2 +
+        FossilPickup.CELL_OFFSET_Y;
       const textureKey = fossilTextureKeys[index % fossilTextureKeys.length];
 
-      const pickup = new FossilPickup(
+      const createdPickup = new FossilPickup(
         this,
         x,
         y,
@@ -393,70 +409,212 @@ export class FossilDigScene extends Phaser.Scene {
         item.learningType
       );
 
-      pickup.hideUntilRevealed();
-      this.fossilPlacements.push({ pickup, row, col });
+      createdPickup.hideUntilRevealed();
+      this.fossilPlacements.push({ pickup: createdPickup, row, col });
 
-      return pickup;
+      return createdPickup;
     });
   }
 
+  private findDiggableSpawnCell(
+    baseRow: number,
+    baseCol: number,
+    occupiedCells: Set<string>,
+    minCol = 0,
+    maxCol = this.mode.config.worldCols - 1
+  ): DigCell {
+    if (
+      this.isSpawnCellInBounds(baseRow, baseCol) &&
+      baseCol >= minCol &&
+      baseCol <= maxCol &&
+      !this.diggingSystem.isStoneCellAt(baseRow, baseCol) &&
+      !occupiedCells.has(this.getCellKey(baseRow, baseCol))
+    ) {
+      return { row: baseRow, col: baseCol };
+    }
+
+    for (let radius = 1; radius <= 3; radius += 1) {
+      for (let row = baseRow - radius; row <= baseRow + radius; row += 1) {
+        for (let col = baseCol - radius; col <= baseCol + radius; col += 1) {
+          if (
+            this.isSpawnCellInBounds(row, col) &&
+            col >= minCol &&
+            col <= maxCol &&
+            !this.diggingSystem.isStoneCellAt(row, col) &&
+            !occupiedCells.has(this.getCellKey(row, col))
+          ) {
+            return { row, col };
+          }
+        }
+      }
+    }
+
+    return {
+      row: Phaser.Math.Clamp(baseRow, 0, this.getMaxSpawnRow()),
+      col: Phaser.Math.Clamp(baseCol, minCol, maxCol)
+    };
+  }
+
+  private getCellKey(row: number, col: number): string {
+    return `${row}:${col}`;
+  }
+
+  private findGemSpawnCell(): DigCell {
+    const occupiedCells = new Set(
+      this.fossilPlacements.map((placement) =>
+        this.getCellKey(placement.row, placement.col)
+      )
+    );
+    const cvcFinalSite = this.cvcDigSites[this.cvcDigSites.length - 1];
+    const minCol = cvcFinalSite?.startCol ?? 0;
+    const maxCol = cvcFinalSite?.endCol ?? this.mode.config.worldCols - 1;
+    const preferredCol = Math.max(minCol, maxCol - 1);
+
+    return this.findDiggableSpawnCell(
+      this.getMaxSpawnRow(),
+      preferredCol,
+      occupiedCells,
+      minCol,
+      maxCol
+    );
+  }
+
+  private isSpawnCellInBounds(row: number, col: number): boolean {
+    return (
+      row >= 0 &&
+      row <= this.getMaxSpawnRow() &&
+      col >= 0 &&
+      col < this.mode.config.worldCols
+    );
+  }
+
+  private getMaxSpawnRow(): number {
+    return Math.max(
+      0,
+      this.mode.config.worldRows - DIG_PROTECTED_FLOOR_ROWS - 1
+    );
+  }
+
   private beginDig(input: Phaser.Math.Vector2): void {
+    if (input.lengthSq() === 0) {
+      return;
+    }
+
     const collisionOffset = this.player.getCollisionCenterOffset();
-    const targetCell = this.diggingSystem.getDigTargetCell(
-      this.player.x + collisionOffset.x,
-      this.player.y + collisionOffset.y,
+    const playerBodyCenterX = this.player.x + collisionOffset.x;
+    const playerBodyCenterY = this.player.y + collisionOffset.y;
+    const intendedTargetCol = this.getIntendedDigTargetCol(
+      playerBodyCenterX,
+      playerBodyCenterY,
       input
     );
 
-    if (!targetCell || this.diggingSystem.isCellDug(targetCell.row, targetCell.col)) {
+    if (
+      intendedTargetCol !== null &&
+      !this.isColumnUnlocked(intendedTargetCol)
+    ) {
+      return;
+    }
+
+    const blockedByStone = this.diggingSystem.isDigBlockedByStone(
+      playerBodyCenterX,
+      playerBodyCenterY,
+      input
+    );
+    const target = this.diggingSystem.getDigTarget(
+      playerBodyCenterX,
+      playerBodyCenterY,
+      input
+    );
+
+    if (!target && !blockedByStone) {
+      return;
+    }
+
+    if (
+      target &&
+      (target.kind === "surface"
+        ? this.diggingSystem.isSurfaceOpen(target.col)
+        : this.diggingSystem.isCellDug(target.row, target.col))
+    ) {
       return;
     }
 
     this.activeDigAction = {
-      cell: targetCell,
+      target: target ?? undefined,
+      blockedByStone,
       direction: input.clone()
     };
-    this.player.updateDigAction(input, true);
-    this.digTimer = this.time.delayedCall(DIG_TILE_DURATION_MS, () => {
-      const action = this.activeDigAction;
 
-      if (!action || this.transitionStarted) {
-        this.activeDigAction = undefined;
-        this.digTimer = undefined;
-        return;
-      }
+    if (blockedByStone) {
+      this.audioFeedbackSystem.playShovelClink();
+    } else {
+      this.audioFeedbackSystem.playDigging();
+    }
 
-      const newlyDug = this.diggingSystem.digCell(action.cell.row, action.cell.col);
-      const isVertical = Math.abs(action.direction.y) > Math.abs(action.direction.x);
-
-      if (isVertical) {
-        this.diggingSystem.ensureLadderAtCell(action.cell);
-        const currentCell = this.diggingSystem.getCellAtWorld(
-          this.player.x + collisionOffset.x,
-          this.player.y + collisionOffset.y
-        );
-
-        if (currentCell) {
-          this.diggingSystem.ensureLadderAtCell(currentCell);
-        }
-      }
-
-      this.revealFossilsInCells(newlyDug);
-
-      const destination = this.diggingSystem.getCellCenter(action.cell);
-      this.player.setPosition(
-        destination.x - collisionOffset.x,
-        destination.y - collisionOffset.y
-      );
-      this.activeDigAction = undefined;
-      this.digTimer = undefined;
+    this.player.startDigAction(input, () => {
+      void this.completeDigAction(this.activeDigAction);
     });
   }
 
   private cancelDigAction(): void {
-    this.digTimer?.remove(false);
-    this.digTimer = undefined;
+    const canceledDirection = this.activeDigAction?.direction.clone();
     this.activeDigAction = undefined;
+    this.player.cancelDigAction(
+      canceledDirection
+    );
+  }
+
+  private async completeDigAction(action?: ActiveDigAction): Promise<void> {
+    if (!action || action !== this.activeDigAction || this.transitionStarted) {
+      return;
+    }
+
+    if (action.blockedByStone) {
+      this.activeDigAction = undefined;
+      this.player.cancelDigAction(action.direction);
+      return;
+    }
+
+    if (!action.target) {
+      this.activeDigAction = undefined;
+      this.player.cancelDigAction(action.direction);
+      return;
+    }
+
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    let newlyDug: DigCell[] = [];
+
+    if (action.target.kind === "surface") {
+      this.diggingSystem.digSurface(action.target.col);
+      this.syncSurfaceColumnVisual(action.target.col);
+    } else {
+      newlyDug = this.diggingSystem.digCell(action.target.row, action.target.col);
+    }
+
+    if (
+      action.target.kind === "cell" &&
+      Math.abs(action.direction.y) > Math.abs(action.direction.x)
+    ) {
+      this.diggingSystem.ensureLadderAtCell({
+        row: action.target.row,
+        col: action.target.col
+      });
+      const currentCell = this.diggingSystem.getCellAtWorld(
+        this.player.x + collisionOffset.x,
+        this.player.y + collisionOffset.y
+      );
+
+      if (currentCell) {
+        this.diggingSystem.ensureLadderAtCell(currentCell);
+      }
+    }
+
+    this.activeDigAction = undefined;
+    this.player.cancelDigAction(action.direction);
+    await this.revealFossilsInCells(newlyDug);
+    this.updateSurfaceOpenings(newlyDug);
+    this.syncSurfaceColumnVisual(action.target.col);
   }
 
   private matchesDigDirection(
@@ -468,10 +626,14 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   private async handleFossilOverlap(
-    pickup: FossilPickup,
-    hud: Hud
+    pickup: FossilPickup
   ): Promise<void> {
-    if (this.transitionStarted || this.pickupInteractionLocked || pickup.isBusy()) {
+    if (
+      this.transitionStarted ||
+      this.pickupInteractionLocked ||
+      pickup.isBusy() ||
+      !pickup.isCollectible()
+    ) {
       return;
     }
 
@@ -480,15 +642,20 @@ export class FossilDigScene extends Phaser.Scene {
         return;
       }
 
-      this.pickupSystem.collectFossil(pickup);
+      this.pickupSystem?.collectFossil(pickup);
       return;
     }
 
-    if (!this.promptSystem.canCollect(pickup)) {
+    const currentSite = this.getCurrentCvcSite();
+
+    if (!currentSite) {
+      return;
+    }
+
+    if (pickup.pickupId !== currentSite.targetPickupId) {
       this.pickupInteractionLocked = true;
       this.audioFeedbackSystem.playIncorrectFeedback();
-      await pickup.playIncorrectPickupFeedback();
-      await this.waitForPlayerToClearPickup(pickup);
+      await pickup.playIncorrectPickupFeedback(this.isSingleSiteSequentialCvcMode());
       this.pickupInteractionLocked = false;
       return;
     }
@@ -496,7 +663,13 @@ export class FossilDigScene extends Phaser.Scene {
     this.pickupInteractionLocked = true;
     const pickupX = pickup.x;
     const pickupY = pickup.y;
-    this.pickupSystem.collectFossil(pickup);
+    pickup.collect();
+    this.mode.state.markFossilCollected(pickup.pickupId);
+    this.collectedCorrectFossils.push({
+      pickupId: pickup.pickupId,
+      label: pickup.label,
+      textureKey: pickup.getTextureKey()
+    });
     await this.collectedFossilTray?.addCollectedFossil(
       pickup.getTextureKey(),
       pickup.label,
@@ -504,23 +677,64 @@ export class FossilDigScene extends Phaser.Scene {
       pickupY
     );
     await this.audioFeedbackSystem.playCorrectFeedback();
-    this.pendingCvcTargets = this.pendingCvcTargets.filter(
-      (word) => word !== pickup.label
-    );
+    this.updateCvcProgress();
 
-    if (this.mode.state.allFossilsCollected) {
-      hud.setRepeatButtonEnabled(false);
-      hud.setRepeatButtonVisible(false);
-      this.pickupInteractionLocked = false;
-      return;
+    if (this.isSingleSiteSequentialCvcMode()) {
+      currentSite.targetPickupIds = currentSite.targetPickupIds.filter(
+        (targetPickupId) => targetPickupId !== pickup.pickupId
+      );
+
+      if (currentSite.targetPickupIds.length > 0) {
+        const nextTargetPickupId =
+          Phaser.Utils.Array.GetRandom(currentSite.targetPickupIds) ??
+          currentSite.targetPickupIds[0];
+        const nextTargetPickup = currentSite.pickups.find(
+          (sitePickup) => sitePickup.id === nextTargetPickupId
+        );
+
+        if (nextTargetPickup) {
+          currentSite.targetPickupId = nextTargetPickup.id;
+          currentSite.targetLabel = nextTargetPickup.label;
+          await this.announceCurrentCvcTarget();
+          this.pickupInteractionLocked = false;
+          return;
+        }
+      }
     }
 
-    await this.announceCurrentCvcTarget();
+    const nextSite = this.cvcDigSites[this.collectedCorrectFossils.length];
+
+    if (nextSite) {
+      this.currentCvcSiteIndex = nextSite.index;
+      this.promptSystem.setPrompt({
+        kind: "collect_all",
+        displayText: "Great job! Head right to the next dig site."
+      });
+      this.hud.setRepeatButtonEnabled(false);
+      this.showNextSiteGuidance(nextSite);
+      await this.audioFeedbackSystem.speakPhrase(
+        "Good job. Let's move onto the next dig site. Head to the right.",
+        { rate: 0.86, pitch: 1.06 }
+      );
+    } else {
+      this.mode.state.markGemAvailable();
+      this.gem?.activate();
+      this.updateCvcProgress();
+      this.hud.setRepeatButtonEnabled(false);
+      this.hud.setRepeatButtonVisible(false);
+      this.promptSystem.showGemPrompt();
+      await this.audioFeedbackSystem.speakPhrase(
+        "Good job. You found all the fossils. Now find the jewel.",
+        { rate: 0.84, pitch: 1.08 }
+      );
+    }
+
     this.pickupInteractionLocked = false;
   }
 
   private async announceCurrentCvcTarget(): Promise<void> {
-    const currentWord = this.pendingCvcTargets[0];
+    const currentSite = this.getCurrentCvcSite();
+    const currentWord = currentSite?.targetLabel;
 
     if (!currentWord) {
       return;
@@ -531,13 +745,71 @@ export class FossilDigScene extends Phaser.Scene {
       displayText: "Listen to the word. Find the matching fossil.",
       targetType: LearningType.CVC_WORD,
       targetValue: currentWord,
-      spokenText: currentWord
+      spokenText: `Listen to the word. Find the matching fossil. ${currentWord}.`
     });
-    this.audioFeedbackSystem.setCurrentWord(currentWord);
+    this.hud.setRepeatButtonVisible(true);
+    this.hud.setRepeatButtonEnabled(true);
+    this.audioFeedbackSystem.setCurrentWord(
+      currentWord,
+      getCvcVoiceAssetKey(currentWord)
+    );
     await this.audioFeedbackSystem.speakCurrentWord();
   }
 
-  private revealFossilsInCells(cells: DigCell[]): void {
+  private async playOpeningAudioSequence(): Promise<void> {
+    await this.playSkippableIntroVoiceover();
+
+    if (this.variant === "cvc") {
+      await this.announceCurrentCvcTarget();
+    }
+  }
+
+  private async playSkippableIntroVoiceover(): Promise<void> {
+    await new Promise<void>((resolve) => {
+      const introVoiceover = this.sound.add(ASSET_KEYS.FOSSIL_DIG_INTRO, {
+        volume: 0.85
+      });
+      let resolved = false;
+
+      const finish = (): void => {
+        if (resolved) {
+          return;
+        }
+
+        resolved = true;
+        cleanup();
+        introVoiceover.destroy();
+        resolve();
+      };
+
+      const skip = (): void => {
+        if (!introVoiceover.isPlaying) {
+          finish();
+          return;
+        }
+
+        introVoiceover.stop();
+        finish();
+      };
+
+      const cleanup = (): void => {
+        this.input.keyboard?.off("keydown", skip);
+        this.input.off("pointerdown", skip);
+        introVoiceover.off("complete", finish);
+        this.events.off(Phaser.Scenes.Events.SHUTDOWN, finish);
+      };
+
+      this.input.keyboard?.once("keydown", skip);
+      this.input.once("pointerdown", skip);
+      introVoiceover.once("complete", finish);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, finish);
+      introVoiceover.play();
+    });
+  }
+
+  private async revealFossilsInCells(cells: DigCell[]): Promise<void> {
+    let revealedAnyFossil = false;
+
     for (const cell of cells) {
       for (const placement of this.fossilPlacements) {
         if (
@@ -546,68 +818,828 @@ export class FossilDigScene extends Phaser.Scene {
           !placement.pickup.isRevealed()
         ) {
           placement.pickup.reveal();
-          // TODO: Play fossil discovery audio cue once those assets are added.
+          revealedAnyFossil = true;
         }
       }
     }
-  }
 
-  private waitForPlayerToClearPickup(pickup: FossilPickup): Promise<void> {
-    return new Promise((resolve) => {
-      const poll = () => {
-        if (!this.player.active || !pickup.active || !pickup.visible) {
-          resolve();
-          return;
-        }
-
-        const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
-        const pickupBody = pickup.body as Phaser.Physics.Arcade.Body;
-        const playerBounds = new Phaser.Geom.Rectangle(
-          playerBody.x,
-          playerBody.y,
-          playerBody.width,
-          playerBody.height
-        );
-        const pickupBounds = new Phaser.Geom.Rectangle(
-          pickupBody.x,
-          pickupBody.y,
-          pickupBody.width,
-          pickupBody.height
-        );
-
-        if (!Phaser.Geom.Rectangle.Overlaps(playerBounds, pickupBounds)) {
-          resolve();
-          return;
-        }
-
-        this.time.delayedCall(50, poll);
-      };
-
-      poll();
-    });
+    if (revealedAnyFossil) {
+      this.audioFeedbackSystem.playFossilDiscovered();
+      await this.playRevealedFossilVoiceover();
+    }
   }
 
   private createSurfaceTiles(): void {
     const tilesAcross = this.mode.config.worldCols;
+    const surfaceY =
+      this.mode.config.undergroundTop - this.mode.config.cellSize / 2;
 
     for (let index = 0; index < tilesAcross; index += 1) {
       const x = index * this.mode.config.cellSize + this.mode.config.cellSize / 2;
       const frame = terrainTileFrames.grass[index % terrainTileFrames.grass.length];
 
-      this.add
+      const tile = this.add
         .sprite(
           x,
-          UNDERGROUND_TOP - this.mode.config.cellSize / 2,
+          surfaceY,
           ASSET_KEYS.TERRAIN,
           frame
         )
         .setDisplaySize(this.mode.config.cellSize, this.mode.config.cellSize)
         .setDepth(6);
+      const tunnelTile = this.add
+        .image(x, surfaceY, ASSET_KEYS.TUNNEL_DIRT)
+        .setDisplaySize(this.mode.config.cellSize, this.mode.config.cellSize)
+        .setDepth(4)
+        .setVisible(false);
+      const ladder = this.add
+        .image(x, surfaceY, ASSET_KEYS.LADDER_TOP)
+        .setDisplaySize(this.mode.config.cellSize - 8, this.mode.config.cellSize)
+        .setDepth(5)
+        .setVisible(false);
+      this.surfaceTiles[index] = tile;
+      this.surfaceTunnelTiles[index] = tunnelTile;
+      this.surfaceLadders[index] = ladder;
     }
   }
 
+  private updateSurfaceOpenings(cells: DigCell[]): void {
+    cells.forEach((cell) => {
+      if (cell.row !== 0) {
+        return;
+      }
+
+      this.syncSurfaceColumnVisual(cell.col);
+    });
+  }
+
+  private getSurfacePlayerY(): number {
+    return (
+      this.mode.config.undergroundTop -
+      this.mode.config.cellSize -
+      this.getPlayerStandingOffsetY()
+    );
+  }
+
+  private getSurfaceEntryPlayerY(): number {
+    return this.mode.config.undergroundTop - this.getPlayerStandingOffsetY();
+  }
+
+  private isPlayerInSurfaceEntry(): boolean {
+    return (
+      Math.abs(this.player.y - this.getSurfaceEntryPlayerY()) <= 1
+    );
+  }
+
+  private getMoveInputVector(
+    digInput: Phaser.Math.Vector2
+  ): Phaser.Math.Vector2 {
+    const moveInput = digInput.clone();
+    moveInput.y = 0;
+
+    if (moveInput.lengthSq() > 0) {
+      moveInput.normalize();
+    }
+
+    return moveInput;
+  }
+
+  private tryStartClimbStep(): boolean {
+    const wantsDown = this.downKey?.isDown ?? false;
+    const wantsUp = this.upKey?.isDown ?? false;
+
+    if (wantsDown === wantsUp) {
+      return false;
+    }
+
+    const direction = wantsDown ? 1 : -1;
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    const bodyCenterX = this.player.x + collisionOffset.x;
+    const bodyCenterY = this.player.y + collisionOffset.y;
+    const currentCell = this.diggingSystem.getCellAtWorld(bodyCenterX, bodyCenterY);
+    const surfacePlayerY = this.getSurfacePlayerY();
+    const isAboveGround = this.player.y <= surfacePlayerY + 1;
+    const isInSurfaceEntry = this.isPlayerInSurfaceEntry();
+
+    if (isAboveGround) {
+      if (direction < 0) {
+        return false;
+      }
+
+      const col = Phaser.Math.Clamp(
+        Math.floor(bodyCenterX / this.mode.config.cellSize),
+        0,
+        this.mode.config.worldCols - 1
+      );
+
+      if (
+        !this.isColumnUnlocked(col) ||
+        !this.diggingSystem.isSurfaceOpen(col)
+      ) {
+        return false;
+      }
+
+      this.startMoveStep(
+        this.getSurfaceColumnCenterX(col) - collisionOffset.x,
+        this.getSurfaceEntryPlayerY(),
+        new Phaser.Math.Vector2(0, 1)
+      );
+      return true;
+    }
+
+    if (isInSurfaceEntry) {
+      const col = this.getNearestColumn(bodyCenterX);
+
+      if (direction < 0) {
+        this.startMoveStep(
+          this.getSurfaceColumnCenterX(col) - collisionOffset.x,
+          surfacePlayerY,
+          new Phaser.Math.Vector2(0, -1)
+        );
+        return true;
+      }
+
+      if (
+        !this.isColumnUnlocked(col) ||
+        this.isCellBlockedByRevealSuspense({ row: 0, col }) ||
+        !this.diggingSystem.isCellDug(0, col) ||
+        !this.diggingSystem.isCellLaddered(0, col)
+      ) {
+        return false;
+      }
+
+      const destination = this.getDigCellPlayerPosition({ row: 0, col });
+      this.startMoveStep(
+        destination.x,
+        destination.y,
+        new Phaser.Math.Vector2(0, 1)
+      );
+      return true;
+    }
+
+    if (!currentCell || !this.diggingSystem.isCellLaddered(currentCell.row, currentCell.col)) {
+      return false;
+    }
+
+    if (direction < 0 && currentCell.row === 0) {
+      if (!this.diggingSystem.isSurfaceOpen(currentCell.col)) {
+        return false;
+      }
+
+      this.startMoveStep(
+        this.getSurfaceColumnCenterX(currentCell.col) - collisionOffset.x,
+        surfacePlayerY,
+        new Phaser.Math.Vector2(0, -1)
+      );
+      return true;
+    }
+
+    const targetRow = currentCell.row + direction;
+    if (
+      !this.isSpawnCellInBounds(targetRow, currentCell.col) ||
+      !this.isColumnUnlocked(currentCell.col) ||
+      this.isCellBlockedByRevealSuspense({
+        row: targetRow,
+        col: currentCell.col
+      }) ||
+      !this.diggingSystem.isCellDug(targetRow, currentCell.col) ||
+      !this.diggingSystem.isCellLaddered(targetRow, currentCell.col)
+    ) {
+      return false;
+    }
+
+    const destination = this.getDigCellPlayerPosition({
+      row: targetRow,
+      col: currentCell.col
+    });
+    this.startMoveStep(
+      destination.x,
+      destination.y,
+      new Phaser.Math.Vector2(0, direction)
+    );
+    return true;
+  }
+
+  private tryStartFall(): boolean {
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    const bodyCenterX = this.player.x + collisionOffset.x;
+    const bodyCenterY = this.player.y + collisionOffset.y;
+    const currentCol = this.getNearestColumn(bodyCenterX);
+    const surfacePlayerY = this.getSurfacePlayerY();
+    const isAboveGround = this.player.y <= surfacePlayerY + 1;
+    const isInSurfaceEntry = this.isPlayerInSurfaceEntry();
+
+    if (isAboveGround) {
+      return false;
+    }
+
+    if (isInSurfaceEntry) {
+      if (this.isSurfaceEntrySupported(currentCol)) {
+        return false;
+      }
+
+      if (this.isCellBlockedByRevealSuspense({ row: 0, col: currentCol })) {
+        return false;
+      }
+
+      const destination = this.getDigCellPlayerPosition({ row: 0, col: currentCol });
+      this.startMoveStep(
+        destination.x,
+        destination.y,
+        new Phaser.Math.Vector2(0, 1)
+      );
+      return true;
+    }
+
+    const currentCell = this.diggingSystem.getCellAtWorld(bodyCenterX, bodyCenterY);
+
+    if (!currentCell || this.isUndergroundCellSupported(currentCell)) {
+      return false;
+    }
+
+    const targetCell = {
+      row: currentCell.row + 1,
+      col: currentCell.col
+    };
+
+    if (this.isCellBlockedByRevealSuspense(targetCell)) {
+      return false;
+    }
+
+    const destination = this.getDigCellPlayerPosition(targetCell);
+    this.startMoveStep(
+      destination.x,
+      destination.y,
+      new Phaser.Math.Vector2(0, 1)
+    );
+    return true;
+  }
+
+  private tryStartJump(moveInput: Phaser.Math.Vector2): boolean {
+    if (!this.jumpKey || !Phaser.Input.Keyboard.JustDown(this.jumpKey)) {
+      return false;
+    }
+
+    const direction =
+      moveInput.lengthSq() > 0 ? moveInput.clone() : new Phaser.Math.Vector2(0, 0);
+
+    this.startJump(direction);
+    return true;
+  }
+
+  private tryStartHorizontalStep(moveInput: Phaser.Math.Vector2): boolean {
+    if (moveInput.x === 0) {
+      return false;
+    }
+
+    const directionX = Math.sign(moveInput.x);
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    const bodyCenterX = this.player.x + collisionOffset.x;
+    const bodyCenterY = this.player.y + collisionOffset.y;
+    const surfacePlayerY = this.getSurfacePlayerY();
+    const isAboveGround = this.player.y <= surfacePlayerY + 1;
+    const { width: bodyWidth, height: bodyHeight } =
+      this.player.getCollisionFootprint();
+
+    if (isAboveGround) {
+      const currentCol = this.getNearestColumn(bodyCenterX);
+      const targetCol = currentCol + directionX;
+
+      if (
+        targetCol < 0 ||
+        targetCol >= this.mode.config.worldCols ||
+        !this.isColumnUnlocked(targetCol)
+      ) {
+        return false;
+      }
+
+      this.startMoveStep(
+        this.getSurfaceColumnCenterX(targetCol) - collisionOffset.x,
+        surfacePlayerY,
+        new Phaser.Math.Vector2(directionX, 0)
+      );
+      return true;
+    }
+
+    const currentCell = this.diggingSystem.getCellAtWorld(bodyCenterX, bodyCenterY);
+
+    if (!currentCell) {
+      return false;
+    }
+
+    const targetCell = {
+      row: currentCell.row,
+      col: currentCell.col + directionX
+    };
+
+    if (
+      !this.isSpawnCellInBounds(targetCell.row, targetCell.col) ||
+      !this.isColumnUnlocked(targetCell.col) ||
+      this.isCellBlockedByRevealSuspense(targetCell) ||
+      !this.diggingSystem.isCellDug(targetCell.row, targetCell.col)
+    ) {
+      return false;
+    }
+
+    const destination = this.getDigCellPlayerPosition(targetCell);
+    const bodyCenter = this.getDigCellStandingBodyCenter(targetCell.row, targetCell.col);
+    const canMove = this.diggingSystem.canMoveToWorldRect(
+      bodyCenter.x,
+      bodyCenter.y,
+      bodyWidth,
+      bodyHeight
+    );
+
+    if (!canMove) {
+      return false;
+    }
+
+    this.startMoveStep(
+      destination.x,
+      destination.y,
+      new Phaser.Math.Vector2(directionX, 0)
+    );
+    return true;
+  }
+
+  private startMoveStep(
+    targetX: number,
+    targetY: number,
+    direction: Phaser.Math.Vector2
+  ): void {
+    const stepDurationMs = this.getStepDurationMs();
+
+    this.moveTween?.stop();
+    this.activeMoveStep = {
+      direction: direction.clone(),
+      startX: this.player.x,
+      startY: this.player.y,
+      targetX,
+      targetY
+    };
+    this.player.updateDigAction(direction, false);
+    this.player.updateDigAnimation(direction, stepDurationMs);
+    this.moveTween = this.tweens.add({
+      targets: this.player,
+      x: targetX,
+      y: targetY,
+      duration: stepDurationMs,
+      ease: "Linear",
+      onComplete: () => {
+        this.player.setPosition(targetX, targetY);
+        this.activeMoveStep = undefined;
+        this.updateCameraPosition(true);
+        this.moveTween = undefined;
+      }
+    });
+  }
+
+  private startJump(direction: Phaser.Math.Vector2): void {
+    const jumpBase = this.getJumpBasePosition();
+    const jumpHeight = this.mode.config.cellSize * DIG_JUMP_HEIGHT_BLOCKS;
+    const targetX = this.getJumpTargetX(direction.x, jumpBase.x, jumpBase.y);
+    const midpointX = Phaser.Math.Linear(this.player.x, targetX, 0.5);
+    const apexY = jumpBase.y - jumpHeight;
+
+    this.moveTween?.stop();
+    this.moveTween = undefined;
+    this.activeMoveStep = undefined;
+    this.jumpTween?.stop();
+    this.activeJump = {
+      direction: direction.clone(),
+      baseY: jumpBase.y
+    };
+    this.player.updateDigAction(direction, false);
+    this.player.playDigJumpAnimation(direction);
+    this.jumpTween = this.tweens.chain({
+      targets: this.player,
+      tweens: [
+        {
+          x: midpointX,
+          y: apexY,
+          duration: DIG_JUMP_DURATION_MS / 2,
+          ease: "Sine.Out"
+        },
+        {
+          x: targetX,
+          y: jumpBase.y,
+          duration: DIG_JUMP_DURATION_MS / 2,
+          ease: "Sine.In"
+        }
+      ],
+      onComplete: () => {
+        this.player.setPosition(targetX, jumpBase.y);
+        this.activeJump = undefined;
+        this.updateCameraPosition(true);
+        this.jumpTween = undefined;
+      }
+    });
+  }
+
+  private getJumpBasePosition(): { x: number; y: number } {
+    if (this.activeMoveStep) {
+      const distanceToStart = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        this.activeMoveStep.startX,
+        this.activeMoveStep.startY
+      );
+      const distanceToTarget = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        this.activeMoveStep.targetX,
+        this.activeMoveStep.targetY
+      );
+
+      if (distanceToStart <= distanceToTarget) {
+        return {
+          x: this.activeMoveStep.startX,
+          y: this.activeMoveStep.startY
+        };
+      }
+
+      return {
+        x: this.activeMoveStep.targetX,
+        y: this.activeMoveStep.targetY
+      };
+    }
+
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    const bodyCenterX = this.player.x + collisionOffset.x;
+    const bodyCenterY = this.player.y + collisionOffset.y;
+    const surfacePlayerY = this.getSurfacePlayerY();
+
+    if (this.player.y <= surfacePlayerY + 1) {
+      const col = this.getNearestColumn(bodyCenterX);
+      return {
+        x: this.getSurfaceColumnCenterX(col) - collisionOffset.x,
+        y: surfacePlayerY
+      };
+    }
+
+    if (this.isPlayerInSurfaceEntry()) {
+      const col = this.getNearestColumn(bodyCenterX);
+      return {
+        x: this.getSurfaceColumnCenterX(col) - collisionOffset.x,
+        y: this.getSurfaceEntryPlayerY()
+      };
+    }
+
+    const nearestRow = Phaser.Math.Clamp(
+      Math.round(
+        (bodyCenterY - this.mode.config.undergroundTop - this.mode.config.cellSize / 2) /
+          this.mode.config.cellSize
+      ),
+      0,
+      this.mode.config.worldRows - 1
+    );
+    const nearestCol = this.getNearestColumn(bodyCenterX);
+    const destination = this.getDigCellPlayerPosition({
+      row: nearestRow,
+      col: nearestCol
+    });
+
+    return destination;
+  }
+
+  private getJumpTargetX(directionX: number, baseX: number, baseY: number): number {
+    if (directionX === 0) {
+      return baseX;
+    }
+
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    const { width: bodyWidth, height: bodyHeight } =
+      this.player.getCollisionFootprint();
+    const worldWidth = this.diggingSystem.getWorldWidth();
+    const startBodyCenterX = baseX + collisionOffset.x;
+    const startBodyCenterY = baseY + collisionOffset.y;
+    const desiredBodyCenterX = Phaser.Math.Clamp(
+      startBodyCenterX +
+        Math.sign(directionX) *
+          this.mode.config.cellSize *
+          DIG_JUMP_DISTANCE_BLOCKS,
+      bodyWidth / 2,
+      worldWidth - bodyWidth / 2
+    );
+    const sampleCount = 4;
+
+    for (let index = 1; index <= sampleCount; index += 1) {
+      const sampleBodyCenterX = Phaser.Math.Linear(
+        startBodyCenterX,
+        desiredBodyCenterX,
+        index / sampleCount
+      );
+
+      if (
+        !this.diggingSystem.canMoveToWorldRect(
+          sampleBodyCenterX,
+          startBodyCenterY,
+          bodyWidth,
+          bodyHeight
+        )
+      ) {
+        return baseX;
+      }
+    }
+
+    const snappedTargetCol = this.getNearestColumn(desiredBodyCenterX);
+
+    if (!this.isColumnUnlocked(snappedTargetCol)) {
+      return baseX;
+    }
+
+    return this.getSurfaceOrUndergroundJumpTargetX(
+      snappedTargetCol,
+      startBodyCenterY,
+      collisionOffset,
+      baseX
+    );
+  }
+
+  private getSurfaceOrUndergroundJumpTargetX(
+    targetCol: number,
+    startBodyCenterY: number,
+    collisionOffset: { x: number; y: number },
+    baseX: number
+  ): number {
+    if (startBodyCenterY < this.mode.config.undergroundTop) {
+      return this.getSurfaceColumnCenterX(targetCol) - collisionOffset.x;
+    }
+
+    const { width: bodyWidth, height: bodyHeight } =
+      this.player.getCollisionFootprint();
+    const targetRow = Phaser.Math.Clamp(
+      Math.round(
+        (startBodyCenterY -
+          this.mode.config.undergroundTop -
+          this.mode.config.cellSize / 2) / this.mode.config.cellSize
+      ),
+      0,
+      this.mode.config.worldRows - 1
+    );
+    const targetCell = {
+      row: targetRow,
+      col: targetCol
+    };
+
+    if (this.isCellBlockedByRevealSuspense(targetCell)) {
+      return baseX;
+    }
+
+    const snappedCenter = this.diggingSystem.getCellCenter(targetCell);
+
+    if (
+      !this.diggingSystem.canMoveToWorldRect(
+        snappedCenter.x,
+        startBodyCenterY,
+        bodyWidth,
+        bodyHeight
+      )
+    ) {
+      return baseX;
+    }
+
+    return snappedCenter.x - collisionOffset.x;
+  }
+
+  private getStepDurationMs(): number {
+    return (this.mode.config.cellSize / this.player.getDigSpeed()) * 1000;
+  }
+
+  private getNearestColumn(worldX: number): number {
+    return Phaser.Math.Clamp(
+      Math.round((worldX - this.mode.config.cellSize / 2) / this.mode.config.cellSize),
+      0,
+      this.mode.config.worldCols - 1
+    );
+  }
+
+  private getSurfaceColumnCenterX(col: number): number {
+    return col * this.mode.config.cellSize + this.mode.config.cellSize / 2;
+  }
+
+  private isSurfaceEntrySupported(col: number): boolean {
+    return (
+      !this.diggingSystem.isCellDug(0, col) ||
+      this.diggingSystem.isCellLaddered(0, col)
+    );
+  }
+
+  private isUndergroundCellSupported(cell: DigCell): boolean {
+    if (this.diggingSystem.isCellLaddered(cell.row, cell.col)) {
+      return true;
+    }
+
+    const belowRow = cell.row + 1;
+
+    if (belowRow >= this.mode.config.worldRows) {
+      return true;
+    }
+
+    return (
+      !this.diggingSystem.isCellDug(belowRow, cell.col) ||
+      this.diggingSystem.isCellLaddered(belowRow, cell.col)
+    );
+  }
+
+  private isCellBlockedByRevealSuspense(cell: DigCell): boolean {
+    return this.fossilPlacements.some(
+      (placement) =>
+        placement.row === cell.row &&
+        placement.col === cell.col &&
+        placement.pickup.isRevealSuspenseActive()
+    );
+  }
+
+  private getDigCellPlayerPosition(cell: DigCell): { x: number; y: number } {
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    const centerX = this.getSurfaceColumnCenterX(cell.col);
+
+    return {
+      x: centerX - collisionOffset.x,
+      y:
+        this.mode.config.undergroundTop +
+        (cell.row + 1) * this.mode.config.cellSize -
+        this.getPlayerStandingOffsetY()
+    };
+  }
+
+  private getDigCellStandingBodyCenter(
+    row: number,
+    col: number
+  ): { x: number; y: number } {
+    const { height } = this.player.getCollisionFootprint();
+
+    return {
+      x: this.getSurfaceColumnCenterX(col),
+      y:
+        this.mode.config.undergroundTop +
+        (row + 1) * this.mode.config.cellSize -
+        height / 2
+    };
+  }
+
+  private getPlayerStandingOffsetY(): number {
+    return (
+      Player.BODY_OFFSET_Y +
+      Player.BODY_HEIGHT -
+      Player.DISPLAY_HEIGHT / 2
+    );
+  }
+
+  private syncSurfaceColumnVisual(col: number): void {
+    const isOpen = this.diggingSystem.isSurfaceOpen(col);
+    const hasEntryLadder =
+      isOpen &&
+      (
+        !this.diggingSystem.isCellDug(0, col) ||
+        this.diggingSystem.isCellLaddered(0, col)
+      );
+    this.surfaceTiles[col]?.setVisible(!isOpen);
+    this.surfaceTunnelTiles[col]?.setVisible(isOpen);
+    this.surfaceLadders[col]?.setVisible(hasEntryLadder);
+  }
+
+  private updateCameraPosition(force = false): void {
+    const camera = this.cameras.main;
+    const maxScrollX = Math.max(
+      0,
+      this.mode.config.worldCols * this.mode.config.cellSize - GAME_WIDTH
+    );
+    const maxScrollY = Math.max(
+      0,
+      this.mode.config.worldRows * this.mode.config.cellSize
+    );
+    const desiredScrollX = this.getCameraTargetScrollX(maxScrollX);
+    this.cameraTargetScrollY = this.getCameraTargetScrollY(maxScrollY);
+
+    if (force) {
+      this.cameraScrollTween?.stop();
+      this.cameraScrollTween = undefined;
+      camera.setScroll(desiredScrollX, this.cameraTargetScrollY);
+      return;
+    }
+
+    if (!this.cameraScrollTween) {
+      camera.scrollX = Phaser.Math.Linear(camera.scrollX, desiredScrollX, 0.18);
+    }
+    camera.scrollY = Phaser.Math.Linear(
+      camera.scrollY,
+      this.cameraTargetScrollY,
+      0.2
+    );
+  }
+
+  private getCameraTargetScrollX(maxScrollX: number): number {
+    if (this.variant === "cvc" && this.cvcDigSites.length > 0) {
+      return Phaser.Math.Clamp(
+        this.cvcDigSites[this.activeCvcSiteIndex].startCol * this.mode.config.cellSize,
+        0,
+        maxScrollX
+      );
+    }
+
+    return Phaser.Math.Clamp(
+      this.player.x - GAME_WIDTH / 2,
+      0,
+      maxScrollX
+    );
+  }
+
+  private getCameraTargetScrollY(maxScrollY: number): number {
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    const bodyCenterX = this.player.x + collisionOffset.x;
+    const bodyCenterY = this.player.y + collisionOffset.y;
+    const currentCell = this.diggingSystem.getCellAtWorld(bodyCenterX, bodyCenterY);
+    const revealFocusRow = this.getRevealSuspenseFocusRow();
+
+    if (currentCell) {
+      return Phaser.Math.Clamp(
+        Math.max(
+          (currentCell.row + 2) * this.mode.config.cellSize,
+          revealFocusRow !== null
+            ? (revealFocusRow + 1) * this.mode.config.cellSize
+            : 0
+        ),
+        0,
+        maxScrollY
+      );
+    }
+
+    const surfacePlayerY = this.getSurfacePlayerY();
+    const isInSurfaceShaft =
+      this.player.y > surfacePlayerY + 1 &&
+      bodyCenterY < this.mode.config.undergroundTop;
+
+    if (isInSurfaceShaft) {
+      return Phaser.Math.Clamp(
+        Math.max(
+          this.mode.config.cellSize,
+          revealFocusRow !== null
+            ? (revealFocusRow + 1) * this.mode.config.cellSize
+            : 0
+        ),
+        0,
+        maxScrollY
+      );
+    }
+
+    if (revealFocusRow !== null) {
+      return Phaser.Math.Clamp(
+        (revealFocusRow + 1) * this.mode.config.cellSize,
+        0,
+        maxScrollY
+      );
+    }
+
+    return 0;
+  }
+
+  private getRevealSuspenseFocusRow(): number | null {
+    let focusRow: number | null = null;
+
+    for (const placement of this.fossilPlacements) {
+      if (!placement.pickup.isRevealSuspenseActive()) {
+        continue;
+      }
+
+      if (focusRow === null || placement.row > focusRow) {
+        focusRow = placement.row;
+      }
+    }
+
+    return focusRow;
+  }
+
+  private createAboveGroundBackground(worldWidth: number): void {
+    this.add
+      .image(worldWidth / 2, this.mode.config.undergroundTop / 2, ASSET_KEYS.LEVEL_BACKGROUND)
+      .setDisplaySize(worldWidth, this.mode.config.undergroundTop)
+      .setDepth(-3);
+  }
+
   private async handleGemCollected(): Promise<void> {
-    if (this.transitionStarted) {
+    if (this.transitionStarted || this.pendingSurfaceAssembly) {
+      return;
+    }
+
+    if (this.variant === "cvc") {
+      if (!this.gem?.collect()) {
+        return;
+      }
+
+      this.mode.state.markGemCollected();
+      this.updateCvcProgress();
+      this.pendingSurfaceAssembly = true;
+      this.hud.setRepeatButtonVisible(false);
+      this.promptSystem.setPrompt({
+        kind: "collect_all",
+        displayText: "Climb back to the surface!"
+      });
+      await this.audioFeedbackSystem.playVoiceClip(
+        ASSET_KEYS.CLIMB_TO_THE_SURFACE,
+        { volume: 0.9 }
+      );
       return;
     }
 
@@ -626,6 +1658,413 @@ export class FossilDigScene extends Phaser.Scene {
     this.scene.start(SCENE_KEYS.DINO_CHASE, {
       variant: this.variant,
       stageTheme: this.mode.stageTheme
+    });
+  }
+
+  private createCvcDigSites(): CvcDigSite[] {
+    const siteCount = Math.min(
+      this.mode.config.cvcSiteCount ?? 1,
+      this.mode.content.pickups.length
+    );
+    const pickupsPerSite = Math.max(1, this.mode.config.cvcPickupsPerSite ?? 1);
+    const shuffledPickups = Phaser.Utils.Array.Shuffle([...this.mode.content.pickups]);
+
+    if (siteCount === 1) {
+      const siteTargets = shuffledPickups
+        .slice(0, Math.min(pickupsPerSite, this.mode.content.pickups.length))
+        .map((pickup, index) => ({
+          ...pickup,
+          id: `${pickup.id}-site-0-target-${index}`
+        }));
+      const initialTarget =
+        Phaser.Utils.Array.GetRandom(siteTargets) ?? siteTargets[0];
+
+      return [
+        {
+          index: 0,
+          startCol: 0,
+          endCol: CVC_DIG_SITE_WIDTH_BLOCKS - 1,
+          targetLabel: initialTarget.label,
+          targetPickupId: initialTarget.id,
+          targetPickupIds: siteTargets.map((pickup) => pickup.id),
+          pickups: Phaser.Utils.Array.Shuffle(siteTargets)
+        }
+      ];
+    }
+
+    const targetPool = shuffledPickups.slice(0, siteCount);
+    const targetIds = new Set(targetPool.map((pickup) => pickup.id));
+    const distractorPool = this.mode.content.pickups.filter(
+      (pickup) => !targetIds.has(pickup.id)
+    );
+    const fallbackDistractors =
+      distractorPool.length > 0 ? distractorPool : this.mode.content.pickups;
+
+    return Array.from({ length: siteCount }, (_, index) => {
+      const target = targetPool[index % targetPool.length];
+      const distractors = this.takeCycledPickups(
+        fallbackDistractors.filter((pickup) => pickup.id !== target.id),
+        pickupsPerSite - 1
+      ).map((pickup, pickupIndex) => ({
+        ...pickup,
+        id: `${pickup.id}-site-${index}-wrong-${pickupIndex}`
+      }));
+      const targetPickupId = `${target.id}-site-${index}-target`;
+      const pickups = Phaser.Utils.Array.Shuffle([
+        ...distractors,
+        {
+          ...target,
+          id: targetPickupId
+        }
+      ]);
+
+      return {
+        index,
+        startCol: index * CVC_DIG_SITE_WIDTH_BLOCKS,
+        endCol: (index + 1) * CVC_DIG_SITE_WIDTH_BLOCKS - 1,
+        targetLabel: target.label,
+        targetPickupId,
+        targetPickupIds: [targetPickupId],
+        pickups
+      };
+    });
+  }
+
+  private takeCycledPickups(
+    source: FossilDigPickupContent[],
+    count: number
+  ): FossilDigPickupContent[] {
+    const safeSource =
+      source.length > 0 ? source : [...this.mode.content.pickups];
+    const cycled: FossilDigPickupContent[] = [];
+
+    for (let index = 0; index < count; index += 1) {
+      const pickup = safeSource[index % safeSource.length];
+      cycled.push(pickup);
+    }
+
+    return Phaser.Utils.Array.Shuffle(cycled);
+  }
+
+  private getCurrentCvcSite(): CvcDigSite | undefined {
+    return this.cvcDigSites[this.currentCvcSiteIndex];
+  }
+
+  private getActiveCvcSite(): CvcDigSite | undefined {
+    return this.cvcDigSites[this.activeCvcSiteIndex];
+  }
+
+  private getAccessibleMinCol(): number {
+    if (this.variant !== "cvc" || this.cvcDigSites.length === 0) {
+      return 0;
+    }
+
+    return this.getActiveCvcSite()?.startCol ?? 0;
+  }
+
+  private getAccessibleMaxCol(): number {
+    if (this.variant !== "cvc" || this.cvcDigSites.length === 0) {
+      return this.mode.config.worldCols - 1;
+    }
+
+    if (this.pendingSiteArrivalIndex !== undefined) {
+      return this.cvcDigSites[this.pendingSiteArrivalIndex]?.endCol ??
+        this.getActiveCvcSite()?.endCol ??
+        this.mode.config.worldCols - 1;
+    }
+
+    return this.getActiveCvcSite()?.endCol ?? this.mode.config.worldCols - 1;
+  }
+
+  private isColumnUnlocked(col: number): boolean {
+    if (this.variant !== "cvc") {
+      return true;
+    }
+
+    return col >= this.getAccessibleMinCol() && col <= this.getAccessibleMaxCol();
+  }
+
+  private getIntendedDigTargetCol(
+    worldX: number,
+    worldY: number,
+    input: Phaser.Math.Vector2
+  ): number | null {
+    if (input.lengthSq() === 0) {
+      return null;
+    }
+
+    const isVertical = Math.abs(input.y) > Math.abs(input.x);
+
+    if (worldY < this.mode.config.undergroundTop) {
+      return this.getNearestColumn(worldX);
+    }
+
+    const currentCell = this.diggingSystem.getCellAtWorld(worldX, worldY);
+
+    if (!currentCell) {
+      return null;
+    }
+
+    if (isVertical) {
+      return currentCell.col;
+    }
+
+    return currentCell.col + Math.sign(input.x);
+  }
+
+  private updateCvcProgress(): void {
+    if (this.variant !== "cvc") {
+      return;
+    }
+
+    this.hud.updateProgress({
+      collected: this.collectedCorrectFossils.length,
+      total: this.mode.state.totalFossils,
+      gemAvailable: this.mode.state.gemAvailable,
+      gemCollected: this.mode.state.gemCollected
+    });
+  }
+
+  private isSingleSiteSequentialCvcMode(): boolean {
+    return (this.mode.config.cvcSiteCount ?? 1) === 1;
+  }
+
+  private showNextSiteGuidance(nextSite: CvcDigSite): void {
+    this.nextSiteArrow?.destroy();
+    this.pendingSiteArrivalIndex = nextSite.index;
+
+    const x =
+      (nextSite.startCol + 0.5) * this.mode.config.cellSize;
+    const y = this.mode.config.undergroundTop - this.mode.config.cellSize * 1.6;
+    const arrow = this.add
+      .triangle(0, 0, 0, 48, 28, 0, 56, 48, 0xffdd57)
+      .setStrokeStyle(4, 0x5e4127);
+    const label = this.add
+      .text(28, -18, "Next dig site", {
+        fontFamily: "Trebuchet MS",
+        fontSize: "26px",
+        color: "#2d1f14",
+        fontStyle: "bold"
+      })
+      .setOrigin(0.5);
+
+    this.nextSiteArrow = this.add.container(x, y, [arrow, label]).setDepth(80);
+    this.tweens.add({
+      targets: this.nextSiteArrow,
+      alpha: 0.2,
+      duration: 380,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.InOut"
+    });
+  }
+
+  private checkForCvcSiteArrival(): void {
+    if (
+      this.variant !== "cvc" ||
+      this.pendingSiteArrivalIndex === undefined ||
+      this.activeMoveStep ||
+      this.activeJump ||
+      this.activeDigAction
+    ) {
+      return;
+    }
+
+    const targetSite = this.cvcDigSites[this.pendingSiteArrivalIndex];
+
+    if (!targetSite) {
+      this.pendingSiteArrivalIndex = undefined;
+      this.nextSiteArrow?.destroy();
+      this.nextSiteArrow = undefined;
+      return;
+    }
+
+    const bodyCenterX = this.player.x + this.player.getCollisionCenterOffset().x;
+    const currentCol = this.getNearestColumn(bodyCenterX);
+
+    if (currentCol < targetSite.startCol) {
+      return;
+    }
+
+    this.activeCvcSiteIndex = targetSite.index;
+    this.nextSiteArrow?.destroy();
+    this.nextSiteArrow = undefined;
+    this.pendingSiteArrivalIndex = undefined;
+    this.startCvcSiteCameraPan(targetSite.index);
+    void this.announceCurrentCvcTarget();
+  }
+
+  private startCvcSiteCameraPan(siteIndex: number): void {
+    if (this.variant !== "cvc") {
+      return;
+    }
+
+    const maxScrollX = Math.max(
+      0,
+      this.mode.config.worldCols * this.mode.config.cellSize - GAME_WIDTH
+    );
+    const targetScrollX = Phaser.Math.Clamp(
+      this.cvcDigSites[siteIndex].startCol * this.mode.config.cellSize,
+      0,
+      maxScrollX
+    );
+
+    this.cameraScrollTween?.stop();
+    this.cameraScrollTween = this.tweens.add({
+      targets: this.cameras.main,
+      scrollX: targetScrollX,
+      duration: 420,
+      ease: "Cubic.Out",
+      onComplete: () => {
+        this.cameraScrollTween = undefined;
+      }
+    });
+  }
+
+  private async tryBeginSurfaceAssembly(): Promise<void> {
+    if (
+      this.surfaceAssemblyStarted ||
+      this.activeMoveStep ||
+      this.activeJump ||
+      this.activeDigAction ||
+      this.isPlayerInSurfaceEntry()
+    ) {
+      return;
+    }
+
+    if (this.player.y > this.getSurfacePlayerY() + 1) {
+      return;
+    }
+
+    this.surfaceAssemblyStarted = true;
+    this.pendingSurfaceAssembly = false;
+    this.transitionStarted = true;
+    this.player.disableControls();
+    this.promptSystem.setPrompt({
+      kind: "collect_all",
+      displayText: "The Wordosaur is forming!"
+    });
+    await this.playCollectedFossilSummon();
+    const worldView = this.cameras.main.worldView;
+    const dino = await this.assemblySystem.playSequence(
+      worldView.centerX,
+      this.mode.config.undergroundTop / 2 + 86,
+      this.mode.bossDino
+    );
+
+    await dino.roar();
+    await this.audioFeedbackSystem.playVoiceClip(
+      ASSET_KEYS.DINO_COMES_TO_LIFE,
+      { volume: 0.9 }
+    );
+    this.scene.start(SCENE_KEYS.DINO_CHASE, {
+      variant: this.variant,
+      stageTheme: this.mode.stageTheme
+    });
+  }
+
+  private async playRevealedFossilVoiceover(): Promise<void> {
+    const shouldRestoreRepeatButton =
+      this.variant === "cvc" &&
+      !this.transitionStarted &&
+      !this.pendingSurfaceAssembly;
+
+    this.movementLocked = true;
+    if (shouldRestoreRepeatButton) {
+      this.hud.setRepeatButtonEnabled(false);
+    }
+
+    try {
+      await this.audioFeedbackSystem.playVoiceClip(
+        ASSET_KEYS.IS_THIS_THE_CORRECT_FOSSIL,
+        { volume: 0.9 }
+      );
+    } finally {
+      this.movementLocked = false;
+      if (shouldRestoreRepeatButton) {
+        this.hud.setRepeatButtonEnabled(true);
+      }
+    }
+  }
+
+  private async playCollectedFossilSummon(): Promise<void> {
+    const entries = this.collectedFossilTray?.getEntryWorldPositions() ?? [];
+
+    if (entries.length === 0) {
+      return;
+    }
+
+    this.collectedFossilTray?.setVisible(false);
+    const centerX = GAME_WIDTH / 2;
+    const centerY = 340;
+    const orbitRadiusX = 132;
+    const orbitRadiusY = 76;
+    const orbitContainer = this.add.container(centerX, centerY).setDepth(120);
+    orbitContainer.setScrollFactor(0);
+
+    const orbitSprites = entries.map((entry) => {
+      const sprite = this.add
+        .image(entry.x, entry.y, entry.textureKey)
+        .setDisplaySize(76, 76)
+        .setScrollFactor(0)
+        .setDepth(120);
+
+      return sprite;
+    });
+
+    await Promise.all(
+      orbitSprites.map((sprite, index) => {
+        const angle = (Math.PI * 2 * index) / orbitSprites.length - Math.PI / 2;
+
+        return this.playTween({
+          targets: sprite,
+          x: centerX + Math.cos(angle) * orbitRadiusX,
+          y: centerY + Math.sin(angle) * orbitRadiusY,
+          duration: 520,
+          ease: "Cubic.Out"
+        });
+      })
+    );
+
+    orbitSprites.forEach((sprite) => {
+      sprite.x -= centerX;
+      sprite.y -= centerY;
+      orbitContainer.add(sprite);
+    });
+
+    await this.playTween({
+      targets: orbitContainer,
+      angle: 360,
+      duration: 900,
+      ease: "Sine.InOut"
+    });
+
+    await Promise.all(
+      orbitSprites.map((sprite) =>
+        this.playTween({
+          targets: sprite,
+          x: 0,
+          y: 0,
+          alpha: 0.24,
+          scaleX: 0.38,
+          scaleY: 0.38,
+          duration: 360,
+          ease: "Quad.In"
+        })
+      )
+    );
+
+    orbitContainer.destroy(true);
+  }
+
+  private playTween(
+    config: Phaser.Types.Tweens.TweenBuilderConfig
+  ): Promise<void> {
+    return new Promise((resolve) => {
+      this.tweens.add({
+        ...config,
+        onComplete: () => resolve()
+      });
     });
   }
 }

@@ -1,8 +1,9 @@
 import Phaser from "phaser";
 
 import type { FossilDigVariant } from "../modes/fossil-dig/FossilDigConfig";
-import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
+import { COLORS, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { playButtonClick, playButtonHover } from "../utils/uiSound";
 
 interface MenuOption {
   label: string;
@@ -16,6 +17,7 @@ export class MainMenuScene extends Phaser.Scene {
   ];
 
   private selectedIndex = 0;
+  private optionCards: Phaser.GameObjects.Container[] = [];
   private optionTexts: Phaser.GameObjects.Text[] = [];
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private enterKey?: Phaser.Input.Keyboard.Key;
@@ -50,41 +52,38 @@ export class MainMenuScene extends Phaser.Scene {
       )
       .setOrigin(0.5);
 
-    this.optionTexts = this.options.map((option, index) => {
+    this.options.forEach((option, index) => {
+      const y = 320 + index * 110;
+      const card = this.add
+        .rectangle(GAME_WIDTH / 2, y, 520, 84, 0xf6edd7)
+        .setStrokeStyle(4, 0x5e4127);
       const text = this.add
-        .text(GAME_WIDTH / 2, 320 + index * 110, option.label, {
+        .text(GAME_WIDTH / 2, y, option.label, {
           fontFamily: "Trebuchet MS",
           fontSize: "30px",
           fontStyle: "bold",
-          color: "#2d1f14",
-          backgroundColor: "#f6edd7",
-          padding: { left: 22, right: 22, top: 18, bottom: 18 }
+          color: "#2d1f14"
         })
-        .setOrigin(0.5)
+        .setOrigin(0.5);
+
+      this.add
+        .zone(GAME_WIDTH / 2, y, 520, 84)
         .setInteractive({ useHandCursor: true })
         .on("pointerover", () => {
           this.selectedIndex = index;
+          playButtonHover(this);
           this.refreshSelection();
         })
-        .on("pointerdown", () => {
+        .on("pointerup", () => {
+          this.selectedIndex = index;
+          playButtonClick(this);
           this.startSelectedMode();
         });
 
-      return text;
+      const container = this.add.container(0, 0, [card, text]);
+      this.optionCards.push(container);
+      this.optionTexts.push(text);
     });
-
-    this.add
-      .text(
-        GAME_WIDTH / 2,
-        GAME_HEIGHT - 70,
-        "Prototype loop: dig -> collect fossils -> find gem -> run from the dino",
-        {
-          fontFamily: "Trebuchet MS",
-          fontSize: "22px",
-          color: "#2d1f14"
-        }
-      )
-      .setOrigin(0.5);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.enterKey = this.input.keyboard!.addKey(
@@ -101,16 +100,19 @@ export class MainMenuScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
       this.selectedIndex = (this.selectedIndex + 1) % this.options.length;
+      playButtonHover(this);
       this.refreshSelection();
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
       this.selectedIndex =
         (this.selectedIndex - 1 + this.options.length) % this.options.length;
+      playButtonHover(this);
       this.refreshSelection();
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {
+      playButtonClick(this);
       this.startSelectedMode();
     }
   }
@@ -118,9 +120,15 @@ export class MainMenuScene extends Phaser.Scene {
   private refreshSelection(): void {
     this.optionTexts.forEach((text, index) => {
       const isSelected = index === this.selectedIndex;
+      const card = this.optionCards[index]?.list[0] as
+        | Phaser.GameObjects.Rectangle
+        | undefined;
+
       text.setScale(isSelected ? 1.04 : 1);
       text.setColor(isSelected ? COLORS.HIGHLIGHT : "#2d1f14");
       text.setStroke("#5e4127", isSelected ? 6 : 0);
+      card?.setFillStyle(isSelected ? 0xfff6d8 : 0xf6edd7);
+      card?.setStrokeStyle(4, isSelected ? 0xa35a14 : 0x5e4127);
     });
   }
 

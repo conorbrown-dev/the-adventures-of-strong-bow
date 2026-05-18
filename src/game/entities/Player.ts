@@ -18,26 +18,32 @@ type KeyMap = {
 };
 
 type ControlMode = "disabled" | "dig" | "chase";
+type FacingHorizontal = "left" | "right";
 
 const PLAYER_ANIMS = {
-  IDLE: "player-idle",
-  DIG_WALK: "player-dig-walk",
-  DIG_ACTION: "player-dig-action",
-  CHASE_RUN: "player-chase-run",
-  JUMP: "player-jump"
+  WALK_RIGHT: "player-walk-right",
+  WALK_LEFT: "player-walk-left",
+  CLIMB_UP: "player-climb-up",
+  CLIMB_DOWN: "player-climb-down",
+  DIG_RIGHT: "player-dig-right",
+  DIG_LEFT: "player-dig-left"
 } as const;
+
+const DIG_WALK_CYCLE_DURATION_MS = 800;
+const PLAYER_IDLE_RIGHT_FRAME = 0;
+const PLAYER_IDLE_LEFT_FRAME = 12;
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   declare body: Phaser.Physics.Arcade.Body;
 
   static readonly DISPLAY_WIDTH = 104;
   static readonly DISPLAY_HEIGHT = 104;
-  static readonly RUN_VISUAL_WIDTH = 124;
-  static readonly RUN_VISUAL_HEIGHT = 124;
-  static readonly DIG_VISUAL_WIDTH = 104;
-  static readonly DIG_VISUAL_HEIGHT = 104;
-  static readonly RUN_VISUAL_OFFSET_Y = -34;
-  static readonly DIG_VISUAL_OFFSET_Y = -28;
+  static readonly VISUAL_WIDTH = 124;
+  static readonly VISUAL_HEIGHT = 124;
+  static readonly VISUAL_OFFSET_Y = -34;
+  static readonly DIG_VISUAL_WIDTH = 124;
+  static readonly DIG_VISUAL_HEIGHT = 124;
+  static readonly DIG_VISUAL_OFFSET_Y = -34;
   static readonly BODY_WIDTH = 36;
   static readonly BODY_HEIGHT = 44;
   static readonly BODY_OFFSET_X = 34;
@@ -49,7 +55,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private readonly digSprite: Phaser.GameObjects.Sprite;
   private readonly shovel: Phaser.GameObjects.Image;
   private digTween?: Phaser.Tweens.Tween;
+  private digAnimationCompleteHandler?: () => void;
   private facingDirection = new Phaser.Math.Vector2(1, 0);
+  private facingHorizontal: FacingHorizontal = "right";
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, ASSET_KEYS.PLAYER);
@@ -68,7 +76,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.runSprite = scene.add
       .sprite(x, y, ASSET_KEYS.PLAYER)
       .setDepth(20)
-      .setDisplaySize(Player.RUN_VISUAL_WIDTH, Player.RUN_VISUAL_HEIGHT);
+      .setDisplaySize(Player.VISUAL_WIDTH, Player.VISUAL_HEIGHT);
     this.digSprite = scene.add
       .sprite(x, y, ASSET_KEYS.PLAYER_DIGGING)
       .setDepth(20)
@@ -79,7 +87,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       .setVisible(false)
       .setDepth(21)
       .setDisplaySize(22, 22);
-    this.runSprite.play(PLAYER_ANIMS.IDLE);
+    this.setFacingIdleFrame();
   }
 
   configureForDigScene(keys: KeyMap): void {
@@ -95,6 +103,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.keys = keys;
     this.controlMode = "chase";
     this.setVelocity(0, 0);
+    this.facingHorizontal = "right";
 
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.allowGravity = true;
@@ -105,7 +114,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setVelocity(0, 0);
     this.hideShovel();
     this.showRunVisual();
-    this.runSprite.play(PLAYER_ANIMS.IDLE, true);
+    this.runSprite.anims.timeScale = 1;
+    this.playFacingIdle(true);
   }
 
   getDigInputVector(): Phaser.Math.Vector2 {
@@ -149,12 +159,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.setVelocityY(-CHASE_JUMP_SPEED);
     }
 
+    this.showRunVisual();
+    this.runSprite.anims.timeScale = 1;
     if (body.blocked.down) {
-      this.showRunVisual();
-      this.runSprite.play(PLAYER_ANIMS.CHASE_RUN, true);
+      this.runSprite.play(PLAYER_ANIMS.WALK_RIGHT, true);
     } else {
-      this.showRunVisual();
-      this.runSprite.play(PLAYER_ANIMS.JUMP, true);
+      this.setFacingIdleFrame();
     }
   }
 
@@ -182,47 +192,91 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     };
   }
 
-  updateDigAnimation(input: Phaser.Math.Vector2): void {
+  updateDigAnimation(
+    input: Phaser.Math.Vector2,
+    movementDurationMs?: number
+  ): void {
     this.updateFacing(input);
 
     if (input.lengthSq() === 0) {
       this.showRunVisual();
-      this.runSprite.play(PLAYER_ANIMS.IDLE, true);
+      this.runSprite.anims.timeScale = 1;
+      this.playFacingIdle(true);
       this.hideShovel();
       return;
     }
 
-    this.updateFacingFlip(input);
     this.showRunVisual();
-    this.runSprite.play(PLAYER_ANIMS.DIG_WALK, true);
+    this.runSprite.anims.timeScale = movementDurationMs
+      ? DIG_WALK_CYCLE_DURATION_MS / movementDurationMs
+      : 1;
+    this.runSprite.play(this.getMovementAnimationKey(input), true);
   }
 
   updateDigAction(input: Phaser.Math.Vector2, isDigging: boolean): void {
     this.updateFacing(input);
 
     if (!isDigging || input.lengthSq() === 0) {
-      this.showRunVisual();
-      this.hideShovel();
+      this.cancelDigAction(input);
       return;
     }
 
-    this.updateFacingFlip(input);
+    this.startDigAction(input);
+  }
+
+  playDigJumpAnimation(input: Phaser.Math.Vector2): void {
+    this.updateFacing(input);
     this.hideShovel();
-    const digWasHidden = !this.digSprite.visible;
-    this.showDigVisual();
-    this.digSprite.setAlpha(1);
-    if (digWasHidden || this.digSprite.anims.currentAnim?.key !== PLAYER_ANIMS.DIG_ACTION) {
-      this.digSprite.setFrame(0);
-      this.digSprite.play(PLAYER_ANIMS.DIG_ACTION, true);
+    this.showRunVisual();
+    this.runSprite.anims.timeScale = 1;
+    this.playFacingIdle(true);
+  }
+
+  startDigAction(input: Phaser.Math.Vector2, onComplete?: () => void): void {
+    this.updateFacing(input);
+
+    if (input.lengthSq() === 0) {
+      this.cancelDigAction();
+      return;
     }
+
+    this.clearDigAnimationCompleteHandler();
+    this.hideShovel();
+    this.showDigVisual();
+    this.digSprite.anims.timeScale = 1;
+
+    if (onComplete) {
+      this.digAnimationCompleteHandler = () => {
+        this.digAnimationCompleteHandler = undefined;
+        onComplete();
+      };
+      this.digSprite.once(
+        Phaser.Animations.Events.ANIMATION_COMPLETE,
+        this.digAnimationCompleteHandler
+      );
+    }
+
+    this.digSprite.play(this.getDigAnimationKey(input), true);
+  }
+
+  cancelDigAction(input?: Phaser.Math.Vector2): void {
+    if (input && input.lengthSq() > 0) {
+      this.updateFacing(input);
+    }
+
+    this.clearDigAnimationCompleteHandler();
+    this.showRunVisual();
+    this.runSprite.anims.timeScale = 1;
+    this.hideShovel();
+    this.playFacingIdle(true);
   }
 
   override preUpdate(time: number, delta: number): void {
     super.preUpdate(time, delta);
     const runOffset = this.getVisualOffset(
-      Player.RUN_VISUAL_WIDTH,
-      Player.RUN_VISUAL_HEIGHT,
-      Player.RUN_VISUAL_OFFSET_Y
+      Player.VISUAL_WIDTH,
+      Player.VISUAL_HEIGHT,
+      Player.VISUAL_OFFSET_Y
     );
     const digOffset = this.getVisualOffset(
       Player.DIG_VISUAL_WIDTH,
@@ -237,6 +291,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   override destroy(fromScene?: boolean): void {
     this.digTween?.stop();
+    this.clearDigAnimationCompleteHandler();
     this.runSprite.destroy();
     this.digSprite.destroy();
     this.shovel.destroy();
@@ -249,6 +304,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.facingDirection = input.clone().normalize();
+    if (input.x < 0) {
+      this.facingHorizontal = "left";
+    } else if (input.x > 0) {
+      this.facingHorizontal = "right";
+    }
   }
 
   private updateShovelPlacement(): void {
@@ -267,17 +327,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.digTween = undefined;
   }
 
-  private updateFacingFlip(input: Phaser.Math.Vector2): void {
-    if (input.x < 0) {
-      this.runSprite.setFlipX(true);
-      this.digSprite.setFlipX(true);
-    } else if (input.x > 0) {
-      this.runSprite.setFlipX(false);
-      this.digSprite.setFlipX(false);
-    }
-  }
-
   private showRunVisual(): void {
+    this.clearDigAnimationCompleteHandler();
     this.runSprite.setVisible(true);
     this.digSprite.setVisible(false);
     this.digSprite.stop();
@@ -286,6 +337,57 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private showDigVisual(): void {
     this.runSprite.setVisible(false);
     this.digSprite.setVisible(true);
+  }
+
+  private clearDigAnimationCompleteHandler(): void {
+    if (!this.digAnimationCompleteHandler) {
+      return;
+    }
+
+    this.digSprite.off(
+      Phaser.Animations.Events.ANIMATION_COMPLETE,
+      this.digAnimationCompleteHandler
+    );
+    this.digAnimationCompleteHandler = undefined;
+  }
+
+  private playFacingIdle(force = false): void {
+    if (force) {
+      this.runSprite.anims.stop();
+    }
+
+    this.setFacingIdleFrame();
+  }
+
+  private getMovementAnimationKey(input: Phaser.Math.Vector2): string {
+    if (Math.abs(input.y) > Math.abs(input.x)) {
+      return input.y < 0 ? PLAYER_ANIMS.CLIMB_UP : PLAYER_ANIMS.CLIMB_DOWN;
+    }
+
+    return input.x < 0 ? PLAYER_ANIMS.WALK_LEFT : PLAYER_ANIMS.WALK_RIGHT;
+  }
+
+  private getDigAnimationKey(input: Phaser.Math.Vector2): string {
+    if (input.x < 0) {
+      return PLAYER_ANIMS.DIG_LEFT;
+    }
+
+    if (input.x > 0) {
+      return PLAYER_ANIMS.DIG_RIGHT;
+    }
+
+    return this.facingHorizontal === "left"
+      ? PLAYER_ANIMS.DIG_LEFT
+      : PLAYER_ANIMS.DIG_RIGHT;
+  }
+
+  private setFacingIdleFrame(): void {
+    this.runSprite.anims.stop();
+    this.runSprite.setFrame(
+      this.facingHorizontal === "left"
+        ? PLAYER_IDLE_LEFT_FRAME
+        : PLAYER_IDLE_RIGHT_FRAME
+    );
   }
 
   private getShovelOffset(direction: Phaser.Math.Vector2): Phaser.Math.Vector2 {
@@ -305,9 +407,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     _visualHeight: number,
     offsetY: number
   ): Phaser.Math.Vector2 {
-    return new Phaser.Math.Vector2(
-      0,
-      offsetY
-    );
+    return new Phaser.Math.Vector2(0, offsetY);
   }
 }

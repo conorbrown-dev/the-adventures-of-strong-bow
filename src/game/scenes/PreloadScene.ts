@@ -1,11 +1,15 @@
 import Phaser from "phaser";
 
+import { cvcWords } from "../data/cvcWords";
 import { dinoCatalog, getDinoAnimationKeys } from "../data/dinos";
 import { ASSET_KEYS, FOSSIL_ASSET_KEYS, JEWEL_ASSET_KEYS } from "../utils/assetKeys";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 export class PreloadScene extends Phaser.Scene {
+  private static readonly PLAYER_FRAME_SIZE = 280;
+  private static readonly PLAYER_FRAMES_PER_ROW = 6;
+
   constructor() {
     super(SCENE_KEYS.PRELOAD);
   }
@@ -25,7 +29,6 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.createDerivedPlayerTextures();
     this.applyTextureFilters();
     this.createPlaceholderTextures();
     this.createAnimations();
@@ -38,9 +41,9 @@ export class PreloadScene extends Phaser.Scene {
       new URL("../assets/spritesheets/characters/player.spritesheet.png", import.meta.url)
         .toString(),
       {
-        frameWidth: 280,
-        frameHeight: 280,
-        margin: 1,
+        frameWidth: PreloadScene.PLAYER_FRAME_SIZE,
+        frameHeight: PreloadScene.PLAYER_FRAME_SIZE,
+        margin: 0,
         spacing: 0
       }
     );
@@ -51,12 +54,83 @@ export class PreloadScene extends Phaser.Scene {
         import.meta.url
       ).toString(),
       {
-        frameWidth: 280,
-        frameHeight: 280,
-        margin: 1,
+        frameWidth: PreloadScene.PLAYER_FRAME_SIZE,
+        frameHeight: PreloadScene.PLAYER_FRAME_SIZE,
+        margin: 0,
         spacing: 0
       }
     );
+    this.load.audio(
+      ASSET_KEYS.SHOVEL_CLINK,
+      new URL("../assets/sfx/sfx-shovel-clink.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.DIGGING,
+      new URL("../assets/sfx/sfx-digging.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.FOSSIL_DISCOVERED,
+      new URL("../assets/sfx/fossil-discovered.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.BUTTON_CLICK,
+      new URL("../assets/sfx/sfx-button-click.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.BUTTON_HOVER,
+      new URL("../assets/sfx/sfx-button-hover.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.DIG_BGM,
+      new URL("../assets/bgm/dig-bgm.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.FOSSIL_DIG_INTRO,
+      new URL("../assets/voice/fossil-dig-intro.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.FIND_THE_FOSSIL_FOR,
+      new URL("../assets/voice/find-the-fossil-for.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.CLIMB_TO_THE_SURFACE,
+      new URL("../assets/voice/climb-to-the-surface.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.IS_THIS_THE_CORRECT_FOSSIL,
+      new URL("../assets/voice/is-this-the-correct-fossil.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.WAY_TO_GO,
+      new URL("../assets/voice/way-to-go.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.SUPERB,
+      new URL("../assets/voice/superb.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.GREAT_JOB_MOLLY,
+      new URL("../assets/voice/great-job-molly.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.EXCELLENT,
+      new URL("../assets/voice/excellent.wav", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.DINO_COMES_TO_LIFE,
+      new URL("../assets/voice/dino-comes-to-life.wav", import.meta.url).toString()
+    );
+    this.load.image(
+      ASSET_KEYS.LEVEL_BACKGROUND,
+      new URL("../assets/backgrounds/fossil-dig-level-background.png", import.meta.url)
+        .toString()
+    );
+    cvcWords.forEach((word) => {
+      this.load.audio(
+        word.voiceAssetKey,
+        new URL(`../assets/voice/cvc/cvc-${word.word}.wav`, import.meta.url).toString()
+      );
+    });
 
     Object.values(dinoCatalog).forEach((dino) => {
       this.load.spritesheet(
@@ -208,59 +282,75 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   private createAnimations(): void {
-    if (!this.anims.exists("player-idle")) {
+    if (!this.anims.exists("player-idle-right")) {
       this.anims.create({
-        key: "player-idle",
-        frames: [{ key: ASSET_KEYS.PLAYER, frame: 0 }],
-        frameRate: 1,
-        repeat: -1
-      });
-    }
-
-    if (!this.anims.exists("player-dig-walk")) {
-      this.anims.create({
-        key: "player-dig-walk",
-        frames: [
-          { key: ASSET_KEYS.PLAYER, frame: 0 },
-          { key: ASSET_KEYS.PLAYER, frame: 1 },
-          { key: ASSET_KEYS.PLAYER_RUN_FRAME_2_FLIPPED },
-          { key: ASSET_KEYS.PLAYER_RUN_FRAME_3_FLIPPED }
-        ],
+        key: "player-idle-right",
+        frames: this.getPlayerRowFrames(0),
         frameRate: 5,
         repeat: -1
       });
     }
 
-    if (!this.anims.exists("player-dig-action")) {
+    if (!this.anims.exists("player-walk-right")) {
       this.anims.create({
-        key: "player-dig-action",
-        frames: this.anims.generateFrameNumbers(ASSET_KEYS.PLAYER_DIGGING, {
-          frames: [4, 5, 6, 7]
-        }),
-        frameRate: 6,
-        repeat: -1
-      });
-    }
-
-    if (!this.anims.exists("player-chase-run")) {
-      this.anims.create({
-        key: "player-chase-run",
-        frames: this.anims.generateFrameNumbers(ASSET_KEYS.PLAYER, {
-          frames: [4, 5, 6, 7]
-        }),
+        key: "player-walk-right",
+        frames: this.getPlayerRowFrames(1),
         frameRate: 8,
         repeat: -1
       });
     }
 
-    if (!this.anims.exists("player-jump")) {
+    if (!this.anims.exists("player-idle-left")) {
       this.anims.create({
-        key: "player-jump",
-        frames: this.anims.generateFrameNumbers(ASSET_KEYS.PLAYER, {
-          frames: [12, 13, 14, 15]
-        }),
-        frameRate: 10,
+        key: "player-idle-left",
+        frames: this.getPlayerRowFrames(2),
+        frameRate: 5,
         repeat: -1
+      });
+    }
+
+    if (!this.anims.exists("player-walk-left")) {
+      this.anims.create({
+        key: "player-walk-left",
+        frames: this.getPlayerRowFrames(3),
+        frameRate: 8,
+        repeat: -1
+      });
+    }
+
+    if (!this.anims.exists("player-climb-up")) {
+      this.anims.create({
+        key: "player-climb-up",
+        frames: this.getPlayerRowFrames(4),
+        frameRate: 8,
+        repeat: -1
+      });
+    }
+
+    if (!this.anims.exists("player-climb-down")) {
+      this.anims.create({
+        key: "player-climb-down",
+        frames: this.getPlayerRowFrames(5),
+        frameRate: 8,
+        repeat: -1
+      });
+    }
+
+    if (!this.anims.exists("player-dig-right")) {
+      this.anims.create({
+        key: "player-dig-right",
+        frames: this.getPlayerDigRowFrames(0),
+        frameRate: 8,
+        repeat: 0
+      });
+    }
+
+    if (!this.anims.exists("player-dig-left")) {
+      this.anims.create({
+        key: "player-dig-left",
+        frames: this.getPlayerDigRowFrames(1),
+        frameRate: 8,
+        repeat: 0
       });
     }
 
@@ -339,51 +429,6 @@ export class PreloadScene extends Phaser.Scene {
     graphics.destroy();
   }
 
-  private createDerivedPlayerTextures(): void {
-    this.createFlippedPlayerFrame(
-      2,
-      ASSET_KEYS.PLAYER_RUN_FRAME_2_FLIPPED
-    );
-    this.createFlippedPlayerFrame(
-      3,
-      ASSET_KEYS.PLAYER_RUN_FRAME_3_FLIPPED
-    );
-  }
-
-  private createFlippedPlayerFrame(frameIndex: number, targetKey: string): void {
-    if (this.textures.exists(targetKey)) {
-      return;
-    }
-
-    const frame = this.textures.getFrame(ASSET_KEYS.PLAYER, frameIndex);
-    const canvasTexture = this.textures.createCanvas(
-      targetKey,
-      frame.cutWidth,
-      frame.cutHeight
-    );
-    if (!canvasTexture) {
-      return;
-    }
-
-    const ctx = canvasTexture.context;
-
-    ctx.save();
-    ctx.scale(-1, 1);
-    ctx.drawImage(
-      frame.source.image as CanvasImageSource,
-      frame.cutX,
-      frame.cutY,
-      frame.cutWidth,
-      frame.cutHeight,
-      -frame.cutWidth,
-      0,
-      frame.cutWidth,
-      frame.cutHeight
-    );
-    ctx.restore();
-    canvasTexture.refresh();
-  }
-
   private applyTextureFilters(): void {
     const nearestKeys = [
       ASSET_KEYS.TERRAIN,
@@ -395,9 +440,8 @@ export class PreloadScene extends Phaser.Scene {
     const linearKeys = [
       ASSET_KEYS.PLAYER,
       ASSET_KEYS.PLAYER_DIGGING,
-      ASSET_KEYS.PLAYER_RUN_FRAME_2_FLIPPED,
-      ASSET_KEYS.PLAYER_RUN_FRAME_3_FLIPPED,
       ASSET_KEYS.TITLE_SCREEN,
+      ASSET_KEYS.LEVEL_BACKGROUND,
       ASSET_KEYS.TITLE_BUTTON_START_ACTIVE,
       ASSET_KEYS.TITLE_BUTTON_START_INACTIVE,
       ASSET_KEYS.TITLE_BUTTON_SETTINGS_ACTIVE,
@@ -420,6 +464,26 @@ export class PreloadScene extends Phaser.Scene {
     });
     Object.values(dinoCatalog).forEach((dino) => {
       this.textures.get(dino.textureKey).setFilter(Phaser.Textures.FilterMode.LINEAR);
+    });
+  }
+
+  private getPlayerRowFrames(rowIndex: number): Phaser.Types.Animations.AnimationFrame[] {
+    const start = rowIndex * PreloadScene.PLAYER_FRAMES_PER_ROW;
+    const end = start + PreloadScene.PLAYER_FRAMES_PER_ROW - 1;
+
+    return this.anims.generateFrameNumbers(ASSET_KEYS.PLAYER, {
+      start,
+      end
+    });
+  }
+
+  private getPlayerDigRowFrames(rowIndex: number): Phaser.Types.Animations.AnimationFrame[] {
+    const start = rowIndex * PreloadScene.PLAYER_FRAMES_PER_ROW;
+    const end = start + PreloadScene.PLAYER_FRAMES_PER_ROW - 1;
+
+    return this.anims.generateFrameNumbers(ASSET_KEYS.PLAYER_DIGGING, {
+      start,
+      end
     });
   }
 }

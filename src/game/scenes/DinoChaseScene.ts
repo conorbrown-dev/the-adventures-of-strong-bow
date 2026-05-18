@@ -13,6 +13,7 @@ import { ChaseSystem } from "../systems/ChaseSystem";
 import { CollisionSystem } from "../systems/CollisionSystem";
 import { LearningPromptSystem } from "../systems/LearningPromptSystem";
 import { Hud } from "../ui/Hud";
+import { ASSET_KEYS } from "../utils/assetKeys";
 import {
   CHASE_FINISH_X,
   CHASE_WORLD_WIDTH,
@@ -42,6 +43,7 @@ export class DinoChaseScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.stopDigBackgroundMusic();
     const selectedDino = getDinoById(this.stageTheme.dinoId);
 
     this.cameras.main.setBackgroundColor(0xcde8ff);
@@ -152,12 +154,29 @@ export class DinoChaseScene extends Phaser.Scene {
           });
         },
         onWin: () => {
-          this.scene.start(SCENE_KEYS.WIN);
+          this.scene.start(SCENE_KEYS.WIN, {
+            variant: this.variant,
+            stageTheme: this.stageTheme
+          });
         }
       }
     );
 
     void this.chaseSystem.beginIntro();
+  }
+
+  private stopDigBackgroundMusic(): void {
+    const bgm = this.sound.get(ASSET_KEYS.DIG_BGM);
+
+    if (!bgm) {
+      return;
+    }
+
+    if (bgm.isPlaying) {
+      bgm.stop();
+    }
+
+    bgm.destroy();
   }
 
   update(): void {

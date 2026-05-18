@@ -1,11 +1,13 @@
 import {
-  FOSSIL_DIG_MODE_CONFIGS,
+  getFossilDigModeConfig,
+  type FossilDigModeConfig,
   type FossilDigVariant
 } from "./FossilDigConfig";
 import { buildFossilDigContent } from "./FossilDigContent";
 import { FossilDigState } from "./FossilDigState";
 import { getDinoById } from "../../data/dinos";
 import { getJewelById } from "../../data/jewels";
+import { getCvcConfiguredTargetCount } from "../../settings/parentalSettings";
 import {
   createRandomFossilDigStageTheme,
   type FossilDigStageTheme
@@ -16,11 +18,12 @@ export class FossilDigMode {
 
   private constructor(
     public readonly variant: FossilDigVariant,
-    public readonly config: (typeof FOSSIL_DIG_MODE_CONFIGS)[FossilDigVariant],
+    public readonly config: FossilDigModeConfig,
     public readonly content: ReturnType<typeof buildFossilDigContent>,
-    public readonly stageTheme: FossilDigStageTheme
+    public readonly stageTheme: FossilDigStageTheme,
+    totalFossils: number
   ) {
-    this.state = new FossilDigState(content.pickups.length);
+    this.state = new FossilDigState(totalFossils);
   }
 
   get bossDino() {
@@ -35,9 +38,13 @@ export class FossilDigMode {
     variant: FossilDigVariant,
     stageTheme: FossilDigStageTheme = createRandomFossilDigStageTheme()
   ): FossilDigMode {
-    const config = FOSSIL_DIG_MODE_CONFIGS[variant];
+    const config = getFossilDigModeConfig(variant);
     const content = buildFossilDigContent(variant);
+    const totalFossils =
+      variant === "cvc"
+        ? getCvcConfiguredTargetCount(content.pickups.length)
+        : content.pickups.length;
 
-    return new FossilDigMode(variant, config, content, stageTheme);
+    return new FossilDigMode(variant, config, content, stageTheme, totalFossils);
   }
 }

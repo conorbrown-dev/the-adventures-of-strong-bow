@@ -11,6 +11,7 @@
     "start": "node server.mjs"
   },
   "dependencies": {
+    "lucide": "^1.16.0",
     "phaser": "^3.80.1"
   },
   "devDependencies": {

@@ -1,13 +1,29 @@
 import Phaser from "phaser";
 
+import type { FossilDigVariant } from "../modes/fossil-dig/FossilDigConfig";
+import type { FossilDigStageTheme } from "../modes/fossil-dig/FossilDigStageTheme";
+import { playButtonClick, playButtonHover } from "../utils/uiSound";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
+interface WinSceneData {
+  variant?: FossilDigVariant;
+  stageTheme?: FossilDigStageTheme;
+}
+
 export class WinScene extends Phaser.Scene {
+  private variant: FossilDigVariant = "cvc";
+  private stageTheme?: FossilDigStageTheme;
   private enterKey?: Phaser.Input.Keyboard.Key;
+  private escapeKey?: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super(SCENE_KEYS.WIN);
+  }
+
+  init(data: WinSceneData): void {
+    this.variant = data.variant ?? "cvc";
+    this.stageTheme = data.stageTheme;
   }
 
   create(): void {
@@ -32,7 +48,7 @@ export class WinScene extends Phaser.Scene {
     }
 
     this.add
-      .text(GAME_WIDTH / 2, 220, "You escaped the dinosaur!", {
+      .text(GAME_WIDTH / 2, 210, "You escaped the Wordosaur!", {
         fontFamily: "Trebuchet MS",
         fontSize: "54px",
         fontStyle: "bold",
@@ -44,8 +60,8 @@ export class WinScene extends Phaser.Scene {
     this.add
       .text(
         GAME_WIDTH / 2,
-        330,
-        "Press Enter or click to return to the menu.",
+        308,
+        "Choose what to do next.",
         {
           fontFamily: "Trebuchet MS",
           fontSize: "28px",
@@ -54,25 +70,93 @@ export class WinScene extends Phaser.Scene {
       )
       .setOrigin(0.5);
 
+    this.createButton(
+      GAME_WIDTH / 2,
+      408,
+      "Play Again",
+      () => {
+        this.scene.start(SCENE_KEYS.FOSSIL_DIG, {
+          variant: this.variant,
+          stageTheme: this.stageTheme
+        });
+      }
+    );
+    this.createButton(
+      GAME_WIDTH / 2,
+      500,
+      "Title Screen",
+      () => {
+        this.scene.start(SCENE_KEYS.TITLE);
+      }
+    );
+
     this.add
-      .text(GAME_WIDTH / 2, 430, "Next step ideas: more fossils, better prompts, real animations.", {
-        fontFamily: "Trebuchet MS",
-        fontSize: "24px",
-        color: COLORS.TEXT_DARK
-      })
+      .text(
+        GAME_WIDTH / 2,
+        602,
+        "Press Enter to play again or Esc for the title screen.",
+        {
+          fontFamily: "Trebuchet MS",
+          fontSize: "24px",
+          color: COLORS.TEXT_DARK
+        }
+      )
       .setOrigin(0.5);
 
     this.enterKey = this.input.keyboard!.addKey(
       Phaser.Input.Keyboard.KeyCodes.ENTER
     );
-    this.input.once("pointerdown", () => {
-      this.scene.start(SCENE_KEYS.MAIN_MENU);
-    });
+    this.escapeKey = this.input.keyboard!.addKey(
+      Phaser.Input.Keyboard.KeyCodes.ESC
+    );
   }
 
   update(): void {
     if (this.enterKey && Phaser.Input.Keyboard.JustDown(this.enterKey)) {
-      this.scene.start(SCENE_KEYS.MAIN_MENU);
+      this.scene.start(SCENE_KEYS.FOSSIL_DIG, {
+        variant: this.variant,
+        stageTheme: this.stageTheme
+      });
+      return;
     }
+
+    if (this.escapeKey && Phaser.Input.Keyboard.JustDown(this.escapeKey)) {
+      this.scene.start(SCENE_KEYS.TITLE);
+    }
+  }
+
+  private createButton(
+    x: number,
+    y: number,
+    label: string,
+    onActivate: () => void
+  ): void {
+    const background = this.add
+      .rectangle(0, 0, 300, 62, 0xf6edd7, 1)
+      .setStrokeStyle(3, 0x5e4127);
+    const text = this.add
+      .text(0, 0, label, {
+        fontFamily: "Trebuchet MS",
+        fontSize: "30px",
+        color: COLORS.TEXT_DARK,
+        fontStyle: "bold"
+      })
+      .setOrigin(0.5);
+    const button = this.add.container(x, y, [background, text]);
+    const hitArea = this.add
+      .zone(x, y, 300, 62)
+      .setInteractive({ useHandCursor: true });
+
+    hitArea.on("pointerover", () => {
+      playButtonHover(this);
+      button.setScale(1.04);
+    });
+    hitArea.on("pointerout", () => {
+      button.setScale(1);
+    });
+    hitArea.on("pointerup", () => {
+      playButtonClick(this);
+      onActivate();
+    });
   }
 }

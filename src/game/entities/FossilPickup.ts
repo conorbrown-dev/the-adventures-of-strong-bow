@@ -7,6 +7,8 @@ export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
   declare body: Phaser.Physics.Arcade.Body;
 
   private static readonly DISPLAY_SIZE = 68;
+  private static readonly REVEAL_SUSPENSE_MS = 1200;
+  static readonly CELL_OFFSET_Y = -12;
 
   readonly pickupId: string;
   readonly label: string;
@@ -17,7 +19,8 @@ export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
   private busy = false;
   private labelVisible = true;
   private revealed = true;
-  private readonly labelOffsetY = 56;
+  private collectibleAt = 0;
+  private readonly labelOffsetY = 34;
 
   constructor(
     scene: Phaser.Scene,
@@ -52,10 +55,13 @@ export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
     this.labelText = scene.add
       .text(x, y, label, {
         fontFamily: "Trebuchet MS",
-        fontSize: "22px",
+        fontSize: "24px",
         color: "#2d1f14",
-        fontStyle: "bold"
+        fontStyle: "bold",
+        stroke: "#fffdf6",
+        strokeThickness: 5
       })
+      .setShadow(0, 2, "#fff8e8", 4, true, true)
       .setOrigin(0.5)
       .setDepth(13);
   }
@@ -95,6 +101,8 @@ export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.revealed = true;
+    this.collectibleAt =
+      this.scene.time.now + FossilPickup.REVEAL_SUSPENSE_MS;
     this.setVisible(true);
     this.setAlpha(1);
     this.body.enable = true;
@@ -113,7 +121,19 @@ export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
     return this.busy;
   }
 
-  async playIncorrectPickupFeedback(): Promise<void> {
+  isCollectible(): boolean {
+    return this.scene.time.now >= this.collectibleAt;
+  }
+
+  isRevealSuspenseActive(): boolean {
+    return (
+      this.revealed &&
+      !this.collected &&
+      this.scene.time.now < this.collectibleAt
+    );
+  }
+
+  async playIncorrectPickupFeedback(reappear = true): Promise<void> {
     if (this.collected || this.busy) {
       return;
     }
@@ -155,6 +175,14 @@ export class FossilPickup extends Phaser.Physics.Arcade.Sprite {
     crumbleOverlay.destroy();
 
     await this.wait(220);
+
+    if (!reappear) {
+      this.collected = true;
+      this.busy = false;
+      this.disableBody(true, true);
+      this.labelText.setVisible(false);
+      return;
+    }
 
     this.setVisible(true);
     this.setDisplaySize(

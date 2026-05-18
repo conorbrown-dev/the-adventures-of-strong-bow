@@ -73,7 +73,7 @@ export class GemPickup extends Phaser.Physics.Arcade.Sprite {
   }
 
   override destroy(fromScene?: boolean): void {
-    this.scene.tweens.killTweensOf(this);
+    this.scene?.tweens?.killTweensOf(this);
     this.labelText.destroy();
     super.destroy(fromScene);
   }

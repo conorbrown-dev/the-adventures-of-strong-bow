@@ -15,12 +15,12 @@ export class LearningPromptSystem {
     private readonly validationMode: ValidationMode
   ) {
     this.currentPrompt = initialPrompt;
-    this.hud.setPrompt(initialPrompt.displayText);
+    this.hud.setPrompt(initialPrompt);
   }
 
   setPrompt(prompt: PromptDescriptor): void {
     this.currentPrompt = prompt;
-    this.hud.setPrompt(prompt.displayText);
+    this.hud.setPrompt(prompt);
   }
 
   getCurrentPrompt(): PromptDescriptor {
