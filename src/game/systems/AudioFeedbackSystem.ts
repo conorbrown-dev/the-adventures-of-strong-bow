@@ -125,6 +125,10 @@ export class AudioFeedbackSystem {
     await this.playVoiceClipInternal(key, config, this.beginVoiceSequence());
   }
 
+  interruptVoicePlayback(): void {
+    this.beginVoiceSequence();
+  }
+
   private async playVoiceClipInternal(
     key: string,
     config: Phaser.Types.Sound.SoundConfig,

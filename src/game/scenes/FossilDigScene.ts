@@ -1556,9 +1556,9 @@ export class FossilDigScene extends Phaser.Scene {
     if (currentCell) {
       return Phaser.Math.Clamp(
         Math.max(
-          (currentCell.row + 2) * this.mode.config.cellSize,
+          (currentCell.row + 3) * this.mode.config.cellSize,
           revealFocusRow !== null
-            ? (revealFocusRow + 1) * this.mode.config.cellSize
+            ? (revealFocusRow + 2) * this.mode.config.cellSize
             : 0
         ),
         0,
@@ -1574,9 +1574,9 @@ export class FossilDigScene extends Phaser.Scene {
     if (isInSurfaceShaft) {
       return Phaser.Math.Clamp(
         Math.max(
-          this.mode.config.cellSize,
+          this.mode.config.cellSize * 2,
           revealFocusRow !== null
-            ? (revealFocusRow + 1) * this.mode.config.cellSize
+            ? (revealFocusRow + 2) * this.mode.config.cellSize
             : 0
         ),
         0,
@@ -1586,7 +1586,7 @@ export class FossilDigScene extends Phaser.Scene {
 
     if (revealFocusRow !== null) {
       return Phaser.Math.Clamp(
-        (revealFocusRow + 1) * this.mode.config.cellSize,
+        (revealFocusRow + 2) * this.mode.config.cellSize,
         0,
         maxScrollY
       );
@@ -1968,11 +1968,30 @@ export class FossilDigScene extends Phaser.Scene {
       this.variant === "cvc" &&
       !this.transitionStarted &&
       !this.pendingSurfaceAssembly;
+    let cleanedUp = false;
 
     this.movementLocked = true;
     if (shouldRestoreRepeatButton) {
       this.hud.setRepeatButtonEnabled(false);
     }
+
+    const cleanup = (): void => {
+      if (cleanedUp) {
+        return;
+      }
+
+      cleanedUp = true;
+      this.input.off("pointerdown", skipVoiceover);
+      this.events.off(Phaser.Scenes.Events.SHUTDOWN, skipVoiceover);
+    };
+
+    const skipVoiceover = (): void => {
+      this.audioFeedbackSystem.interruptVoicePlayback();
+      cleanup();
+    };
+
+    this.input.once("pointerdown", skipVoiceover);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, skipVoiceover);
 
     try {
       await this.audioFeedbackSystem.playVoiceClip(
@@ -1980,6 +1999,7 @@ export class FossilDigScene extends Phaser.Scene {
         { volume: 0.9 }
       );
     } finally {
+      cleanup();
       this.movementLocked = false;
       if (shouldRestoreRepeatButton) {
         this.hud.setRepeatButtonEnabled(true);

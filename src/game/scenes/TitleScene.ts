@@ -35,6 +35,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.resetTitleCamera();
     this.startBackgroundMusic();
 
     this.add
@@ -81,6 +82,15 @@ export class TitleScene extends Phaser.Scene {
     );
 
     this.refreshSelection();
+  }
+
+  private resetTitleCamera(): void {
+    this.cameras.main.stopFollow();
+    this.cameras.main.setZoom(1);
+    this.cameras.main.setScroll(0, 0);
+    this.cameras.main.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    this.cameras.main.resetFX();
+    this.cameras.main.setAlpha(1);
   }
 
   update(): void {
