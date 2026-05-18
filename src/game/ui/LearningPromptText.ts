@@ -106,7 +106,10 @@ export class LearningPromptText extends Phaser.GameObjects.Container {
       return;
     }
 
-    if (prompt.displayText.toLowerCase().includes("gem")) {
+    if (
+      prompt.displayText.toLowerCase().includes("gem") ||
+      prompt.displayText.toLowerCase().includes("crystal")
+    ) {
       this.drawGemIcon(this.objectiveGem, 54, 0);
       this.objectiveGem.setVisible(true);
       return;

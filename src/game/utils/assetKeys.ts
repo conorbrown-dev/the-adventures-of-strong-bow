@@ -26,6 +26,7 @@ export const ASSET_KEYS = {
   DIG_BGM: "bgm-dig",
   FOSSIL_DIG_INTRO: "voice-fossil-dig-intro",
   FIND_THE_FOSSIL_FOR: "voice-find-the-fossil-for",
+  FIND_CRYSTAL: "voice-find-crystal",
   CLIMB_TO_THE_SURFACE: "voice-climb-to-the-surface",
   IS_THIS_THE_CORRECT_FOSSIL: "voice-is-this-the-correct-fossil",
   WAY_TO_GO: "voice-way-to-go",

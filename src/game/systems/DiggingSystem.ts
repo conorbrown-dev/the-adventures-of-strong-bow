@@ -162,10 +162,6 @@ export class DiggingSystem {
 
     const isVertical = Math.abs(direction.y) > Math.abs(direction.x);
 
-    if (isVertical && direction.y < 0) {
-      return null;
-    }
-
     if (y < this.config.undergroundTop) {
       if (!isVertical || direction.y <= 0) {
         return null;
@@ -183,6 +179,14 @@ export class DiggingSystem {
     const currentCell = this.getCellAtWorld(x, y);
 
     if (!currentCell) {
+      return null;
+    }
+
+    if (isVertical && direction.y < 0 && currentCell.row === 0) {
+      if (!this.surfaceOpen[currentCell.col]) {
+        return { kind: "surface", col: currentCell.col };
+      }
+
       return null;
     }
 
@@ -218,10 +222,6 @@ export class DiggingSystem {
 
     const isVertical = Math.abs(direction.y) > Math.abs(direction.x);
 
-    if (isVertical && direction.y < 0) {
-      return false;
-    }
-
     if (y < this.config.undergroundTop) {
       return false;
     }
@@ -229,6 +229,10 @@ export class DiggingSystem {
     const currentCell = this.getCellAtWorld(x, y);
 
     if (!currentCell) {
+      return false;
+    }
+
+    if (isVertical && direction.y < 0 && currentCell.row === 0) {
       return false;
     }
 

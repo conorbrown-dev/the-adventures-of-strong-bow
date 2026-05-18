@@ -53,7 +53,7 @@ export class LearningPromptSystem {
   showGemPrompt(): void {
     this.setPrompt({
       kind: "collect_all",
-      displayText: "The gem is glowing. Grab it!"
+      displayText: "The crystal is hidden below. Dig it up!"
     });
   }
 

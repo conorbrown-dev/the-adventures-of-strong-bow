@@ -93,6 +93,10 @@ export class PreloadScene extends Phaser.Scene {
       new URL("../assets/voice/find-the-fossil-for.wav", import.meta.url).toString()
     );
     this.load.audio(
+      ASSET_KEYS.FIND_CRYSTAL,
+      new URL("../assets/voice/find-crystal.wav", import.meta.url).toString()
+    );
+    this.load.audio(
       ASSET_KEYS.CLIMB_TO_THE_SURFACE,
       new URL("../assets/voice/climb-to-the-surface.wav", import.meta.url).toString()
     );

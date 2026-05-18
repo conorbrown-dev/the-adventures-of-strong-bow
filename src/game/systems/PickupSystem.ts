@@ -34,7 +34,6 @@ export class PickupSystem {
 
     if (this.state.allFossilsCollected && !this.state.gemAvailable) {
       this.state.markGemAvailable();
-      this.gem.activate();
       this.callbacks.onAllFossilsCollected();
     }
 

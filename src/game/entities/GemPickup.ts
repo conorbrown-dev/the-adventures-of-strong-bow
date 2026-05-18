@@ -5,6 +5,7 @@ export class GemPickup extends Phaser.Physics.Arcade.Sprite {
 
   private readonly labelText: Phaser.GameObjects.Text;
   private collected = false;
+  private revealed = true;
 
   constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string) {
     super(scene, x, y, textureKey);
@@ -30,7 +31,7 @@ export class GemPickup extends Phaser.Physics.Arcade.Sprite {
       .setOrigin(0.5)
       .setDepth(13);
 
-    this.deactivate();
+    this.hideUntilRevealed();
   }
 
   override preUpdate(time: number, delta: number): void {
@@ -38,8 +39,18 @@ export class GemPickup extends Phaser.Physics.Arcade.Sprite {
     this.labelText.setPosition(this.x, this.y + 62);
   }
 
-  activate(): void {
-    this.collected = false;
+  hideUntilRevealed(): void {
+    this.revealed = false;
+    this.disableBody(true, true);
+    this.labelText.setVisible(false);
+  }
+
+  reveal(): void {
+    if (this.collected || this.revealed) {
+      return;
+    }
+
+    this.revealed = true;
     this.enableBody(false, this.x, this.y, true, true);
     this.setAlpha(1);
     this.labelText.setVisible(true);
@@ -54,13 +65,12 @@ export class GemPickup extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  deactivate(): void {
-    this.disableBody(true, true);
-    this.labelText.setVisible(false);
+  isRevealed(): boolean {
+    return this.revealed;
   }
 
   collect(): boolean {
-    if (this.collected || !this.active) {
+    if (this.collected || !this.active || !this.revealed) {
       return false;
     }
 

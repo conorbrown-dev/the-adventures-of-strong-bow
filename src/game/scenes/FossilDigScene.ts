@@ -65,6 +65,11 @@ interface ActiveJump {
   baseY: number;
 }
 
+interface JumpLanding {
+  x: number;
+  y: number;
+}
+
 interface CvcDigSite {
   index: number;
   startCol: number;
@@ -88,6 +93,7 @@ export class FossilDigScene extends Phaser.Scene {
   private audioFeedbackSystem!: AudioFeedbackSystem;
   private collectedFossilTray?: CollectedFossilTray;
   private gem?: GemPickup;
+  private gemPlacement?: DigCell;
   private fossils: FossilPickup[] = [];
   private fossilPlacements: PlacedFossil[] = [];
   private cvcDigSites: CvcDigSite[] = [];
@@ -129,6 +135,7 @@ export class FossilDigScene extends Phaser.Scene {
     this.stageTheme = data.stageTheme;
     this.pickupSystem = undefined;
     this.gem = undefined;
+    this.gemPlacement = undefined;
     this.fossils = [];
     this.fossilPlacements = [];
     this.cvcDigSites = [];
@@ -246,19 +253,21 @@ export class FossilDigScene extends Phaser.Scene {
         this.mode.config.cellSize / 2,
       this.mode.rewardJewel.textureKey
     );
+    this.gemPlacement = gemSpawnCell;
 
     if (this.variant !== "cvc" && this.gem) {
       this.pickupSystem = new PickupSystem(this.mode.state, this.fossils, this.gem, {
         onProgress: (progress) => this.hud.updateProgress(progress),
         onAllFossilsCollected: () => {
           this.promptSystem.showGemPrompt();
+          if (this.revealGemIfReady()) {
+            this.audioFeedbackSystem.playFossilDiscovered();
+          }
         },
         onGemCollected: () => {
           void this.handleGemCollected();
         }
       });
-    } else {
-      this.gem.deactivate();
     }
 
     this.assemblySystem = new DinoAssemblySystem(this);
@@ -308,7 +317,7 @@ export class FossilDigScene extends Phaser.Scene {
     }
 
     if (this.activeMoveStep) {
-      if (this.tryStartJump(moveInput)) {
+      if (this.tryStartJump(input)) {
         return;
       }
 
@@ -345,7 +354,7 @@ export class FossilDigScene extends Phaser.Scene {
       return;
     }
 
-    if (this.tryStartJump(moveInput)) {
+    if (this.tryStartJump(input)) {
       return;
     }
 
@@ -592,14 +601,13 @@ export class FossilDigScene extends Phaser.Scene {
       newlyDug = this.diggingSystem.digCell(action.target.row, action.target.col);
     }
 
-    if (
-      action.target.kind === "cell" &&
-      Math.abs(action.direction.y) > Math.abs(action.direction.x)
-    ) {
-      this.diggingSystem.ensureLadderAtCell({
-        row: action.target.row,
-        col: action.target.col
-      });
+    if (Math.abs(action.direction.y) > Math.abs(action.direction.x)) {
+      if (action.target.kind === "cell") {
+        this.diggingSystem.ensureLadderAtCell({
+          row: action.target.row,
+          col: action.target.col
+        });
+      }
       const currentCell = this.diggingSystem.getCellAtWorld(
         this.player.x + collisionOffset.x,
         this.player.y + collisionOffset.y
@@ -704,7 +712,7 @@ export class FossilDigScene extends Phaser.Scene {
 
     const nextSite = this.cvcDigSites[this.collectedCorrectFossils.length];
 
-    if (nextSite) {
+    if (nextSite && this.cvcDigSites.length > 1) {
       this.currentCvcSiteIndex = nextSite.index;
       this.promptSystem.setPrompt({
         kind: "collect_all",
@@ -718,15 +726,16 @@ export class FossilDigScene extends Phaser.Scene {
       );
     } else {
       this.mode.state.markGemAvailable();
-      this.gem?.activate();
+      if (this.revealGemIfReady()) {
+        this.audioFeedbackSystem.playFossilDiscovered();
+      }
       this.updateCvcProgress();
       this.hud.setRepeatButtonEnabled(false);
       this.hud.setRepeatButtonVisible(false);
       this.promptSystem.showGemPrompt();
-      await this.audioFeedbackSystem.speakPhrase(
-        "Good job. You found all the fossils. Now find the jewel.",
-        { rate: 0.84, pitch: 1.08 }
-      );
+      await this.audioFeedbackSystem.playVoiceClip(ASSET_KEYS.FIND_CRYSTAL, {
+        volume: 0.9
+      });
     }
 
     this.pickupInteractionLocked = false;
@@ -809,6 +818,7 @@ export class FossilDigScene extends Phaser.Scene {
 
   private async revealFossilsInCells(cells: DigCell[]): Promise<void> {
     let revealedAnyFossil = false;
+    const revealedGem = this.revealGemInCells(cells);
 
     for (const cell of cells) {
       for (const placement of this.fossilPlacements) {
@@ -823,10 +833,54 @@ export class FossilDigScene extends Phaser.Scene {
       }
     }
 
-    if (revealedAnyFossil) {
+    if (revealedAnyFossil || revealedGem) {
       this.audioFeedbackSystem.playFossilDiscovered();
+    }
+
+    if (revealedAnyFossil) {
       await this.playRevealedFossilVoiceover();
     }
+  }
+
+  private revealGemIfReady(): boolean {
+    if (
+      !this.mode.state.gemAvailable ||
+      !this.gemPlacement ||
+      !this.diggingSystem.isCellDug(this.gemPlacement.row, this.gemPlacement.col)
+    ) {
+      return false;
+    }
+
+    return this.revealGem();
+  }
+
+  private revealGemInCells(cells: DigCell[]): boolean {
+    const gemPlacement = this.gemPlacement;
+
+    if (!this.mode.state.gemAvailable || !gemPlacement) {
+      return false;
+    }
+
+    const gemCellWasDug = cells.some(
+      (cell) =>
+        cell.row === gemPlacement.row &&
+        cell.col === gemPlacement.col
+    );
+
+    if (!gemCellWasDug) {
+      return false;
+    }
+
+    return this.revealGem();
+  }
+
+  private revealGem(): boolean {
+    if (!this.gem || this.gem.isRevealed()) {
+      return false;
+    }
+
+    this.gem.reveal();
+    return true;
   }
 
   private createSurfaceTiles(): void {
@@ -977,11 +1031,35 @@ export class FossilDigScene extends Phaser.Scene {
       return true;
     }
 
-    if (!currentCell || !this.diggingSystem.isCellLaddered(currentCell.row, currentCell.col)) {
+    if (!currentCell) {
       return false;
     }
 
-    if (direction < 0 && currentCell.row === 0) {
+    const currentCellHasLadder = this.diggingSystem.isCellLaddered(
+      currentCell.row,
+      currentCell.col
+    );
+    const belowCell = {
+      row: currentCell.row + 1,
+      col: currentCell.col
+    };
+    const canMoveIntoBelowCell =
+      direction > 0 &&
+      this.isSpawnCellInBounds(belowCell.row, belowCell.col) &&
+      this.isColumnUnlocked(belowCell.col) &&
+      !this.isCellBlockedByRevealSuspense(belowCell) &&
+      this.diggingSystem.isCellDug(belowCell.row, belowCell.col);
+    const canEnterLadderBelow =
+      canMoveIntoBelowCell &&
+      this.diggingSystem.isCellLaddered(belowCell.row, belowCell.col);
+    const canDropFromLadderBelow =
+      canMoveIntoBelowCell && currentCellHasLadder;
+
+    if (!currentCellHasLadder && !canEnterLadderBelow) {
+      return false;
+    }
+
+    if (direction < 0 && currentCell.row === 0 && currentCellHasLadder) {
       if (!this.diggingSystem.isSurfaceOpen(currentCell.col)) {
         return false;
       }
@@ -994,7 +1072,30 @@ export class FossilDigScene extends Phaser.Scene {
       return true;
     }
 
+    if (!currentCellHasLadder && canEnterLadderBelow) {
+      const destination = this.getDigCellPlayerPosition(belowCell);
+      this.startMoveStep(
+        destination.x,
+        destination.y,
+        new Phaser.Math.Vector2(0, 1)
+      );
+      return true;
+    }
+
     const targetRow = currentCell.row + direction;
+    if (direction > 0 && canDropFromLadderBelow) {
+      const destination = this.getDigCellPlayerPosition({
+        row: targetRow,
+        col: currentCell.col
+      });
+      this.startMoveStep(
+        destination.x,
+        destination.y,
+        new Phaser.Math.Vector2(0, 1)
+      );
+      return true;
+    }
+
     if (
       !this.isSpawnCellInBounds(targetRow, currentCell.col) ||
       !this.isColumnUnlocked(currentCell.col) ||
@@ -1075,13 +1176,15 @@ export class FossilDigScene extends Phaser.Scene {
     return true;
   }
 
-  private tryStartJump(moveInput: Phaser.Math.Vector2): boolean {
+  private tryStartJump(input: Phaser.Math.Vector2): boolean {
     if (!this.jumpKey || !Phaser.Input.Keyboard.JustDown(this.jumpKey)) {
       return false;
     }
 
-    const direction =
-      moveInput.lengthSq() > 0 ? moveInput.clone() : new Phaser.Math.Vector2(0, 0);
+    const direction = new Phaser.Math.Vector2(
+      input.x === 0 ? 0 : Math.sign(input.x),
+      input.y < 0 ? -1 : 0
+    );
 
     this.startJump(direction);
     return true;
@@ -1197,8 +1300,13 @@ export class FossilDigScene extends Phaser.Scene {
   private startJump(direction: Phaser.Math.Vector2): void {
     const jumpBase = this.getJumpBasePosition();
     const jumpHeight = this.mode.config.cellSize * DIG_JUMP_HEIGHT_BLOCKS;
-    const targetX = this.getJumpTargetX(direction.x, jumpBase.x, jumpBase.y);
-    const midpointX = Phaser.Math.Linear(this.player.x, targetX, 0.5);
+    const landing = this.getJumpLanding(
+      direction.x,
+      direction.y < 0,
+      jumpBase.x,
+      jumpBase.y
+    );
+    const midpointX = Phaser.Math.Linear(this.player.x, landing.x, 0.5);
     const apexY = jumpBase.y - jumpHeight;
 
     this.moveTween?.stop();
@@ -1221,14 +1329,14 @@ export class FossilDigScene extends Phaser.Scene {
           ease: "Sine.Out"
         },
         {
-          x: targetX,
-          y: jumpBase.y,
+          x: landing.x,
+          y: landing.y,
           duration: DIG_JUMP_DURATION_MS / 2,
           ease: "Sine.In"
         }
       ],
       onComplete: () => {
-        this.player.setPosition(targetX, jumpBase.y);
+        this.player.setPosition(landing.x, landing.y);
         this.activeJump = undefined;
         this.updateCameraPosition(true);
         this.jumpTween = undefined;
@@ -1302,9 +1410,20 @@ export class FossilDigScene extends Phaser.Scene {
     return destination;
   }
 
-  private getJumpTargetX(directionX: number, baseX: number, baseY: number): number {
+  private getJumpLanding(
+    directionX: number,
+    wantsUpwardLadderJump: boolean,
+    baseX: number,
+    baseY: number
+  ): JumpLanding {
+    const ladderLanding = this.getJumpLandingForLadderAbove(baseX, baseY);
+
+    if (ladderLanding && wantsUpwardLadderJump) {
+      return ladderLanding;
+    }
+
     if (directionX === 0) {
-      return baseX;
+      return { x: baseX, y: baseY };
     }
 
     const collisionOffset = this.player.getCollisionCenterOffset();
@@ -1338,37 +1457,69 @@ export class FossilDigScene extends Phaser.Scene {
           bodyHeight
         )
       ) {
-        return baseX;
+        return { x: baseX, y: baseY };
       }
     }
 
     const snappedTargetCol = this.getNearestColumn(desiredBodyCenterX);
 
     if (!this.isColumnUnlocked(snappedTargetCol)) {
-      return baseX;
+      return { x: baseX, y: baseY };
     }
 
-    return this.getSurfaceOrUndergroundJumpTargetX(
+    return this.getSurfaceOrUndergroundJumpLanding(
       snappedTargetCol,
       startBodyCenterY,
       collisionOffset,
-      baseX
+      baseX,
+      baseY
     );
   }
 
-  private getSurfaceOrUndergroundJumpTargetX(
+  private getJumpLandingForLadderAbove(
+    baseX: number,
+    baseY: number
+  ): JumpLanding | null {
+    const collisionOffset = this.player.getCollisionCenterOffset();
+    const bodyCenterX = baseX + collisionOffset.x;
+    const bodyCenterY = baseY + collisionOffset.y;
+    const currentCell = this.diggingSystem.getCellAtWorld(bodyCenterX, bodyCenterY);
+
+    if (!currentCell) {
+      return null;
+    }
+
+    const targetCell = {
+      row: currentCell.row - 1,
+      col: currentCell.col
+    };
+
+    if (
+      !this.isSpawnCellInBounds(targetCell.row, targetCell.col) ||
+      !this.diggingSystem.isCellLaddered(targetCell.row, targetCell.col) ||
+      !this.isValidJumpLandingCell(targetCell)
+    ) {
+      return null;
+    }
+
+    return this.getDigCellPlayerPosition(targetCell);
+  }
+
+  private getSurfaceOrUndergroundJumpLanding(
     targetCol: number,
     startBodyCenterY: number,
     collisionOffset: { x: number; y: number },
-    baseX: number
-  ): number {
+    baseX: number,
+    baseY: number
+  ): JumpLanding {
     if (startBodyCenterY < this.mode.config.undergroundTop) {
-      return this.getSurfaceColumnCenterX(targetCol) - collisionOffset.x;
+      return {
+        x: this.getSurfaceColumnCenterX(targetCol) - collisionOffset.x,
+        y: baseY
+      };
     }
 
-    const { width: bodyWidth, height: bodyHeight } =
-      this.player.getCollisionFootprint();
-    const targetRow = Phaser.Math.Clamp(
+    const startRow = Phaser.Math.Clamp(
       Math.round(
         (startBodyCenterY -
           this.mode.config.undergroundTop -
@@ -1377,29 +1528,48 @@ export class FossilDigScene extends Phaser.Scene {
       0,
       this.mode.config.worldRows - 1
     );
-    const targetCell = {
-      row: targetRow,
-      col: targetCol
-    };
+    const preferredRows = [startRow - 1, startRow];
 
-    if (this.isCellBlockedByRevealSuspense(targetCell)) {
-      return baseX;
+    for (const row of preferredRows) {
+      if (!this.isValidJumpLandingCell({ row, col: targetCol })) {
+        continue;
+      }
+
+      const destination = this.getDigCellPlayerPosition({
+        row,
+        col: targetCol
+      });
+
+      return {
+        x: destination.x,
+        y: destination.y
+      };
     }
 
-    const snappedCenter = this.diggingSystem.getCellCenter(targetCell);
+    return { x: baseX, y: baseY };
+  }
 
+  private isValidJumpLandingCell(cell: DigCell): boolean {
     if (
-      !this.diggingSystem.canMoveToWorldRect(
-        snappedCenter.x,
-        startBodyCenterY,
-        bodyWidth,
-        bodyHeight
-      )
+      !this.isSpawnCellInBounds(cell.row, cell.col) ||
+      !this.isColumnUnlocked(cell.col) ||
+      this.isCellBlockedByRevealSuspense(cell) ||
+      !this.diggingSystem.isCellDug(cell.row, cell.col) ||
+      !this.isUndergroundCellSupported(cell)
     ) {
-      return baseX;
+      return false;
     }
 
-    return snappedCenter.x - collisionOffset.x;
+    const { width: bodyWidth, height: bodyHeight } =
+      this.player.getCollisionFootprint();
+    const bodyCenter = this.getDigCellStandingBodyCenter(cell.row, cell.col);
+
+    return this.diggingSystem.canMoveToWorldRect(
+      bodyCenter.x,
+      bodyCenter.y,
+      bodyWidth,
+      bodyHeight
+    );
   }
 
   private getStepDurationMs(): number {
