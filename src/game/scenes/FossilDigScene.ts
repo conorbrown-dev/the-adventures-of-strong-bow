@@ -23,6 +23,7 @@ import { LearningPromptSystem } from "../systems/LearningPromptSystem";
 import { PickupSystem } from "../systems/PickupSystem";
 import { CollectedFossilTray } from "../ui/CollectedFossilTray";
 import { Hud } from "../ui/Hud";
+import { getConfiguredBgmVolume } from "../settings/parentalSettings";
 import { ASSET_KEYS } from "../utils/assetKeys";
 import {
   CVC_DIG_SITE_WIDTH_BLOCKS,
@@ -167,6 +168,7 @@ export class FossilDigScene extends Phaser.Scene {
 
   create(): void {
     this.mode = FossilDigMode.create(this.variant, this.stageTheme);
+    this.startFossilDigBackgroundMusic();
     const worldWidth = this.mode.config.worldCols * this.mode.config.cellSize;
     const worldHeight =
       this.mode.config.undergroundTop +
@@ -2255,6 +2257,29 @@ export class FossilDigScene extends Phaser.Scene {
         ...config,
         onComplete: () => resolve()
       });
+    });
+  }
+
+  private startFossilDigBackgroundMusic(): void {
+    const bgmVolume = getConfiguredBgmVolume();
+    const existingSound = this.sound.get(ASSET_KEYS.DIG_BGM);
+
+    if (existingSound) {
+      (
+        existingSound as Phaser.Sound.WebAudioSound | Phaser.Sound.HTML5AudioSound
+      ).setVolume(bgmVolume);
+      if (!existingSound.isPlaying) {
+        existingSound.play({
+          loop: true,
+          volume: bgmVolume
+        });
+      }
+      return;
+    }
+
+    this.sound.play(ASSET_KEYS.DIG_BGM, {
+      loop: true,
+      volume: bgmVolume
     });
   }
 }

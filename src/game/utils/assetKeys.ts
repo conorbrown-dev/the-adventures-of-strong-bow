@@ -4,14 +4,24 @@ export const ASSET_KEYS = {
   TERRAIN: "terrain-tileset",
   OBSTACLE: "obstacle-placeholder",
   BUTTON: "button-placeholder",
+  LEARNING_ACADEMY_BACKGROUND: "learning-academy-background",
   TITLE_SCREEN: "fossil-dig-title-screen",
   LEVEL_BACKGROUND: "fossil-dig-level-background",
+  KITTEN_CATCH_BACKGROUND: "kitten-catch-background",
+  KITTEN_CATCH_TITLE_SCREEN: "kitten-catch-title-screen",
+  KITTEN_CATCH_BUTTON_START: "kitten-catch-button-start-game",
+  KITTEN_CATCH_BUTTON_SETTINGS: "kitten-catch-button-settings",
+  KITTEN_CATCH_BUTTON_BACK: "kitten-catch-button-back",
+  KITTEN_CATCH_BASKET: "kitten-catch-basket",
   TITLE_BUTTON_START_ACTIVE: "title-button-start-active",
   TITLE_BUTTON_START_INACTIVE: "title-button-start-inactive",
   TITLE_BUTTON_SETTINGS_ACTIVE: "title-button-settings-active",
   TITLE_BUTTON_SETTINGS_INACTIVE: "title-button-settings-inactive",
   TITLE_BUTTON_EXIT_ACTIVE: "title-button-exit-active",
   TITLE_BUTTON_EXIT_INACTIVE: "title-button-exit-inactive",
+  KITTEN_CATCHER: "character-kitten-catcher",
+  LETTER_APPLE_VOWEL: "letter-apple-vowel-placeholder",
+  LETTER_APPLE_CONSONANT: "letter-apple-consonant-placeholder",
   TUNNEL_DIRT: "terrain-tunnel-dirt",
   LADDER_TOP: "ladder-top",
   LADDER_MIDDLE: "ladder-middle",
@@ -33,7 +43,12 @@ export const ASSET_KEYS = {
   SUPERB: "voice-superb",
   GREAT_JOB_MOLLY: "voice-great-job-molly",
   EXCELLENT: "voice-excellent",
-  DINO_COMES_TO_LIFE: "voice-dino-comes-to-life"
+  DINO_COMES_TO_LIFE: "voice-dino-comes-to-life",
+  KITTEN_CATCH_INSTRUCTIONS: "voice-kitten-catch-instructions",
+  KITTEN_CATCH_VOWELS: "voice-kitten-catch-vowels",
+  KITTEN_CATCH_CONSONANTS: "voice-kitten-catch-consonants",
+  KITTEN_CATCH_WAY_TO_GO: "voice-kitten-catch-way-to-go",
+  KITTEN_CATCH_IMPRESSIVE: "voice-kitten-catch-impressive-most-impressive"
 } as const;
 
 export const FOSSIL_ASSET_KEYS = {
@@ -53,4 +68,12 @@ export const JEWEL_ASSET_KEYS = {
 export const DINO_ASSET_KEYS = {
   TREX: "dino-trex",
   TRICERATOPS: "dino-triceratops"
+} as const;
+
+export const YARN_ASSET_KEYS = {
+  BLUE: "yarn-blue",
+  ORANGE: "yarn-orange",
+  PURPLE: "yarn-purple",
+  RED: "yarn-red",
+  TEAL: "yarn-teal"
 } as const;

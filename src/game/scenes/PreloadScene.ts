@@ -2,13 +2,21 @@ import Phaser from "phaser";
 
 import { cvcWords } from "../data/cvcWords";
 import { dinoCatalog, getDinoAnimationKeys } from "../data/dinos";
-import { ASSET_KEYS, FOSSIL_ASSET_KEYS, JEWEL_ASSET_KEYS } from "../utils/assetKeys";
+import {
+  ASSET_KEYS,
+  FOSSIL_ASSET_KEYS,
+  JEWEL_ASSET_KEYS,
+  YARN_ASSET_KEYS
+} from "../utils/assetKeys";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 export class PreloadScene extends Phaser.Scene {
   private static readonly PLAYER_FRAME_SIZE = 280;
   private static readonly PLAYER_FRAMES_PER_ROW = 6;
+  private static readonly KITTEN_FRAME_WIDTH = 192;
+  private static readonly KITTEN_FRAME_HEIGHT = 160;
+  private static readonly KITTEN_FRAME_COUNT = 13;
 
   constructor() {
     super(SCENE_KEYS.PRELOAD);
@@ -60,6 +68,19 @@ export class PreloadScene extends Phaser.Scene {
         spacing: 0
       }
     );
+    this.load.spritesheet(
+      ASSET_KEYS.KITTEN_CATCHER,
+      new URL(
+        "../assets/spritesheets/characters/cat-walking.spritesheet.png",
+        import.meta.url
+      ).toString(),
+      {
+        frameWidth: PreloadScene.KITTEN_FRAME_WIDTH,
+        frameHeight: PreloadScene.KITTEN_FRAME_HEIGHT,
+        margin: 0,
+        spacing: 0
+      }
+    );
     this.load.audio(
       ASSET_KEYS.SHOVEL_CLINK,
       new URL("../assets/sfx/sfx-shovel-clink.wav", import.meta.url).toString()
@@ -79,6 +100,11 @@ export class PreloadScene extends Phaser.Scene {
     this.load.audio(
       ASSET_KEYS.BUTTON_HOVER,
       new URL("../assets/sfx/sfx-button-hover.wav", import.meta.url).toString()
+    );
+    this.load.image(
+      ASSET_KEYS.LEARNING_ACADEMY_BACKGROUND,
+      new URL("../assets/backgrounds/learning-academy-background.png", import.meta.url)
+        .toString()
     );
     this.load.audio(
       ASSET_KEYS.DIG_BGM,
@@ -124,10 +150,101 @@ export class PreloadScene extends Phaser.Scene {
       ASSET_KEYS.DINO_COMES_TO_LIFE,
       new URL("../assets/voice/dino-comes-to-life.wav", import.meta.url).toString()
     );
+    this.load.audio(
+      ASSET_KEYS.KITTEN_CATCH_INSTRUCTIONS,
+      new URL(
+        "../assets/voice/kitten-catch/kitten-catch-instructions.mp3",
+        import.meta.url
+      ).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.KITTEN_CATCH_VOWELS,
+      new URL(
+        "../assets/voice/kitten-catch/kitten-catch-vowels.mp3",
+        import.meta.url
+      ).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.KITTEN_CATCH_CONSONANTS,
+      new URL(
+        "../assets/voice/kitten-catch/kitten-catch-consonants.mp3",
+        import.meta.url
+      ).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.KITTEN_CATCH_WAY_TO_GO,
+      new URL(
+        "../assets/voice/kitten-catch/kitten-catch-way-to-go.mp3",
+        import.meta.url
+      ).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.KITTEN_CATCH_IMPRESSIVE,
+      new URL(
+        "../assets/voice/kitten-catch/kitten-catch-impressive-most-impressive.mp3",
+        import.meta.url
+      ).toString()
+    );
     this.load.image(
       ASSET_KEYS.LEVEL_BACKGROUND,
       new URL("../assets/backgrounds/fossil-dig-level-background.png", import.meta.url)
         .toString()
+    );
+    this.load.image(
+      ASSET_KEYS.KITTEN_CATCH_BACKGROUND,
+      new URL("../assets/backgrounds/kitten-catch-background.png", import.meta.url)
+        .toString()
+    );
+    this.load.image(
+      ASSET_KEYS.KITTEN_CATCH_TITLE_SCREEN,
+      new URL("../assets/backgrounds/kitten-catch-title-screen.png", import.meta.url)
+        .toString()
+    );
+    this.load.image(
+      ASSET_KEYS.KITTEN_CATCH_BUTTON_START,
+      new URL(
+        "../assets/sprites/ui/kitten-catch/kitten-catch-start-game.png",
+        import.meta.url
+      ).toString()
+    );
+    this.load.image(
+      ASSET_KEYS.KITTEN_CATCH_BUTTON_SETTINGS,
+      new URL(
+        "../assets/sprites/ui/kitten-catch/kitten-catch-settings.png",
+        import.meta.url
+      ).toString()
+    );
+    this.load.image(
+      ASSET_KEYS.KITTEN_CATCH_BUTTON_BACK,
+      new URL(
+        "../assets/sprites/ui/kitten-catch/kitten-catch-back.png",
+        import.meta.url
+      ).toString()
+    );
+    this.load.image(
+      ASSET_KEYS.KITTEN_CATCH_BASKET,
+      new URL("../assets/sprites/props/kitten-catch-basket.png", import.meta.url)
+        .toString()
+    );
+    this.load.image(
+      YARN_ASSET_KEYS.BLUE,
+      new URL("../assets/sprites/props/yarn/blue-yarn.png", import.meta.url).toString()
+    );
+    this.load.image(
+      YARN_ASSET_KEYS.ORANGE,
+      new URL("../assets/sprites/props/yarn/orange-yarn.png", import.meta.url).toString()
+    );
+    this.load.image(
+      YARN_ASSET_KEYS.PURPLE,
+      new URL("../assets/sprites/props/yarn/purple-yarn.png", import.meta.url).toString()
+    );
+    this.load.image(
+      YARN_ASSET_KEYS.RED,
+      new URL("../assets/sprites/props/yarn/red-yarn.png", import.meta.url).toString()
+    );
+    this.load.image(
+      YARN_ASSET_KEYS.TEAL,
+      new URL("../assets/sprites/props/yarn/teal-yarn.png", import.meta.url).toString()
     );
     cvcWords.forEach((word) => {
       this.load.audio(
@@ -358,6 +475,18 @@ export class PreloadScene extends Phaser.Scene {
       });
     }
 
+    if (!this.anims.exists("kitten-catcher-walk")) {
+      this.anims.create({
+        key: "kitten-catcher-walk",
+        frames: this.anims.generateFrameNumbers(ASSET_KEYS.KITTEN_CATCHER, {
+          start: 0,
+          end: PreloadScene.KITTEN_FRAME_COUNT - 1
+        }),
+        frameRate: 12,
+        repeat: -1
+      });
+    }
+
     if (!this.anims.exists("incorrect-fossil-crumble")) {
       this.anims.create({
         key: "incorrect-fossil-crumble",
@@ -430,6 +559,19 @@ export class PreloadScene extends Phaser.Scene {
     graphics.strokeRoundedRect(2, 2, 276, 60, 18);
     graphics.generateTexture(ASSET_KEYS.BUTTON, 280, 64);
 
+    this.createLetterAppleTexture(
+      graphics,
+      ASSET_KEYS.LETTER_APPLE_VOWEL,
+      0xf07c57,
+      0xffc6b0
+    );
+    this.createLetterAppleTexture(
+      graphics,
+      ASSET_KEYS.LETTER_APPLE_CONSONANT,
+      0x4bb06c,
+      0xa9efba
+    );
+
     graphics.destroy();
   }
 
@@ -444,14 +586,24 @@ export class PreloadScene extends Phaser.Scene {
     const linearKeys = [
       ASSET_KEYS.PLAYER,
       ASSET_KEYS.PLAYER_DIGGING,
+      ASSET_KEYS.LEARNING_ACADEMY_BACKGROUND,
       ASSET_KEYS.TITLE_SCREEN,
       ASSET_KEYS.LEVEL_BACKGROUND,
+      ASSET_KEYS.KITTEN_CATCH_BACKGROUND,
+      ASSET_KEYS.KITTEN_CATCH_TITLE_SCREEN,
+      ASSET_KEYS.KITTEN_CATCH_BUTTON_START,
+      ASSET_KEYS.KITTEN_CATCH_BUTTON_SETTINGS,
+      ASSET_KEYS.KITTEN_CATCH_BUTTON_BACK,
+      ASSET_KEYS.KITTEN_CATCH_BASKET,
       ASSET_KEYS.TITLE_BUTTON_START_ACTIVE,
       ASSET_KEYS.TITLE_BUTTON_START_INACTIVE,
       ASSET_KEYS.TITLE_BUTTON_SETTINGS_ACTIVE,
       ASSET_KEYS.TITLE_BUTTON_SETTINGS_INACTIVE,
       ASSET_KEYS.TITLE_BUTTON_EXIT_ACTIVE,
-      ASSET_KEYS.TITLE_BUTTON_EXIT_INACTIVE
+      ASSET_KEYS.TITLE_BUTTON_EXIT_INACTIVE,
+      ASSET_KEYS.KITTEN_CATCHER,
+      ASSET_KEYS.LETTER_APPLE_VOWEL,
+      ASSET_KEYS.LETTER_APPLE_CONSONANT
     ];
 
     nearestKeys.forEach((key) => {
@@ -464,6 +616,9 @@ export class PreloadScene extends Phaser.Scene {
       this.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR);
     });
     Object.values(JEWEL_ASSET_KEYS).forEach((key) => {
+      this.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR);
+    });
+    Object.values(YARN_ASSET_KEYS).forEach((key) => {
       this.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR);
     });
     Object.values(dinoCatalog).forEach((dino) => {
@@ -489,5 +644,27 @@ export class PreloadScene extends Phaser.Scene {
       start,
       end
     });
+  }
+
+  private createLetterAppleTexture(
+    graphics: Phaser.GameObjects.Graphics,
+    key: string,
+    fillColor: number,
+    highlightColor: number
+  ): void {
+    graphics.clear();
+    graphics.fillStyle(fillColor);
+    graphics.fillCircle(28, 32, 24);
+    graphics.fillCircle(42, 32, 20);
+    graphics.fillStyle(highlightColor);
+    graphics.fillCircle(26, 25, 9);
+    graphics.fillStyle(0x704628);
+    graphics.fillRect(32, 6, 4, 14);
+    graphics.fillStyle(0x65b95a);
+    graphics.fillEllipse(46, 13, 18, 10);
+    graphics.lineStyle(3, 0x8e4c31);
+    graphics.strokeCircle(28, 32, 24);
+    graphics.strokeCircle(42, 32, 20);
+    graphics.generateTexture(key, 68, 68);
   }
 }

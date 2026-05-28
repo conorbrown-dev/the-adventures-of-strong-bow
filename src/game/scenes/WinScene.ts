@@ -9,11 +9,21 @@ import { SCENE_KEYS } from "../utils/sceneKeys";
 interface WinSceneData {
   variant?: FossilDigVariant;
   stageTheme?: FossilDigStageTheme;
+  heading?: string;
+  subheading?: string;
+  playAgainLabel?: string;
+  playAgainSceneKey?: string;
+  playAgainData?: Record<string, unknown>;
 }
 
 export class WinScene extends Phaser.Scene {
   private variant: FossilDigVariant = "cvc";
   private stageTheme?: FossilDigStageTheme;
+  private heading = "You escaped the Wordosaur!";
+  private subheading = "Choose what to do next.";
+  private playAgainLabel = "Play Again";
+  private playAgainSceneKey: string = SCENE_KEYS.FOSSIL_DIG;
+  private playAgainData: Record<string, unknown> = { variant: "cvc" };
   private enterKey?: Phaser.Input.Keyboard.Key;
   private escapeKey?: Phaser.Input.Keyboard.Key;
 
@@ -24,6 +34,14 @@ export class WinScene extends Phaser.Scene {
   init(data: WinSceneData): void {
     this.variant = data.variant ?? "cvc";
     this.stageTheme = data.stageTheme;
+    this.heading = data.heading ?? "You escaped the Wordosaur!";
+    this.subheading = data.subheading ?? "Choose what to do next.";
+    this.playAgainLabel = data.playAgainLabel ?? "Play Again";
+    this.playAgainSceneKey = data.playAgainSceneKey ?? SCENE_KEYS.FOSSIL_DIG;
+    this.playAgainData = data.playAgainData ?? {
+      variant: this.variant,
+      stageTheme: this.stageTheme
+    };
   }
 
   create(): void {
@@ -48,7 +66,7 @@ export class WinScene extends Phaser.Scene {
     }
 
     this.add
-      .text(GAME_WIDTH / 2, 210, "You escaped the Wordosaur!", {
+      .text(GAME_WIDTH / 2, 210, this.heading, {
         fontFamily: "Trebuchet MS",
         fontSize: "54px",
         fontStyle: "bold",
@@ -61,7 +79,7 @@ export class WinScene extends Phaser.Scene {
       .text(
         GAME_WIDTH / 2,
         308,
-        "Choose what to do next.",
+        this.subheading,
         {
           fontFamily: "Trebuchet MS",
           fontSize: "28px",
@@ -73,12 +91,9 @@ export class WinScene extends Phaser.Scene {
     this.createButton(
       GAME_WIDTH / 2,
       408,
-      "Play Again",
+      this.playAgainLabel,
       () => {
-        this.scene.start(SCENE_KEYS.FOSSIL_DIG, {
-          variant: this.variant,
-          stageTheme: this.stageTheme
-        });
+        this.scene.start(this.playAgainSceneKey, this.playAgainData);
       }
     );
     this.createButton(
@@ -113,10 +128,7 @@ export class WinScene extends Phaser.Scene {
 
   update(): void {
     if (this.enterKey && Phaser.Input.Keyboard.JustDown(this.enterKey)) {
-      this.scene.start(SCENE_KEYS.FOSSIL_DIG, {
-        variant: this.variant,
-        stageTheme: this.stageTheme
-      });
+      this.scene.start(this.playAgainSceneKey, this.playAgainData);
       return;
     }
 

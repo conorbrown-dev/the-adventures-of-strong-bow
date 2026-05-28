@@ -11,7 +11,7 @@ export const DIG_PROTECTED_FLOOR_ROWS = 2;
 export const DIG_LAVA_ROWS = 1;
 export const CVC_DIG_SITE_COUNT = 1;
 export const CVC_CORRECT_FOSSIL_COUNT = 1;
-export const CVC_SITE_PICKUP_COUNT = 1;
+export const CVC_SITE_PICKUP_COUNT = 3;
 
 export const DIG_PLAYER_SPEED = 260;
 export const DIG_TILE_DURATION_MS = 1500;

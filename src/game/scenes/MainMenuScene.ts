@@ -1,36 +1,57 @@
 import Phaser from "phaser";
 
-import type { FossilDigVariant } from "../modes/fossil-dig/FossilDigConfig";
+import type { LetterCatchVariant } from "../modes/letter-catch/LetterCatchConfig";
 import { COLORS, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
 
+type MenuFamily = "fossil-dig" | "cat-catch";
+
+interface MainMenuSceneData {
+  family?: MenuFamily;
+}
+
 interface MenuOption {
   label: string;
-  variant: FossilDigVariant;
+  sceneKey: string;
+  sceneData?: {
+    variant?: "cvc" | LetterCatchVariant;
+  };
 }
 
 export class MainMenuScene extends Phaser.Scene {
-  private readonly options: MenuOption[] = [
-    { label: "Fossil Dig: CVC Words", variant: "cvc" },
-    { label: "Fossil Dig: Vowels & Consonants", variant: "letters" }
-  ];
-
+  private family: MenuFamily = "fossil-dig";
+  private options: MenuOption[] = [];
   private selectedIndex = 0;
   private optionCards: Phaser.GameObjects.Container[] = [];
   private optionTexts: Phaser.GameObjects.Text[] = [];
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private enterKey?: Phaser.Input.Keyboard.Key;
+  private escapeKey?: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super(SCENE_KEYS.MAIN_MENU);
   }
 
+  init(data: MainMenuSceneData): void {
+    this.family = data.family ?? "fossil-dig";
+    this.options = this.getOptionsForFamily(this.family);
+    this.selectedIndex = 0;
+    this.optionCards = [];
+    this.optionTexts = [];
+  }
+
   create(): void {
     this.cameras.main.setBackgroundColor(COLORS.SKY);
+    const heading =
+      this.family === "cat-catch" ? "Kitten Catch" : "Fossil Dig";
+    const subheading =
+      this.family === "cat-catch"
+        ? "Choose whether to catch vowels or consonants."
+        : "Choose a Fossil Dig lesson.";
 
     this.add
-      .text(GAME_WIDTH / 2, 120, "Molly's Learning Game", {
+      .text(GAME_WIDTH / 2, 120, heading, {
         fontFamily: "Trebuchet MS",
         fontSize: "54px",
         fontStyle: "bold",
@@ -42,7 +63,7 @@ export class MainMenuScene extends Phaser.Scene {
       .text(
         GAME_WIDTH / 2,
         190,
-        "Pick a learning dig mode.\nUse arrow keys + Enter, or click a card.",
+        `${subheading}\nUse arrow keys + Enter, or click a card.`,
         {
           fontFamily: "Trebuchet MS",
           fontSize: "24px",
@@ -53,7 +74,7 @@ export class MainMenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.options.forEach((option, index) => {
-      const y = 320 + index * 110;
+      const y = 340 + index * 110;
       const card = this.add
         .rectangle(GAME_WIDTH / 2, y, 520, 84, 0xf6edd7)
         .setStrokeStyle(4, 0x5e4127);
@@ -89,12 +110,34 @@ export class MainMenuScene extends Phaser.Scene {
     this.enterKey = this.input.keyboard!.addKey(
       Phaser.Input.Keyboard.KeyCodes.ENTER
     );
+    this.escapeKey = this.input.keyboard!.addKey(
+      Phaser.Input.Keyboard.KeyCodes.ESC
+    );
+
+    this.add
+      .text(
+        GAME_WIDTH / 2,
+        650,
+        "Press Esc to return to the game title screen.",
+        {
+          fontFamily: "Trebuchet MS",
+          fontSize: "22px",
+          color: "#4b5563"
+        }
+      )
+      .setOrigin(0.5);
 
     this.refreshSelection();
   }
 
   update(): void {
-    if (!this.cursors || !this.enterKey) {
+    if (!this.cursors || !this.enterKey || !this.escapeKey) {
+      return;
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.escapeKey)) {
+      playButtonClick(this);
+      this.scene.start(this.getTitleSceneForFamily());
       return;
     }
 
@@ -134,6 +177,37 @@ export class MainMenuScene extends Phaser.Scene {
 
   private startSelectedMode(): void {
     const option = this.options[this.selectedIndex];
-    this.scene.start(SCENE_KEYS.FOSSIL_DIG, { variant: option.variant });
+    this.scene.start(option.sceneKey, option.sceneData);
+  }
+
+  private getOptionsForFamily(family: MenuFamily): MenuOption[] {
+    if (family === "cat-catch") {
+      return [
+        {
+          label: "Catch Vowels",
+          sceneKey: SCENE_KEYS.LETTER_CATCH,
+          sceneData: { variant: "vowels" }
+        },
+        {
+          label: "Catch Consonants",
+          sceneKey: SCENE_KEYS.LETTER_CATCH,
+          sceneData: { variant: "consonants" }
+        }
+      ];
+    }
+
+    return [
+      {
+        label: "CVC Words",
+        sceneKey: SCENE_KEYS.FOSSIL_DIG,
+        sceneData: { variant: "cvc" }
+      }
+    ];
+  }
+
+  private getTitleSceneForFamily(): string {
+    return this.family === "cat-catch"
+      ? SCENE_KEYS.CAT_CATCH_TITLE
+      : SCENE_KEYS.FOSSIL_DIG_TITLE;
   }
 }
