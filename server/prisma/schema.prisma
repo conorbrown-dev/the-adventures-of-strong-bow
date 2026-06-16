@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum WordAttemptStatus {
+  NotAttempted
+  InProgress
+  Mastered
+}
+
+model GameMode {
+  id          String @id @default(cuid())
+  title       String
+  slug        String @unique
+  description String
+  metadata    Json   @default("{}")
+}
+
+model Student {
+  id       String @id @default(cuid())
+  username String @unique
+  pin      String    @unique
+
+  wordAttempts WordAttempt[]
+}
+
+model WordAttempt {
+  id                 String            @id @default(cuid())
+  studentId          String
+  attemptCount       Int
+  status             WordAttemptStatus @default(NotAttempted)
+  wordText           String            @unique
+  averageAttemptInMs Int
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}

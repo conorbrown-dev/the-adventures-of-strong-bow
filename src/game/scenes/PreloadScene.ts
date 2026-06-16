@@ -247,10 +247,7 @@ export class PreloadScene extends Phaser.Scene {
       new URL("../assets/sprites/props/yarn/teal-yarn.png", import.meta.url).toString()
     );
     cvcWords.forEach((word) => {
-      this.load.audio(
-        word.voiceAssetKey,
-        new URL(`../assets/voice/cvc/cvc-${word.word}.wav`, import.meta.url).toString()
-      );
+      this.load.audio(word.voiceAssetKey, word.encodedAudio);
     });
 
     Object.values(dinoCatalog).forEach((dino) => {

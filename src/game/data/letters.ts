@@ -18,17 +18,22 @@ export const consonants: LetterData[] = [
   { letter: "B", type: LearningType.CONSONANT, displayText: "B" },
   { letter: "C", type: LearningType.CONSONANT, displayText: "C" },
   { letter: "D", type: LearningType.CONSONANT, displayText: "D" },
+  { letter: "F", type: LearningType.CONSONANT, displayText: "F" },
+  { letter: "G", type: LearningType.CONSONANT, displayText: "G" },
+  { letter: "H", type: LearningType.CONSONANT, displayText: "H" },
+  { letter: "J", type: LearningType.CONSONANT, displayText: "J" },
+  { letter: "K", type: LearningType.CONSONANT, displayText: "K" },
+  { letter: "L", type: LearningType.CONSONANT, displayText: "L" },
   { letter: "M", type: LearningType.CONSONANT, displayText: "M" },
   { letter: "N", type: LearningType.CONSONANT, displayText: "N" },
+  { letter: "P", type: LearningType.CONSONANT, displayText: "P" },
+  { letter: "Q", type: LearningType.CONSONANT, displayText: "Q" },
+  { letter: "R", type: LearningType.CONSONANT, displayText: "R" },
   { letter: "S", type: LearningType.CONSONANT, displayText: "S" },
-  { letter: "T", type: LearningType.CONSONANT, displayText: "T" }
-];
-
-export const letters: LetterData[] = [
-  vowels[0],
-  consonants[3],
-  consonants[5],
-  vowels[1],
-  consonants[6],
-  consonants[4]
+  { letter: "T", type: LearningType.CONSONANT, displayText: "T" },
+  { letter: "V", type: LearningType.CONSONANT, displayText: "V" },
+  { letter: "W", type: LearningType.CONSONANT, displayText: "W" },
+  { letter: "X", type: LearningType.CONSONANT, displayText: "X" },
+  { letter: "Y", type: LearningType.CONSONANT, displayText: "Y" },
+  { letter: "Z", type: LearningType.CONSONANT, displayText: "Z" }
 ];
