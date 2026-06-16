@@ -1,7 +1,6 @@
 import {
   getFossilDigModeConfig,
   type FossilDigModeConfig,
-  type FossilDigVariant
 } from "./FossilDigConfig";
 import { buildFossilDigContent } from "./FossilDigContent";
 import { FossilDigState } from "./FossilDigState";
@@ -17,7 +16,6 @@ export class FossilDigMode {
   readonly state: FossilDigState;
 
   private constructor(
-    public readonly variant: FossilDigVariant,
     public readonly config: FossilDigModeConfig,
     public readonly content: ReturnType<typeof buildFossilDigContent>,
     public readonly stageTheme: FossilDigStageTheme,
@@ -35,16 +33,12 @@ export class FossilDigMode {
   }
 
   static create(
-    variant: FossilDigVariant,
     stageTheme: FossilDigStageTheme = createRandomFossilDigStageTheme()
   ): FossilDigMode {
-    const config = getFossilDigModeConfig(variant);
-    const content = buildFossilDigContent(variant);
-    const totalFossils =
-      variant === "cvc"
-        ? getCvcConfiguredTargetCount(content.pickups.length)
-        : content.pickups.length;
+    const config = getFossilDigModeConfig();
+    const content = buildFossilDigContent();
+    const totalFossils = getCvcConfiguredTargetCount(content.pickups.length)
 
-    return new FossilDigMode(variant, config, content, stageTheme, totalFossils);
+    return new FossilDigMode(config, content, stageTheme, totalFossils);
   }
 }

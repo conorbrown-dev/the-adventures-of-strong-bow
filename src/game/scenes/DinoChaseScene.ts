@@ -4,7 +4,6 @@ import { getDinoById } from "../data/dinos";
 import { DinoSkeleton } from "../entities/DinoSkeleton";
 import { Obstacle } from "../entities/Obstacle";
 import { Player } from "../entities/Player";
-import type { FossilDigVariant } from "../modes/fossil-dig/FossilDigConfig";
 import {
   createRandomFossilDigStageTheme,
   type FossilDigStageTheme
@@ -22,12 +21,10 @@ import {
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 interface DinoChaseSceneData {
-  variant?: FossilDigVariant;
   stageTheme?: FossilDigStageTheme;
 }
 
 export class DinoChaseScene extends Phaser.Scene {
-  private variant: FossilDigVariant = "cvc";
   private stageTheme: FossilDigStageTheme = createRandomFossilDigStageTheme();
   private player!: Player;
   private dino!: DinoSkeleton;
@@ -38,7 +35,6 @@ export class DinoChaseScene extends Phaser.Scene {
   }
 
   init(data: DinoChaseSceneData): void {
-    this.variant = data.variant ?? "cvc";
     this.stageTheme = data.stageTheme ?? createRandomFossilDigStageTheme();
   }
 
@@ -149,13 +145,11 @@ export class DinoChaseScene extends Phaser.Scene {
       {
         onCaught: () => {
           this.scene.restart({
-            variant: this.variant,
             stageTheme: this.stageTheme
           });
         },
         onWin: () => {
           this.scene.start(SCENE_KEYS.WIN, {
-            variant: this.variant,
             stageTheme: this.stageTheme
           });
         }

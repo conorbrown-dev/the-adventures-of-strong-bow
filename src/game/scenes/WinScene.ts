@@ -1,13 +1,11 @@
 import Phaser from "phaser";
 
-import type { FossilDigVariant } from "../modes/fossil-dig/FossilDigConfig";
 import type { FossilDigStageTheme } from "../modes/fossil-dig/FossilDigStageTheme";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 interface WinSceneData {
-  variant?: FossilDigVariant;
   stageTheme?: FossilDigStageTheme;
   heading?: string;
   subheading?: string;
@@ -17,7 +15,6 @@ interface WinSceneData {
 }
 
 export class WinScene extends Phaser.Scene {
-  private variant: FossilDigVariant = "cvc";
   private stageTheme?: FossilDigStageTheme;
   private heading = "You escaped the Wordosaur!";
   private subheading = "Choose what to do next.";
@@ -32,14 +29,12 @@ export class WinScene extends Phaser.Scene {
   }
 
   init(data: WinSceneData): void {
-    this.variant = data.variant ?? "cvc";
     this.stageTheme = data.stageTheme;
     this.heading = data.heading ?? "You escaped the Wordosaur!";
     this.subheading = data.subheading ?? "Choose what to do next.";
     this.playAgainLabel = data.playAgainLabel ?? "Play Again";
     this.playAgainSceneKey = data.playAgainSceneKey ?? SCENE_KEYS.FOSSIL_DIG;
     this.playAgainData = data.playAgainData ?? {
-      variant: this.variant,
       stageTheme: this.stageTheme
     };
   }

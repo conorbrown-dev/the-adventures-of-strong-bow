@@ -8,7 +8,6 @@ import { Player } from "../entities/Player";
 import { LearningType } from "../data/learningTypes";
 import { terrainTileFrames } from "../data/terrainTiles";
 import { FossilDigMode } from "../modes/fossil-dig/FossilDigMode";
-import type { FossilDigVariant } from "../modes/fossil-dig/FossilDigConfig";
 import type { FossilDigPickupContent } from "../modes/fossil-dig/FossilDigContent";
 import { type FossilDigStageTheme } from "../modes/fossil-dig/FossilDigStageTheme";
 import { CollisionSystem } from "../systems/CollisionSystem";
@@ -20,7 +19,6 @@ import {
 } from "../systems/DiggingSystem";
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
 import { LearningPromptSystem } from "../systems/LearningPromptSystem";
-import { PickupSystem } from "../systems/PickupSystem";
 import { CollectedFossilTray } from "../ui/CollectedFossilTray";
 import { Hud } from "../ui/Hud";
 import { getConfiguredBgmVolume } from "../settings/parentalSettings";
@@ -37,7 +35,6 @@ import {
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 interface FossilDigSceneData {
-  variant?: FossilDigVariant;
   stageTheme?: FossilDigStageTheme;
 }
 
@@ -82,12 +79,10 @@ interface CvcDigSite {
 }
 
 export class FossilDigScene extends Phaser.Scene {
-  private variant: FossilDigVariant = "cvc";
   private stageTheme?: FossilDigStageTheme;
   private mode!: FossilDigMode;
   private player!: Player;
   private diggingSystem!: DiggingSystem;
-  private pickupSystem?: PickupSystem;
   private promptSystem!: LearningPromptSystem;
   private hud!: Hud;
   private assemblySystem!: DinoAssemblySystem;
@@ -132,9 +127,7 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   init(data: FossilDigSceneData): void {
-    this.variant = data.variant ?? "cvc";
     this.stageTheme = data.stageTheme;
-    this.pickupSystem = undefined;
     this.gem = undefined;
     this.gemPlacement = undefined;
     this.fossils = [];
@@ -167,7 +160,7 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.mode = FossilDigMode.create(this.variant, this.stageTheme);
+    this.mode = FossilDigMode.create(this.stageTheme);
     this.startFossilDigBackgroundMusic();
     const worldWidth = this.mode.config.worldCols * this.mode.config.cellSize;
     const worldHeight =
@@ -203,19 +196,16 @@ export class FossilDigScene extends Phaser.Scene {
       });
     });
 
-    if (this.variant === "letters") {
-      this.promptSystem.showLetterScaffoldPrompt(LearningType.VOWEL);
-    } else {
-      this.hud.setRepeatOnlyMode(true);
-      this.cvcDigSites = this.createCvcDigSites();
-      this.collectedFossilTray = new CollectedFossilTray(this);
-      this.hud.setRepeatHandler(() => {
-        void this.audioFeedbackSystem.speakCurrentWord();
-      });
-      this.hud.setRepeatButtonVisible(true);
-      this.hud.setRepeatButtonEnabled(true);
-      this.updateCvcProgress();
-    }
+
+    this.hud.setRepeatOnlyMode(true);
+    this.cvcDigSites = this.createCvcDigSites();
+    this.collectedFossilTray = new CollectedFossilTray(this);
+    this.hud.setRepeatHandler(() => {
+      void this.audioFeedbackSystem.speakCurrentWord();
+    });
+    this.hud.setRepeatButtonVisible(true);
+    this.hud.setRepeatButtonEnabled(true);
+    this.updateCvcProgress();
 
     const cursors = this.input.keyboard!.createCursorKeys();
     this.digKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D);
@@ -249,28 +239,13 @@ export class FossilDigScene extends Phaser.Scene {
     this.gem = new GemPickup(
       this,
       gemSpawnCell.col * this.mode.config.cellSize +
-        this.mode.config.cellSize / 2,
+      this.mode.config.cellSize / 2,
       this.mode.config.undergroundTop +
-        gemSpawnCell.row * this.mode.config.cellSize +
-        this.mode.config.cellSize / 2,
+      gemSpawnCell.row * this.mode.config.cellSize +
+      this.mode.config.cellSize / 2,
       this.mode.rewardJewel.textureKey
     );
     this.gemPlacement = gemSpawnCell;
-
-    if (this.variant !== "cvc" && this.gem) {
-      this.pickupSystem = new PickupSystem(this.mode.state, this.fossils, this.gem, {
-        onProgress: (progress) => this.hud.updateProgress(progress),
-        onAllFossilsCollected: () => {
-          this.promptSystem.showGemPrompt();
-          if (this.revealGemIfReady()) {
-            this.audioFeedbackSystem.playFossilDiscovered();
-          }
-        },
-        onGemCollected: () => {
-          void this.handleGemCollected();
-        }
-      });
-    }
 
     this.assemblySystem = new DinoAssemblySystem(this);
 
@@ -282,12 +257,8 @@ export class FossilDigScene extends Phaser.Scene {
 
     if (this.gem) {
       CollisionSystem.addOverlap(this, this.player, this.gem, () => {
-        if (this.variant === "cvc") {
-          void this.handleGemCollected();
-          return;
-        }
-
-        this.pickupSystem?.collectGem();
+        void this.handleGemCollected();
+        return;
       });
     }
 
@@ -381,14 +352,8 @@ export class FossilDigScene extends Phaser.Scene {
       { colOffset: 9, row: 1 }
     ];
     const occupiedCells = new Set<string>();
-    const cvcPickupItems =
-      this.variant === "cvc"
-        ? this.cvcDigSites.flatMap((site) => site.pickups.map((pickup) => ({ pickup, site })))
-        : [];
-    const pickupItems =
-      this.variant === "cvc"
-        ? cvcPickupItems
-        : this.mode.content.pickups.map((pickup) => ({ pickup, site: undefined }));
+    const cvcPickupItems = this.cvcDigSites.flatMap((site) => site.pickups.map((pickup) => ({ pickup, site })))
+    const pickupItems = cvcPickupItems
 
     return pickupItems.map(({ pickup: item, site }, index) => {
       const spawnCell = spawnCells[index % spawnCells.length];
@@ -647,15 +612,6 @@ export class FossilDigScene extends Phaser.Scene {
       return;
     }
 
-    if (this.variant !== "cvc") {
-      if (!this.promptSystem.canCollect(pickup)) {
-        return;
-      }
-
-      this.pickupSystem?.collectFossil(pickup);
-      return;
-    }
-
     const currentSite = this.getCurrentCvcSite();
 
     if (!currentSite) {
@@ -769,10 +725,7 @@ export class FossilDigScene extends Phaser.Scene {
 
   private async playOpeningAudioSequence(): Promise<void> {
     await this.playSkippableIntroVoiceover();
-
-    if (this.variant === "cvc") {
-      await this.announceCurrentCvcTarget();
-    }
+    await this.announceCurrentCvcTarget();
   }
 
   private async playSkippableIntroVoiceover(): Promise<void> {
@@ -1398,7 +1351,7 @@ export class FossilDigScene extends Phaser.Scene {
     const nearestRow = Phaser.Math.Clamp(
       Math.round(
         (bodyCenterY - this.mode.config.undergroundTop - this.mode.config.cellSize / 2) /
-          this.mode.config.cellSize
+        this.mode.config.cellSize
       ),
       0,
       this.mode.config.worldRows - 1
@@ -1436,9 +1389,9 @@ export class FossilDigScene extends Phaser.Scene {
     const startBodyCenterY = baseY + collisionOffset.y;
     const desiredBodyCenterX = Phaser.Math.Clamp(
       startBodyCenterX +
-        Math.sign(directionX) *
-          this.mode.config.cellSize *
-          DIG_JUMP_DISTANCE_BLOCKS,
+      Math.sign(directionX) *
+      this.mode.config.cellSize *
+      DIG_JUMP_DISTANCE_BLOCKS,
       bodyWidth / 2,
       worldWidth - bodyWidth / 2
     );
@@ -1703,7 +1656,7 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   private getCameraTargetScrollX(maxScrollX: number): number {
-    if (this.variant === "cvc" && this.cvcDigSites.length > 0) {
+    if (this.cvcDigSites.length > 0) {
       return Phaser.Math.Clamp(
         this.cvcDigSites[this.activeCvcSiteIndex].startCol * this.mode.config.cellSize,
         0,
@@ -1795,42 +1748,23 @@ export class FossilDigScene extends Phaser.Scene {
       return;
     }
 
-    if (this.variant === "cvc") {
-      if (!this.gem?.collect()) {
-        return;
-      }
-
-      this.mode.state.markGemCollected();
-      this.updateCvcProgress();
-      this.pendingSurfaceAssembly = true;
-      this.hud.setRepeatButtonVisible(false);
-      this.promptSystem.setPrompt({
-        kind: "collect_all",
-        displayText: "Climb back to the surface!"
-      });
-      await this.audioFeedbackSystem.playVoiceClip(
-        ASSET_KEYS.CLIMB_TO_THE_SURFACE,
-        { volume: 0.9 }
-      );
+    if (!this.gem?.collect()) {
       return;
     }
 
-    this.transitionStarted = true;
-    this.player.disableControls();
-    this.promptSystem.showAssemblyPrompt();
-    const worldView = this.cameras.main.worldView;
-
-    const dino = await this.assemblySystem.playSequence(
-      worldView.centerX,
-      worldView.centerY + 40,
-      this.mode.bossDino
-    );
-
-    await dino.roar();
-    this.scene.start(SCENE_KEYS.DINO_CHASE, {
-      variant: this.variant,
-      stageTheme: this.mode.stageTheme
+    this.mode.state.markGemCollected();
+    this.updateCvcProgress();
+    this.pendingSurfaceAssembly = true;
+    this.hud.setRepeatButtonVisible(false);
+    this.promptSystem.setPrompt({
+      kind: "collect_all",
+      displayText: "Climb back to the surface!"
     });
+    await this.audioFeedbackSystem.playVoiceClip(
+      ASSET_KEYS.CLIMB_TO_THE_SURFACE,
+      { volume: 0.9 }
+    );
+    return;
   }
 
   private createCvcDigSites(): CvcDigSite[] {
@@ -1922,38 +1856,12 @@ export class FossilDigScene extends Phaser.Scene {
     return this.cvcDigSites[this.currentCvcSiteIndex];
   }
 
-  private getActiveCvcSite(): CvcDigSite | undefined {
-    return this.cvcDigSites[this.activeCvcSiteIndex];
-  }
-
-  private getAccessibleMinCol(): number {
-    if (this.variant !== "cvc" || this.cvcDigSites.length === 0) {
-      return 0;
-    }
-
-    return this.getActiveCvcSite()?.startCol ?? 0;
-  }
-
   private getAccessibleMaxCol(): number {
-    if (this.variant !== "cvc" || this.cvcDigSites.length === 0) {
-      return this.mode.config.worldCols - 1;
-    }
-
-    if (this.pendingSiteArrivalIndex !== undefined) {
-      return this.cvcDigSites[this.pendingSiteArrivalIndex]?.endCol ??
-        this.getActiveCvcSite()?.endCol ??
-        this.mode.config.worldCols - 1;
-    }
-
-    return this.getActiveCvcSite()?.endCol ?? this.mode.config.worldCols - 1;
+    return this.mode.config.worldCols - 1;
   }
 
   private isColumnUnlocked(col: number): boolean {
-    if (this.variant !== "cvc") {
-      return true;
-    }
-
-    return col >= this.getAccessibleMinCol() && col <= this.getAccessibleMaxCol();
+    return col >= 0 && col <= this.getAccessibleMaxCol();
   }
 
   private getIntendedDigTargetCol(
@@ -1985,10 +1893,6 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   private updateCvcProgress(): void {
-    if (this.variant !== "cvc") {
-      return;
-    }
-
     this.hud.updateProgress({
       collected: this.collectedCorrectFossils.length,
       total: this.mode.state.totalFossils,
@@ -2033,7 +1937,6 @@ export class FossilDigScene extends Phaser.Scene {
 
   private checkForCvcSiteArrival(): void {
     if (
-      this.variant !== "cvc" ||
       this.pendingSiteArrivalIndex === undefined ||
       this.activeMoveStep ||
       this.activeJump ||
@@ -2067,10 +1970,6 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   private startCvcSiteCameraPan(siteIndex: number): void {
-    if (this.variant !== "cvc") {
-      return;
-    }
-
     const maxScrollX = Math.max(
       0,
       this.mode.config.worldCols * this.mode.config.cellSize - GAME_WIDTH
@@ -2130,14 +2029,12 @@ export class FossilDigScene extends Phaser.Scene {
       { volume: 0.9 }
     );
     this.scene.start(SCENE_KEYS.DINO_CHASE, {
-      variant: this.variant,
       stageTheme: this.mode.stageTheme
     });
   }
 
   private async playRevealedFossilVoiceover(): Promise<void> {
     const shouldRestoreRepeatButton =
-      this.variant === "cvc" &&
       !this.transitionStarted &&
       !this.pendingSurfaceAssembly;
     let cleanedUp = false;
