@@ -1,4 +1,5 @@
 import { LearningType } from "./learningTypes";
+import { VOWEL_ASSET_KEYS } from '../utils/assetKeys'
 
 export interface LetterData {
   letter: string;
@@ -37,3 +38,49 @@ export const consonants: LetterData[] = [
   { letter: "Y", type: LearningType.CONSONANT, displayText: "Y" },
   { letter: "Z", type: LearningType.CONSONANT, displayText: "Z" }
 ];
+
+export type VowelId = "a" | "e" | "i" | "o" | "u";
+
+export interface VowelDefinition {
+  id: VowelId;
+  name: string;
+  textureKey: string;
+}
+
+export const vowelCatalog: Record<VowelId, VowelDefinition> = {
+  a: {
+    id: "a",
+    name: "a",
+    textureKey: VOWEL_ASSET_KEYS.A
+  },
+  e: {
+    id: "e",
+    name: "e",
+    textureKey: VOWEL_ASSET_KEYS.E
+  },
+  i: {
+    id: "i",
+    name: "i",
+    textureKey: VOWEL_ASSET_KEYS.I
+  },
+  o: {
+    id: "o",
+    name: "o",
+    textureKey: VOWEL_ASSET_KEYS.O
+  },
+  u: {
+    id: "u",
+    name: "u",
+    textureKey: VOWEL_ASSET_KEYS.U
+  }
+};
+
+const vowelPool = Object.values(vowelCatalog);
+
+export function getRandomVowel(): VowelDefinition {
+  return vowelPool[Math.floor(Math.random() * vowelPool.length)];
+}
+
+export function getVowelById(id: VowelId): VowelDefinition {
+  return vowelCatalog[id];
+}

@@ -5,7 +5,7 @@ import { COLORS, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
 
-type MenuFamily = "fossil-dig" | "cat-catch";
+type MenuFamily = "fossil-dig" | "cat-catch" | "barn-door-vowels";
 
 interface MainMenuSceneData {
   family?: MenuFamily;
@@ -206,8 +206,10 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private getTitleSceneForFamily(): string {
-    return this.family === "cat-catch"
-      ? SCENE_KEYS.CAT_CATCH_TITLE
-      : SCENE_KEYS.FOSSIL_DIG_TITLE;
+    switch (this.family) {
+      case "cat-catch": return SCENE_KEYS.CAT_CATCH_TITLE;
+      case "fossil-dig": return SCENE_KEYS.FOSSIL_DIG_TITLE;
+      case "barn-door-vowels": return SCENE_KEYS.BARN_DOOR_VOWELS_TITLE;
+    }
   }
 }

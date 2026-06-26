@@ -77,3 +77,11 @@ export const YARN_ASSET_KEYS = {
   RED: "yarn-red",
   TEAL: "yarn-teal"
 } as const;
+
+export const VOWEL_ASSET_KEYS = {
+  A: "letter-a",
+  E: "letter-e",
+  I: "letter-i",
+  O: "letter-o",
+  U: "letter-u"
+}
