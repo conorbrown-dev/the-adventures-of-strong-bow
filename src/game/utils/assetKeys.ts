@@ -85,3 +85,4 @@ export const VOWEL_ASSET_KEYS = {
   O: "letter-o",
   U: "letter-u"
 }
+

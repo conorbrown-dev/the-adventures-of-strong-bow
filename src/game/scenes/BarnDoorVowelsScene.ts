@@ -1,118 +1,69 @@
 import Phaser from "phaser";
 
-import { getCvcVoiceAssetKey } from "../data/cvcWords";
-import { fossilTextureKeys } from "../data/letters";
-import { Player } from "../entities/Player";
-import { LearningType } from "../data/learningTypes";
-import { terrainTileFrames } from "../data/terrainTiles";
-import { FossilDigMode } from "../modes/fossil-dig/FossilDigMode";
-import type { FossilDigPickupContent } from "../modes/fossil-dig/FossilDigContent";
-import { type FossilDigStageTheme } from "../modes/fossil-dig/FossilDigStageTheme";
-import { CollisionSystem } from "../systems/CollisionSystem";
-import { DinoAssemblySystem } from "../systems/DinoAssemblySystem";
-import {
-  DiggingSystem,
-  type DigCell,
-  type DigTarget
-} from "../systems/DiggingSystem";
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
 import { LearningPromptSystem } from "../systems/LearningPromptSystem";
-import { CollectedFossilTray } from "../ui/CollectedFossilTray";
 import { Hud } from "../ui/Hud";
 import { getConfiguredBgmVolume } from "../settings/parentalSettings";
 import { ASSET_KEYS } from "../utils/assetKeys";
-import {
-  CVC_DIG_SITE_WIDTH_BLOCKS,
-  DIG_PROTECTED_FLOOR_ROWS,
-  DIG_JUMP_DISTANCE_BLOCKS,
-  COLORS,
-  DIG_JUMP_DURATION_MS,
-  DIG_JUMP_HEIGHT_BLOCKS,
-  GAME_WIDTH,
-} from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { COLORS } from "../utils/constants";
 import { BarnDoorVowelsStageTheme } from "../modes/barn-door-vowels/BarnDoorVowelsStageTheme";
 import { BarnDoorVowelsMode } from "../modes/barn-door-vowels/BarnDoorVowelsMode";
+import { vowelsAndWords, VowelsAnWordsData } from "../data/letters";
 
-interface FossilDigSceneData {
-  stageTheme?: FossilDigStageTheme;
+interface BarnDoorVowelsSceneData {
+  stageTheme?: BarnDoorVowelsStageTheme;
 }
 
-
-
-export class FossilDigScene extends Phaser.Scene {
+export class BarnDoorVowelsScene extends Phaser.Scene {
   private stageTheme?: BarnDoorVowelsStageTheme;
-  private mode!: FossilDigMode;
-  private player!: Player;
+  private mode!: BarnDoorVowelsMode;
   private promptSystem!: LearningPromptSystem;
   private hud!: Hud;
-  private assemblySystem!: DinoAssemblySystem;
   private audioFeedbackSystem!: AudioFeedbackSystem;
+  private words!: VowelsAnWordsData[];
+  private currentWord!: VowelsAnWordsData;
 
   private nextSiteArrow?: Phaser.GameObjects.Container;
-  private pendingSiteArrivalIndex?: number;
-  private pendingSurfaceAssembly = false;
-  private surfaceAssemblyStarted = false;
-  private surfaceTiles: Phaser.GameObjects.Sprite[] = [];
-  private surfaceTunnelTiles: Phaser.GameObjects.Image[] = [];
-  private surfaceLadders: Phaser.GameObjects.Image[] = [];
-  private digKey?: Phaser.Input.Keyboard.Key;
-  private jumpKey?: Phaser.Input.Keyboard.Key;
-  private upKey?: Phaser.Input.Keyboard.Key;
-  private downKey?: Phaser.Input.Keyboard.Key;
-  private pickupInteractionLocked = false;
-  private movementLocked = false;
-  private transitionStarted = false;
   private moveTween?: Phaser.Tweens.Tween;
   private jumpTween?: Phaser.Tweens.TweenChain;
   private cameraScrollTween?: Phaser.Tweens.Tween;
-  private cameraTargetScrollY = 0;
 
   constructor() {
-    super(SCENE_KEYS.FOSSIL_DIG);
+    super(SCENE_KEYS.BARN_DOOR_VOWELS);
   }
 
   init(data: BarnDoorVowelsSceneData): void {
     this.stageTheme = data.stageTheme;
-    this.vowels = [];
     this.nextSiteArrow?.destroy();
     this.nextSiteArrow = undefined;
-    this.pendingSiteArrivalIndex = undefined;
-    this.pendingSurfaceAssembly = false;
-    this.surfaceAssemblyStarted = false;
-    this.surfaceTiles = [];
-    this.surfaceTunnelTiles = [];
-    this.surfaceLadders = [];
     this.moveTween?.stop();
     this.moveTween = undefined;
     this.jumpTween?.stop();
     this.jumpTween = undefined;
     this.cameraScrollTween?.stop();
     this.cameraScrollTween = undefined;
-    this.pickupInteractionLocked = false;
-    this.movementLocked = false;
-    this.transitionStarted = false;
-    this.cameraTargetScrollY = 0;
   }
 
   create(): void {
     this.mode = BarnDoorVowelsMode.create(this.stageTheme);
     this.startBarnDoorVowelsBackgroundMusic();
 
-    this.cameras.main.setBackgroundColor(COLORS.SKY);
-    this.createAboveGroundBackground(worldWidth);
-    this.createSurfaceTiles();
+    this.currentWord = this.getWord();
+    this.words = vowelsAndWords;
 
-    this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
-    this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+    this.cameras.main.setBackgroundColor(COLORS.SKY);
+
+    this.physics.world.setBounds(0, 0, 500, 500);
+    this.cameras.main.setBounds(0, 0, 500, 500);
 
     this.hud = new Hud(this, this.mode.config.title);
     this.audioFeedbackSystem = new AudioFeedbackSystem(this);
-    this.promptSystem = new LearningPromptSystem(
-      this.hud,
-      this.mode.content.initialPrompt,
-      this.mode.content.validationMode
-    );
+    // this.promptSystem = new LearningPromptSystem(
+    //   this.hud,
+    //   this.mode.content.vowels,
+    //   this.mode.content.validationMode
+    // );
     this.hud.setPromptAudioHandler(() => {
       const prompt = this.promptSystem.getCurrentPrompt();
       const spokenText = prompt.spokenText ?? prompt.displayText;
@@ -129,34 +80,15 @@ export class FossilDigScene extends Phaser.Scene {
     });
     this.hud.setRepeatButtonVisible(true);
     this.hud.setRepeatButtonEnabled(true);
-    this.updateVowelProgress();
 
-    const cursors = this.input.keyboard!.createCursorKeys();
 
-    const startingSurfaceCol = Phaser.Math.Clamp(
-      Math.round((164 - this.mode.config.cellSize / 2) / this.mode.config.cellSize),
-      0,
-      this.mode.config.worldCols - 1
-    );
-
-    this.updateCameraPosition(true);
     this.cameras.main.roundPixels = true;
-
-    this.vowels = this.createVowels();
-    const gemSpawnCell = this.findGemSpawnCell();
 
     void this.playOpeningAudioSequence();
   }
 
-  update(_time: number, _delta: number): void {
-    if (this.transitionStarted) {
-      return;
-    }
-
-    this.updateCameraPosition();
-    if (this.pendingSurfaceAssembly && !this.surfaceAssemblyStarted) {
-      void this.tryBeginSurfaceAssembly();
-    }
+  private getWord() {
+    return vowelsAndWords[Math.floor(Math.random() * vowelsAndWords.length)]
   }
 
   // private createVowels(): FossilPickup[] {
@@ -516,24 +448,25 @@ export class FossilDigScene extends Phaser.Scene {
   // }
 
   private async announceInstructions(): Promise<void> {
-    this.promptSystem.setPrompt({
-      kind: "find_specific",
-      displayText: "Look at the vowel. If it is a closed vowel sound, click the closed barn doors. If it is open vowel sound, click the open barn doors.",
-      targetType: LearningType.VOWEL,
-      targetValue: currentWord,
-      spokenText: `Look at the vowel. If it is a closed vowel sound, click the closed barn doors. If it is open vowel sound, click the open barn doors.`
-    });
-    this.hud.setRepeatButtonVisible(true);
-    this.hud.setRepeatButtonEnabled(true);
-    this.audioFeedbackSystem.setCurrentWord(
-      currentWord,
-      getCvcVoiceAssetKey(currentWord)
-    );
-    await this.audioFeedbackSystem.speakCurrentWord();
+    // this.promptSystem.setPrompt({
+    //   kind: "find_specific",
+    //   displayText: "Look at the vowel. If it is a closed vowel sound, click the closed barn doors. If it is open vowel sound, click the open barn doors.",
+    //   targetType: LearningType.VOWEL,
+    //   targetValue: this.currentWord.word,
+    //   spokenText: `Look at the vowel. If it is a closed vowel sound, click the closed barn doors. If it is open vowel sound, click the open barn doors.`
+    // });
+    // this.hud.setRepeatButtonVisible(true);
+    // this.hud.setRepeatButtonEnabled(true);
+    // this.audioFeedbackSystem.setCurrentWord(
+    //   this.currentWord.word,
+    //   getCvcVoiceAssetKey(this.currentWord.word)
+    // );
+    // await this.audioFeedbackSystem.speakCurrentWord();
+    await this.audioFeedbackSystem.speakPhrase("Look at the vowel. If it is a closed vowel sound, click the closed barn doors. If it is open vowel sound, click the open barn doors.");
   }
 
   private async playOpeningAudioSequence(): Promise<void> {
-    await this.playSkippableIntroVoiceover();
+    // await this.playSkippableIntroVoiceover();
     await this.announceInstructions();
   }
 
@@ -580,22 +513,7 @@ export class FossilDigScene extends Phaser.Scene {
     });
   }
 
-
-
-
-
-  private playTween(
-    config: Phaser.Types.Tweens.TweenBuilderConfig
-  ): Promise<void> {
-    return new Promise((resolve) => {
-      this.tweens.add({
-        ...config,
-        onComplete: () => resolve()
-      });
-    });
-  }
-
-  private startFossilDigBackgroundMusic(): void {
+  private startBarnDoorVowelsBackgroundMusic(): void {
     const bgmVolume = getConfiguredBgmVolume();
     const existingSound = this.sound.get(ASSET_KEYS.DIG_BGM);
 
