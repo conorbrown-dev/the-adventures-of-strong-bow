@@ -1,17 +1,14 @@
 export class BarnDoorVowelsState {
-  private readonly correctVowelIds = new Set<string>();
-
-  gemAvailable = false;
-  gemCollected = false;
+  private correctAnswers = 0;
 
   constructor(public readonly totalVowels: number) { }
 
-  markVowelCorrect(id: string): void {
-    this.correctVowelIds.add(id);
+  markVowelCorrect(): void {
+    this.correctAnswers += 1;
   }
 
   get correctVowelCount(): number {
-    return this.correctVowelIds.size;
+    return this.correctAnswers;
   }
 
   get correctVowelCountReached(): boolean {

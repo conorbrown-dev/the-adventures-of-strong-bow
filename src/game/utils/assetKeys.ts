@@ -7,6 +7,31 @@ export const ASSET_KEYS = {
   LEARNING_ACADEMY_BACKGROUND: "learning-academy-background",
   TITLE_SCREEN: "fossil-dig-title-screen",
   LEVEL_BACKGROUND: "fossil-dig-level-background",
+
+  BARN_DOOR_VOWELS_INSTRUCTIONS: "voice-barn-door-vowels-instructions",
+  BARN_DOOR_VOWELS_EXCELLENT: "voice-barn-door-vowels-excellent",
+  BARN_DOOR_VOWELS_IMPRESSIVE: "voice-barn-door-vowels-impressive",
+  BARN_DOOR_VOWELS_WAY_TO_GO_GIRL: "voice-barn-door-vowels-way-to-go-girl",
+  BARN_DOOR_VOWELS_TRY_AGAIN: "voice-barn-door-vowels-whoops-try-again",
+  BARN_DOOR_VOWELS_TITLE_SCREEN: "barn-door-vowels-title-screen",
+  BARN_DOOR_TERRAIN: "barn-door-terrain",
+  BARN_DOOR_FARM_MAP: "barn-door-farm-map",
+  BARN_DOOR_MAP_TERRAIN_ATLAS: "barn-door-map-terrain-atlas",
+  BARN_DOOR_MAP_TERRAIN: "barn-door-map-terrain",
+  BARN_DOOR_MAP_FENCE: "barn-door-map-fence",
+  BARN_DOOR_MAP_BARN: "barn-door-map-barn",
+  BARN_DOOR_MAP_BLADE: "barn-door-map-blade",
+  BARN_DOOR_MAP_DECORATIONS: "barn-door-map-decorations",
+  BARN_DOOR_BARN: "barn-door-barn",
+  BARN_DOOR_FENCE: "barn-door-fence",
+  BARN_DOOR_WINDMILL_BLADE: "barn-door-windmill-blade",
+  BARN_DOOR_WINDMILL_WHEEL: "barn-door-windmill-wheel",
+  BARN_DOOR_COW: "barn-door-cow",
+  BARN_DOOR_PIG: "barn-door-pig",
+  BARN_DOOR_SHEEP: "barn-door-sheep",
+  BARN_DOOR_LLAMA: "barn-door-llama",
+  BARN_DOOR_CHICKEN: "barn-door-chicken",
+
   KITTEN_CATCH_BACKGROUND: "kitten-catch-background",
   KITTEN_CATCH_TITLE_SCREEN: "kitten-catch-title-screen",
   KITTEN_CATCH_BUTTON_START: "kitten-catch-button-start-game",
@@ -85,4 +110,3 @@ export const VOWEL_ASSET_KEYS = {
   O: "letter-o",
   U: "letter-u"
 }
-

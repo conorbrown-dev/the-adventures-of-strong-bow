@@ -158,6 +158,39 @@ export class PreloadScene extends Phaser.Scene {
       ).toString()
     );
     this.load.audio(
+      ASSET_KEYS.BARN_DOOR_VOWELS_INSTRUCTIONS,
+      new URL(
+        "../assets/voice/barn-door-vowels/instructions.mp3",
+        import.meta.url,
+      ).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.BARN_DOOR_VOWELS_EXCELLENT,
+      new URL("../assets/voice/barn-door-vowels/excellent.mp3", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.BARN_DOOR_VOWELS_IMPRESSIVE,
+      new URL("../assets/voice/barn-door-vowels/impressive.mp3", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.BARN_DOOR_VOWELS_WAY_TO_GO_GIRL,
+      new URL("../assets/voice/barn-door-vowels/way-to-go-girl.mp3", import.meta.url).toString()
+    );
+    this.load.audio(
+      ASSET_KEYS.BARN_DOOR_VOWELS_TRY_AGAIN,
+      new URL(
+        "../assets/voice/barn-door-vowels/whoops-try-again.mp3",
+        import.meta.url
+      ).toString()
+    );
+    this.load.image(
+      ASSET_KEYS.BARN_DOOR_VOWELS_TITLE_SCREEN,
+      new URL(
+        "../assets/barn-door-vowels/barn-door-vowels-title-screen.png",
+        import.meta.url
+      ).toString()
+    );
+    this.load.audio(
       ASSET_KEYS.KITTEN_CATCH_VOWELS,
       new URL(
         "../assets/voice/kitten-catch/kitten-catch-vowels.mp3",
@@ -190,6 +223,63 @@ export class PreloadScene extends Phaser.Scene {
       new URL("../assets/backgrounds/fossil-dig-level-background.png", import.meta.url)
         .toString()
     );
+    this.load.spritesheet(
+      ASSET_KEYS.BARN_DOOR_TERRAIN,
+      new URL("../assets/barn-door-vowels/terrain-v7.png", import.meta.url).toString(),
+      { frameWidth: 128, frameHeight: 128 }
+    );
+    this.load.tilemapTiledJSON(
+      ASSET_KEYS.BARN_DOOR_FARM_MAP,
+      new URL("../assets/barn-door-vowels/farm.json", import.meta.url).toString()
+    );
+    const farmMapTilesets = [
+      [ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS, "terrain-map-v7.png"],
+      [ASSET_KEYS.BARN_DOOR_MAP_TERRAIN, "terrain-v7.png"],
+      [ASSET_KEYS.BARN_DOOR_MAP_FENCE, "fence_medieval.png"],
+      [ASSET_KEYS.BARN_DOOR_MAP_BARN, "barn-sheet.png"],
+      [ASSET_KEYS.BARN_DOOR_MAP_BLADE, "blade.png"],
+      [ASSET_KEYS.BARN_DOOR_MAP_DECORATIONS, "decorations-medieval.png"]
+    ] as const;
+    farmMapTilesets.forEach(([key, fileName]) => {
+      this.load.image(
+        key,
+        new URL(`../assets/barn-door-vowels/${fileName}`, import.meta.url).toString()
+      );
+    });
+    this.load.spritesheet(
+      ASSET_KEYS.BARN_DOOR_BARN,
+      new URL("../assets/barn-door-vowels/barn-sheet.png", import.meta.url).toString(),
+      { frameWidth: 151, frameHeight: 117 }
+    );
+    this.load.spritesheet(
+      ASSET_KEYS.BARN_DOOR_FENCE,
+      new URL("../assets/barn-door-vowels/fence_medieval.png", import.meta.url).toString(),
+      { frameWidth: 128, frameHeight: 128 }
+    );
+    this.load.spritesheet(
+      ASSET_KEYS.BARN_DOOR_WINDMILL_BLADE,
+      new URL("../assets/barn-door-vowels/blade.png", import.meta.url).toString(),
+      { frameWidth: 128, frameHeight: 128 }
+    );
+    this.load.spritesheet(
+      ASSET_KEYS.BARN_DOOR_WINDMILL_WHEEL,
+      new URL("../assets/barn-door-vowels/water-wheel.png", import.meta.url).toString(),
+      { frameWidth: 64, frameHeight: 64 }
+    );
+    const farmAnimals = [
+      [ASSET_KEYS.BARN_DOOR_COW, "cow_walk.png", 128],
+      [ASSET_KEYS.BARN_DOOR_PIG, "pig_walk.png", 128],
+      [ASSET_KEYS.BARN_DOOR_SHEEP, "sheep_walk.png", 128],
+      [ASSET_KEYS.BARN_DOOR_LLAMA, "llama_walk.png", 128],
+      [ASSET_KEYS.BARN_DOOR_CHICKEN, "chicken_walk.png", 32]
+    ] as const;
+    farmAnimals.forEach(([key, fileName, frameSize]) => {
+      this.load.spritesheet(
+        key,
+        new URL(`../assets/barn-door-vowels/${fileName}`, import.meta.url).toString(),
+        { frameWidth: frameSize, frameHeight: frameSize }
+      );
+    });
     this.load.image(
       ASSET_KEYS.KITTEN_CATCH_BACKGROUND,
       new URL("../assets/backgrounds/kitten-catch-background.png", import.meta.url)
@@ -578,7 +668,15 @@ export class PreloadScene extends Phaser.Scene {
       ASSET_KEYS.TUNNEL_DIRT,
       ASSET_KEYS.LADDER_TOP,
       ASSET_KEYS.LADDER_MIDDLE,
-      ASSET_KEYS.LADDER_BOTTOM
+      ASSET_KEYS.LADDER_BOTTOM,
+      ASSET_KEYS.BARN_DOOR_TERRAIN,
+      ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS,
+      ASSET_KEYS.BARN_DOOR_MAP_TERRAIN,
+      ASSET_KEYS.BARN_DOOR_MAP_FENCE,
+      ASSET_KEYS.BARN_DOOR_MAP_BARN,
+      ASSET_KEYS.BARN_DOOR_MAP_BLADE,
+      ASSET_KEYS.BARN_DOOR_MAP_DECORATIONS,
+      ASSET_KEYS.BARN_DOOR_VOWELS_TITLE_SCREEN
     ];
     const linearKeys = [
       ASSET_KEYS.PLAYER,

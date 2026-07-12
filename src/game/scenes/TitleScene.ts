@@ -53,8 +53,13 @@ export class TitleScene extends Phaser.Scene {
     this.createButton(0, 350, "Fossil Dig", () => {
       this.scene.start(SCENE_KEYS.FOSSIL_DIG_TITLE);
     });
+
     this.createButton(1, 470, "Kitten Catch", () => {
       this.scene.start(SCENE_KEYS.CAT_CATCH_TITLE);
+    });
+
+    this.createButton(2, 580, "Barn Door Vowels", () => {
+      this.scene.start(SCENE_KEYS.BARN_DOOR_VOWELS_TITLE);
     });
 
     this.cursors = this.input.keyboard!.createCursorKeys();

@@ -1,4 +1,5 @@
 import { LearningType } from "../../data/learningTypes";
+import { vowelsAndWords, VowelsAndWordsData } from "../../data/letters";
 
 export type PromptKind = "collect_all" | "find_category" | "find_specific";
 export type ValidationMode = "free_collect" | "strict_match";
@@ -16,13 +17,13 @@ export interface BarnDoorVowelsContent {
   // initialPrompt: PromptDescriptor;
   // promptPlan: PromptDescriptor[];
   // validationMode: ValidationMode;
-  vowels: string[]
+  vowelsAndWords: VowelsAndWordsData[]
 }
 
 export function buildBarnDoorVowelsContent(
 ): BarnDoorVowelsContent {
   return {
-    vowels: [],
+    vowelsAndWords: vowelsAndWords,
     // TODO: clean this up if not needed as reference
     // initialPrompt: {
     //   kind: "collect_all",

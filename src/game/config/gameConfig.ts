@@ -12,6 +12,7 @@ import { PreloadScene } from "../scenes/PreloadScene";
 import { TitleScene } from "../scenes/TitleScene";
 import { WinScene } from "../scenes/WinScene";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
+import { BarnDoorVowelsTitleScene } from "../scenes/BarndoorVowelsTitleScene";
 
 export function createGameConfig(
   parent?: string
@@ -48,6 +49,7 @@ export function createGameConfig(
       CatCatchTitleScene,
       MainMenuScene,
       FossilDigScene,
+      BarnDoorVowelsTitleScene,
       BarnDoorVowelsScene,
       LetterCatchScene,
       DinoChaseScene,

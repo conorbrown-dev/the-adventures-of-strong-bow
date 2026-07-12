@@ -4,7 +4,6 @@ import {
 } from "./BarnDoorVowelsConfig";
 import { buildBarnDoorVowelsContent } from "./BarnDoorVowelsContent";
 import { BarnDoorVowelsState } from "./BarnDoorVowelsState";
-import { getCvcConfiguredTargetCount } from "../../settings/parentalSettings";
 import {
   createRandomBarnDoorVowelsStageTheme,
   type BarnDoorVowelsStageTheme
@@ -27,7 +26,7 @@ export class BarnDoorVowelsMode {
   ): BarnDoorVowelsMode {
     const config = getBarnDoorVowelsModeConfig();
     const content = buildBarnDoorVowelsContent();
-    const totalVowels = getCvcConfiguredTargetCount(content.vowels.length)
+    const totalVowels = content.vowelsAndWords.length;
 
     return new BarnDoorVowelsMode(config, content, stageTheme, totalVowels);
   }

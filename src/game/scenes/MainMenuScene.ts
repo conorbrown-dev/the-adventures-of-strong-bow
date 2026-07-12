@@ -43,12 +43,22 @@ export class MainMenuScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setBackgroundColor(COLORS.SKY);
-    const heading =
-      this.family === "cat-catch" ? "Kitten Catch" : "Fossil Dig";
-    const subheading =
-      this.family === "cat-catch"
-        ? "Choose whether to catch vowels or consonants."
-        : "Choose a Fossil Dig lesson.";
+
+    let heading = "Kitten Catch";
+    let subheading = "Choose whether to catch vowels or consonants.";
+
+    switch (this.family) {
+      case "fossil-dig":
+        heading = "Fossil Dig";
+        subheading = "Choose a Fossil Dig lesson.";
+        break;
+      case "barn-door-vowels":
+        heading = "Barn Door Vowels";
+        subheading = "Start learning about open and closed vowels.";
+        break;
+      case "cat-catch":
+        break;
+    }
 
     this.add
       .text(GAME_WIDTH / 2, 120, heading, {
@@ -194,6 +204,15 @@ export class MainMenuScene extends Phaser.Scene {
           sceneData: { variant: "consonants" }
         }
       ];
+    }
+    else if (family === "barn-door-vowels") {
+      return [
+        {
+          label: "Open & Closed Vowels",
+          sceneKey: SCENE_KEYS.BARN_DOOR_VOWELS,
+          sceneData: { variant: "vowels" }
+        }
+      ]
     }
 
     return [

@@ -12,7 +12,7 @@ export enum VowelType {
   CLOSED = "CLOSED"
 }
 
-export interface VowelsAnWordsData {
+export interface VowelsAndWordsData {
   vowel: string;
   word: string;
   displayWordText: string,
@@ -51,7 +51,7 @@ export const consonants: LetterData[] = [
   { letter: "Z", type: LearningType.CONSONANT, displayText: "Z" }
 ];
 
-export const vowelsAndWords: VowelsAnWordsData[] = [
+export const vowelsAndWords: VowelsAndWordsData[] = [
   {
     displayWordText: "ba",
     vowel: "a",

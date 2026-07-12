@@ -1,538 +1,590 @@
 import Phaser from "phaser";
 
-import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
-import { LearningPromptSystem } from "../systems/LearningPromptSystem";
-import { Hud } from "../ui/Hud";
-import { getConfiguredBgmVolume } from "../settings/parentalSettings";
-import { ASSET_KEYS } from "../utils/assetKeys";
-import { SCENE_KEYS } from "../utils/sceneKeys";
-import { COLORS } from "../utils/constants";
-import { BarnDoorVowelsStageTheme } from "../modes/barn-door-vowels/BarnDoorVowelsStageTheme";
+import { VowelType, type VowelsAndWordsData } from "../data/letters";
+import { BarnDoorWordFragment } from "../entities/BarnDoorWordFragment";
 import { BarnDoorVowelsMode } from "../modes/barn-door-vowels/BarnDoorVowelsMode";
-import { vowelsAndWords, VowelsAnWordsData } from "../data/letters";
+import { createRandomBarnDoorVowelsStageTheme } from "../modes/barn-door-vowels/BarnDoorVowelsStageTheme";
+import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
+import { ASSET_KEYS } from "../utils/assetKeys";
+import { COLORS, GAME_WIDTH } from "../utils/constants";
+import { SCENE_KEYS } from "../utils/sceneKeys";
 
-interface BarnDoorVowelsSceneData {
-  stageTheme?: BarnDoorVowelsStageTheme;
-}
+const ANIMAL_KEYS = [
+  ASSET_KEYS.BARN_DOOR_COW,
+  ASSET_KEYS.BARN_DOOR_PIG,
+  ASSET_KEYS.BARN_DOOR_SHEEP,
+  ASSET_KEYS.BARN_DOOR_LLAMA,
+  ASSET_KEYS.BARN_DOOR_CHICKEN
+] as const;
+
+const BARN_DOOR_CONGRATULATORY_VOICE_KEYS = [
+  ASSET_KEYS.BARN_DOOR_VOWELS_EXCELLENT,
+  ASSET_KEYS.BARN_DOOR_VOWELS_IMPRESSIVE,
+  ASSET_KEYS.BARN_DOOR_VOWELS_WAY_TO_GO_GIRL
+] as const;
+
+const CLOSED_DESTINATION = new Phaser.Math.Vector2(258, 500);
+const ANIMAL_SPEED = 230;
+const WANDER_SPEED = 48;
+type AnimalDirection = "up" | "left" | "down" | "right";
+const ANIMAL_DIRECTION_ROWS: Record<AnimalDirection, number> = {
+  up: 0,
+  left: 1,
+  down: 2,
+  right: 3
+};
+const BARN_DOOR_SENSOR = new Phaser.Geom.Rectangle(218, 345, 80, 72);
+const PASTURE_ENTRY_SENSOR = new Phaser.Geom.Rectangle(938, 535, 80, 82);
+const BARN_DOOR_AVOIDANCE = new Phaser.Geom.Rectangle(175, 300, 170, 150);
+const PASTURE_ENTRY_AVOIDANCE = new Phaser.Geom.Rectangle(890, 490, 175, 175);
+const ANIMAL_SCREEN_BOUNDS = new Phaser.Geom.Rectangle(80, 145, GAME_WIDTH - 160, 560);
+const OPEN_BARN_TILE_IDS = [
+  18305, 18306, 18307, 18308,
+  18314, 18315, 18316, 18317,
+  18323, 18324, 18325, 18326
+] as const;
+const BARN_VARIANT_TILE_OFFSET = 5;
+const ANIMAL_SPAWN_POSITIONS = [
+  [430, 180], [560, 180], [690, 180], [820, 180], [960, 180],
+  [1100, 180], [1240, 180], [430, 300], [560, 300], [690, 300],
+  [1180, 300], [430, 430], [560, 430], [690, 430], [1200, 450],
+  [430, 570], [560, 570], [690, 570], [1200, 590], [430, 690],
+  [560, 690], [690, 690], [820, 690], [960, 690], [1100, 690], [1240, 690]
+] as const;
 
 export class BarnDoorVowelsScene extends Phaser.Scene {
-  private stageTheme?: BarnDoorVowelsStageTheme;
-  private mode!: BarnDoorVowelsMode;
-  private promptSystem!: LearningPromptSystem;
-  private hud!: Hud;
   private audioFeedbackSystem!: AudioFeedbackSystem;
-  private words!: VowelsAnWordsData[];
-  private currentWord!: VowelsAnWordsData;
-
-  private nextSiteArrow?: Phaser.GameObjects.Container;
-  private moveTween?: Phaser.Tweens.Tween;
-  private jumpTween?: Phaser.Tweens.TweenChain;
-  private cameraScrollTween?: Phaser.Tweens.Tween;
+  private mode!: BarnDoorVowelsMode;
+  private progressText?: Phaser.GameObjects.Text;
+  private statusText?: Phaser.GameObjects.Text;
+  private currentAnimal?: BarnDoorWordFragment;
+  private animals: BarnDoorWordFragment[] = [];
+  private fenceLayer?: Phaser.Tilemaps.TilemapLayer;
+  private barnLayer?: Phaser.Tilemaps.TilemapLayer;
+  private barnCloseTimer?: Phaser.Time.TimerEvent;
+  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private movementKeys?: Record<"up" | "down" | "left" | "right", Phaser.Input.Keyboard.Key>;
+  private mobileMovement = { up: false, down: false, left: false, right: false };
+  private wanderStates = new Map<
+    BarnDoorWordFragment,
+    { direction: Phaser.Math.Vector2; nextTurnAt: number }
+  >();
+  private wordsAndVowelsSpawnBag: VowelsAndWordsData[] = [];
+  private gameplayStarted = false;
+  private complete = false;
+  private resolvingAnswer = false;
+  private sceneShuttingDown = false;
 
   constructor() {
     super(SCENE_KEYS.BARN_DOOR_VOWELS);
   }
 
-  init(data: BarnDoorVowelsSceneData): void {
-    this.stageTheme = data.stageTheme;
-    this.nextSiteArrow?.destroy();
-    this.nextSiteArrow = undefined;
-    this.moveTween?.stop();
-    this.moveTween = undefined;
-    this.jumpTween?.stop();
-    this.jumpTween = undefined;
-    this.cameraScrollTween?.stop();
-    this.cameraScrollTween = undefined;
+  init(): void {
+    this.wordsAndVowelsSpawnBag = [];
+    this.gameplayStarted = false;
+    this.complete = false;
+    this.resolvingAnswer = false;
+    this.sceneShuttingDown = false;
+    this.animals = [];
+    this.wanderStates.clear();
+    this.mobileMovement = { up: false, down: false, left: false, right: false };
   }
 
   create(): void {
-    this.mode = BarnDoorVowelsMode.create(this.stageTheme);
-    this.startBarnDoorVowelsBackgroundMusic();
-
-    this.currentWord = this.getWord();
-    this.words = vowelsAndWords;
-
-    this.cameras.main.setBackgroundColor(COLORS.SKY);
-
-    this.physics.world.setBounds(0, 0, 500, 500);
-    this.cameras.main.setBounds(0, 0, 500, 500);
-
-    this.hud = new Hud(this, this.mode.config.title);
+    this.mode = BarnDoorVowelsMode.create(createRandomBarnDoorVowelsStageTheme());
     this.audioFeedbackSystem = new AudioFeedbackSystem(this);
-    // this.promptSystem = new LearningPromptSystem(
-    //   this.hud,
-    //   this.mode.content.vowels,
-    //   this.mode.content.validationMode
-    // );
-    this.hud.setPromptAudioHandler(() => {
-      const prompt = this.promptSystem.getCurrentPrompt();
-      const spokenText = prompt.spokenText ?? prompt.displayText;
-      void this.audioFeedbackSystem.speakPhrase(spokenText, {
-        rate: 0.84,
-        pitch: 1.08
-      });
-    });
-
-
-    this.hud.setRepeatOnlyMode(true);
-    this.hud.setRepeatHandler(() => {
-      void this.audioFeedbackSystem.speakCurrentWord();
-    });
-    this.hud.setRepeatButtonVisible(true);
-    this.hud.setRepeatButtonEnabled(true);
-
-
+    this.cameras.main.setBackgroundColor(0x9bd8f2);
     this.cameras.main.roundPixels = true;
 
-    void this.playOpeningAudioSequence();
-  }
+    this.createFarmTilemap();
+    this.createDestinationLabels();
+    this.createHud();
+    this.createControls();
+    this.createMobileControls();
+    this.updateHud();
+    this.showStatus("Listen, then choose where each animal belongs.", COLORS.TEXT_DARK);
 
-  private getWord() {
-    return vowelsAndWords[Math.floor(Math.random() * vowelsAndWords.length)]
-  }
-
-  // private createVowels(): FossilPickup[] {
-  //   const spawnCells = [
-  //     { colOffset: 1, row: 1 },
-  //     { colOffset: 3, row: 3 },
-  //     { colOffset: 5, row: 2 },
-  //     { colOffset: 7, row: 4 },
-  //     { colOffset: 9, row: 1 }
-  //   ];
-  //   const occupiedCells = new Set<string>();
-  //   const cvcPickupItems = this.cvcDigSites.flatMap((site) => site.pickups.map((pickup) => ({ pickup, site })))
-  //   const pickupItems = cvcPickupItems
-
-  //   return pickupItems.map(({ pickup: item, site }, index) => {
-  //     const spawnCell = spawnCells[index % spawnCells.length];
-  //     const baseCol =
-  //       (site?.startCol ?? 0) + spawnCell.colOffset;
-  //     const { col, row } = this.findDiggableSpawnCell(
-  //       spawnCell.row,
-  //       baseCol,
-  //       occupiedCells,
-  //       site?.startCol ?? 0,
-  //       site?.endCol ?? this.mode.config.worldCols - 1
-  //     );
-  //     occupiedCells.add(this.getCellKey(row, col));
-  //     const x = col * this.mode.config.cellSize + this.mode.config.cellSize / 2;
-  //     const y =
-  //       this.mode.config.undergroundTop +
-  //       row * this.mode.config.cellSize +
-  //       this.mode.config.cellSize / 2 +
-  //       FossilPickup.CELL_OFFSET_Y;
-  //     const textureKey = fossilTextureKeys[index % fossilTextureKeys.length];
-
-  //     const createdPickup = new FossilPickup(
-  //       this,
-  //       x,
-  //       y,
-  //       textureKey,
-  //       item.id,
-  //       item.label,
-  //       item.learningType
-  //     );
-
-  //     createdPickup.hideUntilRevealed();
-  //     this.fossilPlacements.push({ pickup: createdPickup, row, col });
-
-  //     return createdPickup;
-  //   });
-  // }
-
-  // private findDiggableSpawnCell(
-  //   baseRow: number,
-  //   baseCol: number,
-  //   occupiedCells: Set<string>,
-  //   minCol = 0,
-  //   maxCol = this.mode.config.worldCols - 1
-  // ): DigCell {
-  //   if (
-  //     this.isSpawnCellInBounds(baseRow, baseCol) &&
-  //     baseCol >= minCol &&
-  //     baseCol <= maxCol &&
-  //     !this.diggingSystem.isStoneCellAt(baseRow, baseCol) &&
-  //     !occupiedCells.has(this.getCellKey(baseRow, baseCol))
-  //   ) {
-  //     return { row: baseRow, col: baseCol };
-  //   }
-
-  //   for (let radius = 1; radius <= 3; radius += 1) {
-  //     for (let row = baseRow - radius; row <= baseRow + radius; row += 1) {
-  //       for (let col = baseCol - radius; col <= baseCol + radius; col += 1) {
-  //         if (
-  //           this.isSpawnCellInBounds(row, col) &&
-  //           col >= minCol &&
-  //           col <= maxCol &&
-  //           !this.diggingSystem.isStoneCellAt(row, col) &&
-  //           !occupiedCells.has(this.getCellKey(row, col))
-  //         ) {
-  //           return { row, col };
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   return {
-  //     row: Phaser.Math.Clamp(baseRow, 0, this.getMaxSpawnRow()),
-  //     col: Phaser.Math.Clamp(baseCol, minCol, maxCol)
-  //   };
-  // }
-
-  // private getCellKey(row: number, col: number): string {
-  //   return `${row}:${col}`;
-  // }
-
-  // private findGemSpawnCell(): DigCell {
-  //   const occupiedCells = new Set(
-  //     this.fossilPlacements.map((placement) =>
-  //       this.getCellKey(placement.row, placement.col)
-  //     )
-  //   );
-  //   const cvcFinalSite = this.cvcDigSites[this.cvcDigSites.length - 1];
-  //   const minCol = cvcFinalSite?.startCol ?? 0;
-  //   const maxCol = cvcFinalSite?.endCol ?? this.mode.config.worldCols - 1;
-  //   const preferredCol = Math.max(minCol, maxCol - 1);
-
-  //   return this.findDiggableSpawnCell(
-  //     this.getMaxSpawnRow(),
-  //     preferredCol,
-  //     occupiedCells,
-  //     minCol,
-  //     maxCol
-  //   );
-  // }
-
-  // private isSpawnCellInBounds(row: number, col: number): boolean {
-  //   return (
-  //     row >= 0 &&
-  //     row <= this.getMaxSpawnRow() &&
-  //     col >= 0 &&
-  //     col < this.mode.config.worldCols
-  //   );
-  // }
-
-  // private getMaxSpawnRow(): number {
-  //   return Math.max(
-  //     0,
-  //     this.mode.config.worldRows - DIG_PROTECTED_FLOOR_ROWS - 1
-  //   );
-  // }
-
-  // private beginDig(input: Phaser.Math.Vector2): void {
-  //   if (input.lengthSq() === 0) {
-  //     return;
-  //   }
-
-  //   const collisionOffset = this.player.getCollisionCenterOffset();
-  //   const playerBodyCenterX = this.player.x + collisionOffset.x;
-  //   const playerBodyCenterY = this.player.y + collisionOffset.y;
-  //   const intendedTargetCol = this.getIntendedDigTargetCol(
-  //     playerBodyCenterX,
-  //     playerBodyCenterY,
-  //     input
-  //   );
-
-  //   if (
-  //     intendedTargetCol !== null &&
-  //     !this.isColumnUnlocked(intendedTargetCol)
-  //   ) {
-  //     return;
-  //   }
-
-  //   const blockedByStone = this.diggingSystem.isDigBlockedByStone(
-  //     playerBodyCenterX,
-  //     playerBodyCenterY,
-  //     input
-  //   );
-  //   const target = this.diggingSystem.getDigTarget(
-  //     playerBodyCenterX,
-  //     playerBodyCenterY,
-  //     input
-  //   );
-
-  //   if (!target && !blockedByStone) {
-  //     return;
-  //   }
-
-  //   if (
-  //     target &&
-  //     (target.kind === "surface"
-  //       ? this.diggingSystem.isSurfaceOpen(target.col)
-  //       : this.diggingSystem.isCellDug(target.row, target.col))
-  //   ) {
-  //     return;
-  //   }
-
-  //   this.activeDigAction = {
-  //     target: target ?? undefined,
-  //     blockedByStone,
-  //     direction: input.clone()
-  //   };
-
-  //   if (blockedByStone) {
-  //     this.audioFeedbackSystem.playShovelClink();
-  //   } else {
-  //     this.audioFeedbackSystem.playDigging();
-  //   }
-
-  //   this.player.startDigAction(input, () => {
-  //     void this.completeDigAction(this.activeDigAction);
-  //   });
-  // }
-
-  // private cancelDigAction(): void {
-  //   const canceledDirection = this.activeDigAction?.direction.clone();
-  //   this.activeDigAction = undefined;
-  //   this.player.cancelDigAction(
-  //     canceledDirection
-  //   );
-  // }
-
-  // private async completeDigAction(action?: ActiveDigAction): Promise<void> {
-  //   if (!action || action !== this.activeDigAction || this.transitionStarted) {
-  //     return;
-  //   }
-
-  //   if (action.blockedByStone) {
-  //     this.activeDigAction = undefined;
-  //     this.player.cancelDigAction(action.direction);
-  //     return;
-  //   }
-
-  //   if (!action.target) {
-  //     this.activeDigAction = undefined;
-  //     this.player.cancelDigAction(action.direction);
-  //     return;
-  //   }
-
-  //   const collisionOffset = this.player.getCollisionCenterOffset();
-  //   let newlyDug: DigCell[] = [];
-
-  //   if (action.target.kind === "surface") {
-  //     this.diggingSystem.digSurface(action.target.col);
-  //     this.syncSurfaceColumnVisual(action.target.col);
-  //   } else {
-  //     newlyDug = this.diggingSystem.digCell(action.target.row, action.target.col);
-  //   }
-
-  //   if (Math.abs(action.direction.y) > Math.abs(action.direction.x)) {
-  //     if (action.target.kind === "cell") {
-  //       this.diggingSystem.ensureLadderAtCell({
-  //         row: action.target.row,
-  //         col: action.target.col
-  //       });
-  //     }
-  //     const currentCell = this.diggingSystem.getCellAtWorld(
-  //       this.player.x + collisionOffset.x,
-  //       this.player.y + collisionOffset.y
-  //     );
-
-  //     if (currentCell) {
-  //       this.diggingSystem.ensureLadderAtCell(currentCell);
-  //     }
-  //   }
-
-  //   this.activeDigAction = undefined;
-  //   this.player.cancelDigAction(action.direction);
-  //   await this.revealFossilsInCells(newlyDug);
-  //   this.updateSurfaceOpenings(newlyDug);
-  //   this.syncSurfaceColumnVisual(action.target.col);
-  // }
-
-  // private matchesDigDirection(
-  //   input: Phaser.Math.Vector2,
-  //   direction: Phaser.Math.Vector2
-  // ): boolean {
-  //   return Math.sign(input.x) === Math.sign(direction.x) &&
-  //     Math.sign(input.y) === Math.sign(direction.y);
-  // }
-
-  // private async handleFossilOverlap(
-  //   pickup: FossilPickup
-  // ): Promise<void> {
-  //   if (
-  //     this.transitionStarted ||
-  //     this.pickupInteractionLocked ||
-  //     pickup.isBusy() ||
-  //     !pickup.isCollectible()
-  //   ) {
-  //     return;
-  //   }
-
-  //   const currentSite = this.getCurrentCvcSite();
-
-  //   if (!currentSite) {
-  //     return;
-  //   }
-
-  //   if (pickup.pickupId !== currentSite.targetPickupId) {
-  //     this.pickupInteractionLocked = true;
-  //     this.audioFeedbackSystem.playIncorrectFeedback();
-  //     await pickup.playIncorrectPickupFeedback(this.isSingleSiteSequentialCvcMode());
-  //     this.pickupInteractionLocked = false;
-  //     return;
-  //   }
-
-  //   this.pickupInteractionLocked = true;
-  //   const pickupX = pickup.x;
-  //   const pickupY = pickup.y;
-  //   pickup.collect();
-  //   this.mode.state.markFossilCollected(pickup.pickupId);
-  //   this.collectedCorrectFossils.push({
-  //     pickupId: pickup.pickupId,
-  //     label: pickup.label,
-  //     textureKey: pickup.getTextureKey()
-  //   });
-  //   await this.collectedFossilTray?.addCollectedFossil(
-  //     pickup.getTextureKey(),
-  //     pickup.label,
-  //     pickupX,
-  //     pickupY
-  //   );
-  //   await this.audioFeedbackSystem.playCorrectFeedback();
-  //   this.updateCvcProgress();
-
-  //   if (this.isSingleSiteSequentialCvcMode()) {
-  //     currentSite.targetPickupIds = currentSite.targetPickupIds.filter(
-  //       (targetPickupId) => targetPickupId !== pickup.pickupId
-  //     );
-
-  //     if (currentSite.targetPickupIds.length > 0) {
-  //       const nextTargetPickupId =
-  //         Phaser.Utils.Array.GetRandom(currentSite.targetPickupIds) ??
-  //         currentSite.targetPickupIds[0];
-  //       const nextTargetPickup = currentSite.pickups.find(
-  //         (sitePickup) => sitePickup.id === nextTargetPickupId
-  //       );
-
-  //       if (nextTargetPickup) {
-  //         currentSite.targetPickupId = nextTargetPickup.id;
-  //         currentSite.targetLabel = nextTargetPickup.label;
-  //         await this.announceCurrentCvcTarget();
-  //         this.pickupInteractionLocked = false;
-  //         return;
-  //       }
-  //     }
-  //   }
-
-  //   const nextSite = this.cvcDigSites[this.collectedCorrectFossils.length];
-
-  //   if (nextSite && this.cvcDigSites.length > 1) {
-  //     this.currentCvcSiteIndex = nextSite.index;
-  //     this.promptSystem.setPrompt({
-  //       kind: "collect_all",
-  //       displayText: "Great job! Head right to the next dig site."
-  //     });
-  //     this.hud.setRepeatButtonEnabled(false);
-  //     this.showNextSiteGuidance(nextSite);
-  //     await this.audioFeedbackSystem.speakPhrase(
-  //       "Good job. Let's move onto the next dig site. Head to the right.",
-  //       { rate: 0.86, pitch: 1.06 }
-  //     );
-  //   } else {
-  //     this.mode.state.markGemAvailable();
-  //     if (this.revealGemIfReady()) {
-  //       this.audioFeedbackSystem.playFossilDiscovered();
-  //     }
-  //     this.updateCvcProgress();
-  //     this.hud.setRepeatButtonEnabled(false);
-  //     this.hud.setRepeatButtonVisible(false);
-  //     this.promptSystem.showGemPrompt();
-  //     await this.audioFeedbackSystem.playVoiceClip(ASSET_KEYS.FIND_CRYSTAL, {
-  //       volume: 0.9
-  //     });
-  //   }
-
-  //   this.pickupInteractionLocked = false;
-  // }
-
-  private async announceInstructions(): Promise<void> {
-    // this.promptSystem.setPrompt({
-    //   kind: "find_specific",
-    //   displayText: "Look at the vowel. If it is a closed vowel sound, click the closed barn doors. If it is open vowel sound, click the open barn doors.",
-    //   targetType: LearningType.VOWEL,
-    //   targetValue: this.currentWord.word,
-    //   spokenText: `Look at the vowel. If it is a closed vowel sound, click the closed barn doors. If it is open vowel sound, click the open barn doors.`
-    // });
-    // this.hud.setRepeatButtonVisible(true);
-    // this.hud.setRepeatButtonEnabled(true);
-    // this.audioFeedbackSystem.setCurrentWord(
-    //   this.currentWord.word,
-    //   getCvcVoiceAssetKey(this.currentWord.word)
-    // );
-    // await this.audioFeedbackSystem.speakCurrentWord();
-    await this.audioFeedbackSystem.speakPhrase("Look at the vowel. If it is a closed vowel sound, click the closed barn doors. If it is open vowel sound, click the open barn doors.");
-  }
-
-  private async playOpeningAudioSequence(): Promise<void> {
-    // await this.playSkippableIntroVoiceover();
-    await this.announceInstructions();
-  }
-
-  private async playSkippableIntroVoiceover(): Promise<void> {
-    await new Promise<void>((resolve) => {
-      const introVoiceover = this.sound.add(ASSET_KEYS.FOSSIL_DIG_INTRO, {
-        volume: 0.85
-      });
-      let resolved = false;
-
-      const finish = (): void => {
-        if (resolved) {
-          return;
-        }
-
-        resolved = true;
-        cleanup();
-        introVoiceover.destroy();
-        resolve();
-      };
-
-      const skip = (): void => {
-        if (!introVoiceover.isPlaying) {
-          finish();
-          return;
-        }
-
-        introVoiceover.stop();
-        finish();
-      };
-
-      const cleanup = (): void => {
-        this.input.keyboard?.off("keydown", skip);
-        this.input.off("pointerdown", skip);
-        introVoiceover.off("complete", finish);
-        this.events.off(Phaser.Scenes.Events.SHUTDOWN, finish);
-      };
-
-      this.input.keyboard?.once("keydown", skip);
-      this.input.once("pointerdown", skip);
-      introVoiceover.once("complete", finish);
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, finish);
-      introVoiceover.play();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.sceneShuttingDown = true;
+      this.audioFeedbackSystem.interruptVoicePlayback();
     });
+
+    void this.playIntroSequence();
   }
 
-  private startBarnDoorVowelsBackgroundMusic(): void {
-    const bgmVolume = getConfiguredBgmVolume();
-    const existingSound = this.sound.get(ASSET_KEYS.DIG_BGM);
+  update(time: number): void {
+    this.updateWanderingAnimals(time);
 
-    if (existingSound) {
-      (
-        existingSound as Phaser.Sound.WebAudioSound | Phaser.Sound.HTML5AudioSound
-      ).setVolume(bgmVolume);
-      if (!existingSound.isPlaying) {
-        existingSound.play({
-          loop: true,
-          volume: bgmVolume
-        });
-      }
+    const animal = this.currentAnimal;
+    if (!animal || this.resolvingAnswer || this.complete) {
       return;
     }
 
-    this.sound.play(ASSET_KEYS.DIG_BGM, {
-      loop: true,
-      volume: bgmVolume
+    const body = animal.body as Phaser.Physics.Arcade.Body;
+    const left = this.cursors?.left.isDown || this.movementKeys?.left.isDown || this.mobileMovement.left;
+    const right = this.cursors?.right.isDown || this.movementKeys?.right.isDown || this.mobileMovement.right;
+    const up = this.cursors?.up.isDown || this.movementKeys?.up.isDown || this.mobileMovement.up;
+    const down = this.cursors?.down.isDown || this.movementKeys?.down.isDown || this.mobileMovement.down;
+    const direction = new Phaser.Math.Vector2(
+      (right ? 1 : 0) - (left ? 1 : 0),
+      (down ? 1 : 0) - (up ? 1 : 0)
+    );
+
+    if (direction.lengthSq() > 0) {
+      const animationDirection = this.getAnimalDirection(direction);
+      direction.normalize().scale(ANIMAL_SPEED);
+      body.setVelocity(direction.x, direction.y);
+      this.playAnimalWalkAnimation(animal, animationDirection);
+    } else {
+      body.setVelocity(0, 0);
+      animal.animal.anims.pause();
+    }
+
+    const center = new Phaser.Geom.Point(animal.x, animal.y);
+    if (BARN_DOOR_SENSOR.contains(center.x, center.y)) {
+      this.resolveDestination(VowelType.CLOSED);
+    } else if (PASTURE_ENTRY_SENSOR.contains(center.x, center.y)) {
+      this.resolveDestination(VowelType.OPEN);
+    }
+  }
+
+  private createFarmTilemap(): void {
+    const map = this.make.tilemap({ key: ASSET_KEYS.BARN_DOOR_FARM_MAP });
+    const tilesets = [
+      map.addTilesetImage("terrain-map-v7", ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS),
+      map.addTilesetImage("terrain-v7", ASSET_KEYS.BARN_DOOR_MAP_TERRAIN),
+      map.addTilesetImage("fence-medieval", ASSET_KEYS.BARN_DOOR_MAP_FENCE),
+      map.addTilesetImage("barn-sheet", ASSET_KEYS.BARN_DOOR_MAP_BARN),
+      map.addTilesetImage("blade", ASSET_KEYS.BARN_DOOR_MAP_BLADE),
+      map.addTilesetImage("decorations-medieval", ASSET_KEYS.BARN_DOOR_MAP_DECORATIONS)
+    ].filter((tileset): tileset is Phaser.Tilemaps.Tileset => tileset !== null);
+
+    const mapScale = 1.5;
+    const mapX = CLOSED_DESTINATION.x - 124 * 32 * mapScale;
+    const mapY = 300 - 185 * 32 * mapScale;
+    ["Tile Layer 1", "Barn", "Buildings", "Fences"].forEach((layerName, index) => {
+      const layer = map.createLayer(layerName, tilesets, mapX, mapY);
+      layer
+        ?.setScale(mapScale)
+        .setPosition(Math.round(mapX), Math.round(mapY))
+        .setCullPadding(1, 1)
+        .setDepth(-10 + index);
+      if (layerName === "Fences") {
+        layer?.setCollisionByExclusion([-1]);
+        this.fenceLayer = layer ?? undefined;
+      } else if (layerName === "Barn" && layer) {
+        this.barnLayer = layer;
+        this.setBarnOpen(false);
+      }
     });
+  }
+
+  private createControls(): void {
+    if (!this.input.keyboard) {
+      return;
+    }
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.movementKeys = {
+      up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+      down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+      left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+      right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+    };
+  }
+
+  private createMobileControls(): void {
+    if (!this.sys.game.device.input.touch) {
+      return;
+    }
+
+    this.input.addPointer(2);
+    this.add
+      .circle(132, 623, 112, 0x1f2937, 0.32)
+      .setStrokeStyle(3, 0xffffff, 0.35)
+      .setDepth(38);
+
+    this.createMobileDirectionButton(132, 548, "▲", "up");
+    this.createMobileDirectionButton(57, 623, "◀", "left");
+    this.createMobileDirectionButton(207, 623, "▶", "right");
+    this.createMobileDirectionButton(132, 698, "▼", "down");
+  }
+
+  private createMobileDirectionButton(
+    x: number,
+    y: number,
+    arrow: string,
+    direction: keyof typeof this.mobileMovement
+  ): void {
+    const button = this.add
+      .circle(x, y, 37, 0x2b1a11, 0.78)
+      .setStrokeStyle(4, 0xffdf72, 0.9)
+      .setDepth(39)
+      .setInteractive({ useHandCursor: true });
+    this.add
+      .text(x, y, arrow, {
+        fontFamily: "Trebuchet MS",
+        fontSize: "34px",
+        fontStyle: "bold",
+        color: "#fffaf0"
+      })
+      .setOrigin(0.5)
+      .setDepth(40);
+
+    const press = (): void => {
+      this.mobileMovement[direction] = true;
+      button.setFillStyle(0x8b5a2b, 0.95).setScale(1.08);
+    };
+    const release = (): void => {
+      this.mobileMovement[direction] = false;
+      button.setFillStyle(0x2b1a11, 0.78).setScale(1);
+    };
+    button.on("pointerdown", press);
+    button.on("pointerup", release);
+    button.on("pointerout", release);
+    button.on("pointerupoutside", release);
+  }
+
+  private createDestinationLabels(): void {
+    const labelStyle: Phaser.Types.GameObjects.Text.TextStyle = {
+      fontFamily: "Trebuchet MS",
+      fontSize: "34px",
+      fontStyle: "bold",
+      color: "#fffaf0",
+      stroke: "#2d1f14",
+      strokeThickness: 7
+    };
+
+    this.add
+      .text(258, 205, "Closed", labelStyle)
+      .setOrigin(0.5)
+      .setDepth(10);
+    this.add
+      .text(978, 295, "Open", labelStyle)
+      .setOrigin(0.5)
+      .setDepth(10);
+  }
+
+  private createHud(): void {
+    this.add.rectangle(GAME_WIDTH / 2, 48, GAME_WIDTH, 96, 0x2b1a11, 0.84).setDepth(25);
+    this.statusText = this.add
+      .text(GAME_WIDTH / 2, 39, "", {
+        fontFamily: "Trebuchet MS",
+        fontSize: "28px",
+        fontStyle: "bold",
+        color: COLORS.TEXT_LIGHT,
+        align: "center"
+      })
+      .setOrigin(0.5)
+      .setDepth(30);
+    this.progressText = this.add
+      .text(GAME_WIDTH - 34, 48, "", {
+        fontFamily: "Trebuchet MS",
+        fontSize: "27px",
+        fontStyle: "bold",
+        color: COLORS.HIGHLIGHT,
+        align: "right"
+      })
+      .setOrigin(1, 0.5)
+      .setDepth(30);
+  }
+
+  private showStatus(message: string, color: string): void {
+    this.statusText?.setText(message).setColor(color);
+  }
+
+  private updateHud(): void {
+    this.progressText?.setText(
+      `${this.mode.state.correctVowelCount} / ${this.mode.config.vowelGoal} correct`
+    );
+  }
+
+  private async playIntroSequence(): Promise<void> {
+    await this.playSkippableVoiceClip(ASSET_KEYS.BARN_DOOR_VOWELS_INSTRUCTIONS);
+    if (!this.sceneShuttingDown && !this.complete) {
+      this.gameplayStarted = true;
+      this.spawnHerd();
+    }
+  }
+
+  private async playSkippableVoiceClip(key: string): Promise<void> {
+    const skip = (): void => this.audioFeedbackSystem.interruptVoicePlayback();
+    this.input.once("pointerdown", skip);
+    this.input.keyboard?.once("keydown", skip);
+    try {
+      await this.audioFeedbackSystem.playVoiceClip(key, { volume: 0.9 });
+    } finally {
+      this.input.off("pointerdown", skip);
+      this.input.keyboard?.off("keydown", skip);
+    }
+  }
+
+  private spawnHerd(): void {
+    if (!this.gameplayStarted || this.complete || this.sceneShuttingDown) {
+      return;
+    }
+    const positions = Phaser.Utils.Array.Shuffle([...ANIMAL_SPAWN_POSITIONS]);
+    for (let index = 0; index < this.mode.config.vowelGoal; index += 1) {
+      const position = positions[index % positions.length] ?? ANIMAL_SPAWN_POSITIONS[0];
+      const wordData = this.drawFromSpawnBag();
+      const textureKey = ANIMAL_KEYS[index % ANIMAL_KEYS.length] ?? ANIMAL_KEYS[0];
+      const animal = new BarnDoorWordFragment(this, position[0], position[1], wordData, textureKey);
+      if (textureKey === ASSET_KEYS.BARN_DOOR_CHICKEN) {
+        animal.animal.setDisplaySize(52, 52);
+      }
+      this.createAnimalAnimations(textureKey);
+      animal.animal.play(this.getAnimalAnimationKey(textureKey, "down")).anims.pause();
+      animal.setScale(0).setAlpha(0);
+      animal.on("pointerup", () => this.selectAnimal(animal));
+      this.animals.push(animal);
+      this.startAnimalWandering(animal, index * 170);
+      if (this.fenceLayer) {
+        this.physics.add.collider(animal, this.fenceLayer);
+      }
+      this.tweens.add({
+        targets: animal,
+        scale: 0.72,
+        alpha: 1,
+        delay: index * 45,
+        duration: 260,
+        ease: "Back.Out"
+      });
+    }
+    this.showStatus("Click an animal, then guide it with WASD or the arrow keys.", COLORS.TEXT_LIGHT);
+  }
+
+  private selectAnimal(animal: BarnDoorWordFragment): void {
+    if (this.resolvingAnswer || !animal.active) {
+      return;
+    }
+    const previouslySelected = this.currentAnimal;
+    previouslySelected?.setSelected(false);
+    previouslySelected?.stopMoving();
+    if (previouslySelected && previouslySelected !== animal) {
+      this.startAnimalWandering(previouslySelected);
+    }
+    this.currentAnimal = animal;
+    this.wanderStates.delete(animal);
+    animal.setSelected(true);
+    this.tweens.add({ targets: animal, scale: 0.82, duration: 120, yoyo: true });
+    this.showStatus(
+      `Guide “${animal.wordData.displayWordText}” with WASD or the arrow keys.`,
+      COLORS.HIGHLIGHT
+    );
+  }
+
+  private createAnimalAnimations(textureKey: string): void {
+    (Object.entries(ANIMAL_DIRECTION_ROWS) as Array<[AnimalDirection, number]>).forEach(
+      ([direction, row]) => {
+        const animationKey = this.getAnimalAnimationKey(textureKey, direction);
+        if (this.anims.exists(animationKey)) {
+          return;
+        }
+        const firstFrame = row * 4;
+        this.anims.create({
+          key: animationKey,
+          frames: this.anims.generateFrameNumbers(textureKey, {
+            start: firstFrame,
+            end: firstFrame + 3
+          }),
+          frameRate: 7,
+          repeat: -1
+        });
+      }
+    );
+  }
+
+  private getAnimalAnimationKey(textureKey: string, direction: AnimalDirection): string {
+    return `barn-door-${textureKey}-walk-${direction}`;
+  }
+
+  private getAnimalDirection(direction: Phaser.Math.Vector2): AnimalDirection {
+    if (Math.abs(direction.x) > Math.abs(direction.y)) {
+      return direction.x < 0 ? "left" : "right";
+    }
+    return direction.y < 0 ? "up" : "down";
+  }
+
+  private playAnimalWalkAnimation(
+    animal: BarnDoorWordFragment,
+    direction: AnimalDirection
+  ): void {
+    const animationKey = this.getAnimalAnimationKey(animal.animal.texture.key, direction);
+    if (animal.animal.anims.currentAnim?.key !== animationKey) {
+      animal.animal.play(animationKey);
+    } else if (animal.animal.anims.isPaused) {
+      animal.animal.anims.resume();
+    }
+  }
+
+  private startAnimalWandering(animal: BarnDoorWordFragment, delay = 0): void {
+    const direction = this.getRandomWanderDirection();
+    this.wanderStates.set(animal, {
+      direction,
+      nextTurnAt: this.time.now + delay + Phaser.Math.Between(900, 2200)
+    });
+    this.applyWanderMovement(animal, direction);
+  }
+
+  private updateWanderingAnimals(time: number): void {
+    this.wanderStates.forEach((state, animal) => {
+      if (!animal.active || animal === this.currentAnimal) {
+        return;
+      }
+
+      const predictedX = animal.x + state.direction.x * 46;
+      const predictedY = animal.y + state.direction.y * 46;
+      const leavingScreen = !ANIMAL_SCREEN_BOUNDS.contains(predictedX, predictedY);
+      const approachingDestination =
+        BARN_DOOR_AVOIDANCE.contains(predictedX, predictedY) ||
+        PASTURE_ENTRY_AVOIDANCE.contains(predictedX, predictedY);
+
+      if (leavingScreen || approachingDestination) {
+        state.direction.negate();
+        state.nextTurnAt = time + Phaser.Math.Between(900, 1800);
+        this.applyWanderMovement(animal, state.direction);
+      } else if (time >= state.nextTurnAt) {
+        state.direction = this.getRandomWanderDirection();
+        state.nextTurnAt = time + Phaser.Math.Between(1200, 3000);
+        this.applyWanderMovement(animal, state.direction);
+      }
+    });
+  }
+
+  private applyWanderMovement(
+    animal: BarnDoorWordFragment,
+    direction: Phaser.Math.Vector2
+  ): void {
+    const body = animal.body as Phaser.Physics.Arcade.Body;
+    body.setVelocity(direction.x * WANDER_SPEED, direction.y * WANDER_SPEED);
+    this.playAnimalWalkAnimation(animal, this.getAnimalDirection(direction));
+  }
+
+  private getRandomWanderDirection(): Phaser.Math.Vector2 {
+    const direction = Phaser.Utils.Array.GetRandom([
+      new Phaser.Math.Vector2(0, -1),
+      new Phaser.Math.Vector2(-1, 0),
+      new Phaser.Math.Vector2(0, 1),
+      new Phaser.Math.Vector2(1, 0)
+    ]);
+    return direction?.clone() ?? new Phaser.Math.Vector2(1, 0);
+  }
+
+  private resolveDestination(chosenType: VowelType): void {
+    const animal = this.currentAnimal;
+    if (!animal || this.resolvingAnswer || this.complete) {
+      return;
+    }
+    this.resolvingAnswer = true;
+    animal.stopMoving();
+    if (chosenType === VowelType.CLOSED) {
+      this.flashBarnOpen();
+    }
+    const correct = animal.wordData.vowelType === chosenType;
+    if (correct) {
+      this.handleCorrectAnswer(animal);
+    } else {
+      this.handleIncorrectAnswer(animal);
+    }
+  }
+
+  private handleCorrectAnswer(animal: BarnDoorWordFragment): void {
+    this.mode.state.markVowelCorrect();
+    this.updateHud();
+    this.showStatus("Great job! That vowel sound is correct!", COLORS.HIGHLIGHT);
+    void this.audioFeedbackSystem.playCorrectFeedback(
+      BARN_DOOR_CONGRATULATORY_VOICE_KEYS
+    );
+    this.tweens.add({
+      targets: animal,
+      alpha: 0,
+      duration: 250,
+      onComplete: () => {
+        animal.destroy();
+        this.animals = this.animals.filter((entry) => entry !== animal);
+        this.wanderStates.delete(animal);
+        this.currentAnimal = undefined;
+        if (this.mode.state.correctVowelCount >= this.mode.config.vowelGoal) {
+          this.finishRound();
+          return;
+        }
+        this.resolvingAnswer = false;
+        this.showStatus("Choose another animal to guide.", COLORS.TEXT_LIGHT);
+      }
+    });
+  }
+
+  private handleIncorrectAnswer(animal: BarnDoorWordFragment): void {
+    this.audioFeedbackSystem.playIncorrectFeedback();
+    void this.audioFeedbackSystem.playVoiceClip(
+      ASSET_KEYS.BARN_DOOR_VOWELS_TRY_AGAIN,
+      { volume: 0.9 }
+    );
+    const correctPlace = animal.wordData.vowelType === VowelType.CLOSED
+      ? "closed barn"
+      : "open pasture";
+    this.showStatus(`Good try! “${animal.wordData.displayWordText}” goes to the ${correctPlace}.`, "#fff1a8");
+    this.tweens.add({
+      targets: animal,
+      x: animal.spawnPosition.x,
+      y: animal.spawnPosition.y,
+      scale: 0.72,
+      duration: 500,
+      ease: "Sine.InOut",
+      onComplete: () => {
+        this.resolvingAnswer = false;
+        animal.setSelected(true);
+      }
+    });
+  }
+
+  private flashBarnOpen(): void {
+    this.setBarnOpen(true);
+    this.barnCloseTimer?.remove(false);
+    this.barnCloseTimer = this.time.delayedCall(700, () => {
+      this.setBarnOpen(false);
+      this.barnCloseTimer = undefined;
+    });
+  }
+
+  private setBarnOpen(open: boolean): void {
+    if (!this.barnLayer) {
+      return;
+    }
+
+    const openTileIds = new Set<number>(OPEN_BARN_TILE_IDS);
+    const closedTileIds = new Set<number>(
+      OPEN_BARN_TILE_IDS.map((tileId) => tileId + BARN_VARIANT_TILE_OFFSET)
+    );
+    this.barnLayer.forEachTile((tile) => {
+      if (open && closedTileIds.has(tile.index)) {
+        tile.index -= BARN_VARIANT_TILE_OFFSET;
+      } else if (!open && openTileIds.has(tile.index)) {
+        tile.index += BARN_VARIANT_TILE_OFFSET;
+      }
+    });
+  }
+
+  private finishRound(): void {
+    this.complete = true;
+    this.resolvingAnswer = false;
+    this.showStatus("You sorted them all! Starting a new farm round…", COLORS.HIGHLIGHT);
+    this.time.delayedCall(2300, () => {
+      if (!this.sceneShuttingDown) {
+        this.scene.restart();
+      }
+    });
+  }
+
+  private drawFromSpawnBag(): VowelsAndWordsData {
+    if (this.wordsAndVowelsSpawnBag.length === 0) {
+      this.wordsAndVowelsSpawnBag.push(
+        ...Phaser.Utils.Array.Shuffle([...this.mode.content.vowelsAndWords])
+      );
+    }
+    const selected = this.wordsAndVowelsSpawnBag.shift();
+    if (!selected) {
+      throw new Error("Barn Door Vowels has no configured word fragments.");
+    }
+    return selected;
   }
 }

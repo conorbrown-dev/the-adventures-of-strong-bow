@@ -2,7 +2,8 @@ import { loadBarnDoorVowels } from "../../settings/barnDoorVowelsSettings";
 
 export interface BarnDoorVowelsModeConfig {
   title: string;
-  wordFragments: string[]
+  wordFragments: string[];
+  vowelGoal: number;
 }
 
 export function getBarnDoorVowelsModeConfig(
@@ -11,7 +12,8 @@ export function getBarnDoorVowelsModeConfig(
 
   return {
     title: "Barn Door: Open & Closed Vowels",
-    wordFragments: settings.wordFragments
+    wordFragments: settings.wordFragments,
+    vowelGoal: settings.vowelGoal
   };
 }
 

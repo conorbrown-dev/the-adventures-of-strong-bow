@@ -72,7 +72,9 @@ export class AudioFeedbackSystem {
     await this.speak(text, options, this.beginVoiceSequence());
   }
 
-  async playCorrectFeedback(): Promise<void> {
+  async playCorrectFeedback(
+    voiceKeys: readonly string[] = CORRECT_FEEDBACK_VOICE_KEYS
+  ): Promise<void> {
     this.ensureAudioContext();
     this.playToneSequence([
       { frequency: 460, duration: 0.08, type: "sine" },
@@ -82,8 +84,7 @@ export class AudioFeedbackSystem {
 
     await this.wait(120);
     await this.playVoiceClipInternal(
-      Phaser.Utils.Array.GetRandom([...CORRECT_FEEDBACK_VOICE_KEYS]) ??
-        CORRECT_FEEDBACK_VOICE_KEYS[0],
+      Phaser.Utils.Array.GetRandom([...voiceKeys]) ?? CORRECT_FEEDBACK_VOICE_KEYS[0],
       {
         volume: 0.9
       },

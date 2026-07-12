@@ -1,116 +1,122 @@
 import Phaser from "phaser";
 
-import {
-    getConfiguredBgmVolume,
-    loadParentalSettings,
-    saveParentalSettings
-} from "../settings/parentalSettings";
 import { ASSET_KEYS } from "../utils/assetKeys";
-import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
+import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
 
-interface FossilTitleButton {
-    button: Phaser.GameObjects.Image;
-    hitZone: Phaser.GameObjects.Zone;
-    activeTextureKey: string;
-    inactiveTextureKey: string;
-    onClick: () => void;
-}
+export class BarnDoorVowelsTitleScene extends Phaser.Scene {
+  private selectedIndex = 0;
+  private buttons: Array<{ panel: Phaser.GameObjects.Rectangle; action: () => void }> = [];
+  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private enterKey?: Phaser.Input.Keyboard.Key;
+  private escapeKey?: Phaser.Input.Keyboard.Key;
 
-const TITLE_BUTTON_HEIGHT = 64;
-const TITLE_BUTTON_SELECTED_SCALE = 1.04;
+  constructor() {
+    super(SCENE_KEYS.BARN_DOOR_VOWELS_TITLE);
+  }
 
-export class FossilDigTitleScene extends Phaser.Scene {
-    private selectedIndex = 0;
-    private buttons: FossilTitleButton[] = [];
-    private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
-    private enterKey?: Phaser.Input.Keyboard.Key;
-    private escapeKey?: Phaser.Input.Keyboard.Key;
-    private overlayVisible = false;
-    private overlay?: Phaser.GameObjects.Container;
-    private bgm?: Phaser.Sound.BaseSound;
+  create(): void {
+    this.cameras.main.setBackgroundColor(0x9bd8f2);
+    this.createFarmBackdrop();
+    this.add
+      .text(GAME_WIDTH / 2, 155, "Barn Door Vowels", {
+        fontFamily: "Trebuchet MS",
+        fontSize: "68px",
+        fontStyle: "bold",
+        color: COLORS.TEXT_LIGHT,
+        stroke: COLORS.TEXT_DARK,
+        strokeThickness: 10
+      })
+      .setOrigin(0.5)
+      .setDepth(10);
+    this.add
+      .text(GAME_WIDTH / 2, 225, "Guide open and closed vowel sounds home!", {
+        fontFamily: "Trebuchet MS",
+        fontSize: "30px",
+        fontStyle: "bold",
+        color: COLORS.TEXT_DARK
+      })
+      .setOrigin(0.5)
+      .setDepth(10);
 
-    constructor() {
-        super(SCENE_KEYS.FOSSIL_DIG_TITLE);
+    this.createButton(0, 430, "PLAY", () => {
+      this.scene.start(SCENE_KEYS.BARN_DOOR_VOWELS);
+    });
+    this.createButton(1, 535, "BACK", () => {
+      this.scene.start(SCENE_KEYS.TITLE);
+    });
+
+    this.cursors = this.input.keyboard?.createCursorKeys();
+    this.enterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    this.escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    this.refreshSelection();
+  }
+
+  update(): void {
+    if (!this.cursors || !this.enterKey || !this.escapeKey) {
+      return;
     }
-
-    create(): void {
-        this.resetTitleCamera();
-        this.startBackgroundMusic();
-
-        this.add
-            .image(GAME_WIDTH / 2, GAME_HEIGHT / 2, ASSET_KEYS.TITLE_SCREEN)
-            .setDisplaySize(GAME_WIDTH, GAME_HEIGHT)
-            .setDepth(0);
-
-        this.add
-            .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x08111a, 0.15)
-            .setDepth(1);
-
-        this.createButton(
-            0,
-            540,
-            ASSET_KEYS.TITLE_BUTTON_START_ACTIVE,
-            ASSET_KEYS.TITLE_BUTTON_START_INACTIVE,
-            () => this.startGame()
-        );
-        this.createButton(
-            1,
-            615,
-            ASSET_KEYS.TITLE_BUTTON_SETTINGS_ACTIVE,
-            ASSET_KEYS.TITLE_BUTTON_SETTINGS_INACTIVE,
-            () => this.showSettingsOverlay()
-        );
-        this.createButton(
-            2,
-            690,
-            ASSET_KEYS.TITLE_BUTTON_EXIT_ACTIVE,
-            ASSET_KEYS.TITLE_BUTTON_EXIT_INACTIVE,
-            () => this.returnToGameSelect()
-        );
-
-        this.cursors = this.input.keyboard!.createCursorKeys();
-        this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-        this.escapeKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
-
-        this.refreshSelection();
+    if (Phaser.Input.Keyboard.JustDown(this.escapeKey)) {
+      playButtonClick(this);
+      this.scene.start(SCENE_KEYS.TITLE);
+    } else if (Phaser.Input.Keyboard.JustDown(this.cursors.down) || Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
+      this.selectedIndex = (this.selectedIndex + 1) % this.buttons.length;
+      playButtonHover(this);
+      this.refreshSelection();
+    } else if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {
+      playButtonClick(this);
+      this.buttons[this.selectedIndex]?.action();
     }
+  }
 
-    update(): void {
-        if (!this.cursors || !this.enterKey || !this.escapeKey) {
-            return;
-        }
+  private createFarmBackdrop(): void {
+    const background = this.add
+      .image(
+        GAME_WIDTH / 2,
+        GAME_HEIGHT / 2,
+        ASSET_KEYS.BARN_DOOR_VOWELS_TITLE_SCREEN
+      )
+      .setOrigin(0.5)
+      .setDepth(-2);
+    const containScale = Math.min(
+      GAME_WIDTH / background.width,
+      GAME_HEIGHT / background.height
+    );
+    background.setScale(containScale);
+  }
 
-        if (this.overlayVisible) {
-            if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {
-                this.hideOverlay();
-            }
+  private createButton(index: number, y: number, label: string, action: () => void): void {
+    const panel = this.add
+      .rectangle(GAME_WIDTH / 2, y, 380, 78, 0xf6edd7)
+      .setStrokeStyle(5, 0x5e4127)
+      .setDepth(8)
+      .setInteractive({ useHandCursor: true });
+    this.add
+      .text(GAME_WIDTH / 2, y, label, {
+        fontFamily: "Trebuchet MS",
+        fontSize: "34px",
+        fontStyle: "bold",
+        color: COLORS.TEXT_DARK
+      })
+      .setOrigin(0.5)
+      .setDepth(9);
+    panel.on("pointerover", () => {
+      this.selectedIndex = index;
+      playButtonHover(this);
+      this.refreshSelection();
+    });
+    panel.on("pointerup", () => {
+      playButtonClick(this);
+      action();
+    });
+    this.buttons.push({ panel, action });
+  }
 
-            return;
-        }
-
-        if (Phaser.Input.Keyboard.JustDown(this.escapeKey)) {
-            playButtonClick(this);
-            this.returnToGameSelect();
-            return;
-        }
-
-        if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
-            this.selectedIndex = (this.selectedIndex + 1) % this.buttons.length;
-            playButtonHover(this);
-            this.refreshSelection();
-        }
-
-        if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
-            this.selectedIndex =
-                (this.selectedIndex - 1 + this.buttons.length) % this.buttons.length;
-            playButtonHover(this);
-            this.refreshSelection();
-        }
-
-        if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {
-            this.activateSelection();
-        }
-    }
+  private refreshSelection(): void {
+    this.buttons.forEach(({ panel }, index) => {
+      panel.setFillStyle(index === this.selectedIndex ? 0xffdf72 : 0xf6edd7);
+      panel.setScale(index === this.selectedIndex ? 1.04 : 1);
+    });
+  }
 }
