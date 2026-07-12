@@ -9,5 +9,6 @@ export const SCENE_KEYS = {
   FOSSIL_DIG: "FossilDigScene",
   LETTER_CATCH: "LetterCatchScene",
   DINO_CHASE: "DinoChaseScene",
+  BARN_DOOR_VOWELS: "BarnDoorVowelsScene",
   WIN: "WinScene"
 } as const;

@@ -6,6 +6,7 @@ import { DinoChaseScene } from "../scenes/DinoChaseScene";
 import { FossilDigTitleScene } from "../scenes/FossilDigTitleScene";
 import { FossilDigScene } from "../scenes/FossilDigScene";
 import { LetterCatchScene } from "../scenes/LetterCatchScene";
+import { BarnDoorVowelsScene } from '../scenes/BarnDoorVowelsScene'
 import { MainMenuScene } from "../scenes/MainMenuScene";
 import { PreloadScene } from "../scenes/PreloadScene";
 import { TitleScene } from "../scenes/TitleScene";
@@ -47,6 +48,7 @@ export function createGameConfig(
       CatCatchTitleScene,
       MainMenuScene,
       FossilDigScene,
+      BarnDoorVowelsScene,
       LetterCatchScene,
       DinoChaseScene,
       WinScene
