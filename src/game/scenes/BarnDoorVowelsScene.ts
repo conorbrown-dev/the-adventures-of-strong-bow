@@ -151,7 +151,8 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
   private createFarmTilemap(): void {
     const map = this.make.tilemap({ key: ASSET_KEYS.BARN_DOOR_FARM_MAP });
     const tilesets = [
-      map.addTilesetImage("terrain-map-v7", ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS),
+      map.addTilesetImage("terrain-map-v7-a", ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS_A),
+      map.addTilesetImage("terrain-map-v7-b", ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS_B),
       map.addTilesetImage("terrain-v7", ASSET_KEYS.BARN_DOOR_MAP_TERRAIN),
       map.addTilesetImage("fence-medieval", ASSET_KEYS.BARN_DOOR_MAP_FENCE),
       map.addTilesetImage("barn-sheet", ASSET_KEYS.BARN_DOOR_MAP_BARN),

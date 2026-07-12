@@ -111,6 +111,10 @@ export class FossilDigScene extends Phaser.Scene {
   private jumpKey?: Phaser.Input.Keyboard.Key;
   private upKey?: Phaser.Input.Keyboard.Key;
   private downKey?: Phaser.Input.Keyboard.Key;
+  private mobileDigHeld = false;
+  private mobileDigPressed = false;
+  private mobileDigReleased = false;
+  private mobileJumpPressed = false;
   private pickupInteractionLocked = false;
   private movementLocked = false;
   private transitionStarted = false;
@@ -157,6 +161,10 @@ export class FossilDigScene extends Phaser.Scene {
     this.movementLocked = false;
     this.transitionStarted = false;
     this.cameraTargetScrollY = 0;
+    this.mobileDigHeld = false;
+    this.mobileDigPressed = false;
+    this.mobileDigReleased = false;
+    this.mobileJumpPressed = false;
   }
 
   create(): void {
@@ -231,6 +239,7 @@ export class FossilDigScene extends Phaser.Scene {
       dig: this.digKey,
       jump: this.jumpKey
     });
+    this.createMobileControls(cursors);
     this.updateCameraPosition(true);
     this.cameras.main.roundPixels = true;
 
@@ -300,13 +309,17 @@ export class FossilDigScene extends Phaser.Scene {
       return;
     }
 
-    if (this.activeDigAction && this.digKey && Phaser.Input.Keyboard.JustUp(this.digKey)) {
+    if (
+      this.activeDigAction &&
+      ((this.digKey && Phaser.Input.Keyboard.JustUp(this.digKey)) || this.mobileDigReleased)
+    ) {
+      this.mobileDigReleased = false;
       this.cancelDigAction();
     }
 
     if (this.activeDigAction) {
       const inputWhileDigging = this.player.getDigInputVector();
-      const digStillHeld = this.digKey?.isDown ?? false;
+      const digStillHeld = (this.digKey?.isDown ?? false) || this.mobileDigHeld;
       const sameDirection =
         inputWhileDigging.lengthSq() > 0 &&
         this.matchesDigDirection(inputWhileDigging, this.activeDigAction.direction);
@@ -318,7 +331,11 @@ export class FossilDigScene extends Phaser.Scene {
       }
     }
 
-    if (this.digKey && Phaser.Input.Keyboard.JustDown(this.digKey)) {
+    if (
+      (this.digKey && Phaser.Input.Keyboard.JustDown(this.digKey)) ||
+      this.mobileDigPressed
+    ) {
+      this.mobileDigPressed = false;
       this.beginDig(input);
       return;
     }
@@ -1132,9 +1149,13 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   private tryStartJump(input: Phaser.Math.Vector2): boolean {
-    if (!this.jumpKey || !Phaser.Input.Keyboard.JustDown(this.jumpKey)) {
+    const keyboardJump = Boolean(
+      this.jumpKey && Phaser.Input.Keyboard.JustDown(this.jumpKey)
+    );
+    if (!keyboardJump && !this.mobileJumpPressed) {
       return false;
     }
+    this.mobileJumpPressed = false;
 
     const direction = new Phaser.Math.Vector2(
       input.x === 0 ? 0 : Math.sign(input.x),
@@ -1143,6 +1164,81 @@ export class FossilDigScene extends Phaser.Scene {
 
     this.startJump(direction);
     return true;
+  }
+
+  private createMobileControls(
+    cursors: Phaser.Types.Input.Keyboard.CursorKeys
+  ): void {
+    if (!this.sys.game.device.input.touch) {
+      return;
+    }
+    this.input.addPointer(3);
+    const controls = this.add.container(0, 0).setScrollFactor(0).setDepth(1000);
+    controls.add(this.add.circle(132, 623, 112, 0x1f2937, 0.32)
+      .setStrokeStyle(3, 0xffffff, 0.35));
+    this.createFossilDirectionButton(controls, 132, 548, "▲", cursors.up);
+    this.createFossilDirectionButton(controls, 57, 623, "◀", cursors.left);
+    this.createFossilDirectionButton(controls, 207, 623, "▶", cursors.right);
+    this.createFossilDirectionButton(controls, 132, 698, "▼", cursors.down);
+    this.createFossilActionButton(controls, GAME_WIDTH - 205, 675, "DIG", true);
+    this.createFossilActionButton(controls, GAME_WIDTH - 82, 675, "JUMP", false);
+  }
+
+  private createFossilDirectionButton(
+    controls: Phaser.GameObjects.Container,
+    x: number,
+    y: number,
+    label: string,
+    key: Phaser.Input.Keyboard.Key
+  ): void {
+    const button = this.add.circle(x, y, 37, 0x2b1a11, 0.78)
+      .setStrokeStyle(4, 0xffdf72, 0.9).setInteractive();
+    const text = this.add.text(x, y, label, {
+      fontFamily: "Trebuchet MS", fontSize: "34px", fontStyle: "bold", color: "#fffaf0"
+    }).setOrigin(0.5);
+    controls.add([button, text]);
+    const release = (): void => {
+      key.isDown = false;
+      button.setFillStyle(0x2b1a11, 0.78).setScale(1);
+    };
+    button.on("pointerdown", () => {
+      key.isDown = true;
+      button.setFillStyle(0x8b5a2b, 0.95).setScale(1.08);
+    });
+    button.on("pointerup", release).on("pointerout", release).on("pointerupoutside", release);
+  }
+
+  private createFossilActionButton(
+    controls: Phaser.GameObjects.Container,
+    x: number,
+    y: number,
+    label: string,
+    isDig: boolean
+  ): void {
+    const button = this.add.circle(x, y, 51, isDig ? 0x8b5a2b : 0x365f9d, 0.88)
+      .setStrokeStyle(4, 0xffdf72, 0.95).setInteractive();
+    const text = this.add.text(x, y, label, {
+      fontFamily: "Trebuchet MS", fontSize: "21px", fontStyle: "bold", color: "#fffaf0"
+    }).setOrigin(0.5);
+    controls.add([button, text]);
+    button.on("pointerdown", () => {
+      button.setScale(1.08);
+      if (isDig) {
+        this.mobileDigHeld = true;
+        this.mobileDigPressed = true;
+        this.mobileDigReleased = false;
+      } else {
+        this.mobileJumpPressed = true;
+      }
+    });
+    const release = (): void => {
+      button.setScale(1);
+      if (isDig && this.mobileDigHeld) {
+        this.mobileDigHeld = false;
+        this.mobileDigReleased = true;
+      }
+    };
+    button.on("pointerup", release).on("pointerout", release).on("pointerupoutside", release);
   }
 
   private tryStartHorizontalStep(moveInput: Phaser.Math.Vector2): boolean {

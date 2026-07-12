@@ -31,6 +31,9 @@ export class LetterCatchScene extends Phaser.Scene {
   private aKey?: Phaser.Input.Keyboard.Key;
   private dKey?: Phaser.Input.Keyboard.Key;
   private spaceKey?: Phaser.Input.Keyboard.Key;
+  private mobileLeft = false;
+  private mobileRight = false;
+  private mobileJumpPressed = false;
   private spawnTimer?: Phaser.Time.TimerEvent;
   private progressText?: Phaser.GameObjects.Text;
   private targetSpawnBag: LetterData[] = [];
@@ -54,6 +57,9 @@ export class LetterCatchScene extends Phaser.Scene {
     this.distractorSpawnBag = [];
     this.spawnTimer?.destroy();
     this.spawnTimer = undefined;
+    this.mobileLeft = false;
+    this.mobileRight = false;
+    this.mobileJumpPressed = false;
   }
 
   create(): void {
@@ -77,6 +83,7 @@ export class LetterCatchScene extends Phaser.Scene {
     this.aKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     this.dKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     this.spaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.createMobileControls();
 
     this.updateHud();
     this.showStatus(
@@ -104,13 +111,17 @@ export class LetterCatchScene extends Phaser.Scene {
     }
 
     const movingLeft =
-      Boolean(this.cursors?.left.isDown) || Boolean(this.aKey?.isDown);
+      Boolean(this.cursors?.left.isDown) || Boolean(this.aKey?.isDown) || this.mobileLeft;
     const movingRight =
-      Boolean(this.cursors?.right.isDown) || Boolean(this.dKey?.isDown);
+      Boolean(this.cursors?.right.isDown) || Boolean(this.dKey?.isDown) || this.mobileRight;
     const direction =
       Number(movingRight) - Number(movingLeft);
 
-    if (this.spaceKey && Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+    if (
+      (this.spaceKey && Phaser.Input.Keyboard.JustDown(this.spaceKey)) ||
+      this.mobileJumpPressed
+    ) {
+      this.mobileJumpPressed = false;
       this.kitten.jump();
     }
 
@@ -214,6 +225,63 @@ export class LetterCatchScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(30);
+  }
+
+  private createMobileControls(): void {
+    if (!this.sys.game.device.input.touch) {
+      return;
+    }
+    this.input.addPointer(2);
+    this.createMobileHoldButton(78, 676, "◀", (pressed) => {
+      this.mobileLeft = pressed;
+    });
+    this.createMobileHoldButton(178, 676, "▶", (pressed) => {
+      this.mobileRight = pressed;
+    });
+    this.createMobileActionButton(GAME_WIDTH - 96, 660, "JUMP", () => {
+      this.mobileJumpPressed = true;
+    });
+  }
+
+  private createMobileHoldButton(
+    x: number,
+    y: number,
+    label: string,
+    onChange: (pressed: boolean) => void
+  ): void {
+    const button = this.add.circle(x, y, 43, 0x2b1a11, 0.78)
+      .setStrokeStyle(4, 0xffdf72, 0.9).setDepth(40).setInteractive();
+    this.add.text(x, y, label, {
+      fontFamily: "Trebuchet MS", fontSize: "36px", fontStyle: "bold", color: "#fffaf0"
+    }).setOrigin(0.5).setDepth(41);
+    const release = (): void => {
+      onChange(false);
+      button.setFillStyle(0x2b1a11, 0.78).setScale(1);
+    };
+    button.on("pointerdown", () => {
+      onChange(true);
+      button.setFillStyle(0x8b5a2b, 0.95).setScale(1.08);
+    });
+    button.on("pointerup", release).on("pointerout", release).on("pointerupoutside", release);
+  }
+
+  private createMobileActionButton(
+    x: number,
+    y: number,
+    label: string,
+    action: () => void
+  ): void {
+    const button = this.add.circle(x, y, 55, 0x8b5a2b, 0.86)
+      .setStrokeStyle(4, 0xffdf72, 0.95).setDepth(40).setInteractive();
+    this.add.text(x, y, label, {
+      fontFamily: "Trebuchet MS", fontSize: "22px", fontStyle: "bold", color: "#fffaf0"
+    }).setOrigin(0.5).setDepth(41);
+    button.on("pointerdown", () => {
+      action();
+      button.setScale(1.08);
+    });
+    button.on("pointerup", () => button.setScale(1));
+    button.on("pointerout", () => button.setScale(1));
   }
 
   private spawnLetter(): void {

@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "map:export": "node scripts/export-farm-map.mjs",
+    "map:split-atlas": "node scripts/split-terrain-atlas.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "typecheck": "tsc --noEmit",
     "start": "node server.mjs"

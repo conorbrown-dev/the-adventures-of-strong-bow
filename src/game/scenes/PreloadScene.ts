@@ -233,18 +233,16 @@ export class PreloadScene extends Phaser.Scene {
       new URL("../assets/barn-door-vowels/farm.json", import.meta.url).toString()
     );
     const farmMapTilesets = [
-      [ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS, "terrain-map-v7.png"],
-      [ASSET_KEYS.BARN_DOOR_MAP_TERRAIN, "terrain-v7.png"],
-      [ASSET_KEYS.BARN_DOOR_MAP_FENCE, "fence_medieval.png"],
-      [ASSET_KEYS.BARN_DOOR_MAP_BARN, "barn-sheet.png"],
-      [ASSET_KEYS.BARN_DOOR_MAP_BLADE, "blade.png"],
-      [ASSET_KEYS.BARN_DOOR_MAP_DECORATIONS, "decorations-medieval.png"]
+      [ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS_A, new URL("../assets/barn-door-vowels/terrain-map-v7-a.png", import.meta.url).toString()],
+      [ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS_B, new URL("../assets/barn-door-vowels/terrain-map-v7-b.png", import.meta.url).toString()],
+      [ASSET_KEYS.BARN_DOOR_MAP_TERRAIN, new URL("../assets/barn-door-vowels/terrain-v7.png", import.meta.url).toString()],
+      [ASSET_KEYS.BARN_DOOR_MAP_FENCE, new URL("../assets/barn-door-vowels/fence_medieval.png", import.meta.url).toString()],
+      [ASSET_KEYS.BARN_DOOR_MAP_BARN, new URL("../assets/barn-door-vowels/barn-sheet.png", import.meta.url).toString()],
+      [ASSET_KEYS.BARN_DOOR_MAP_BLADE, new URL("../assets/barn-door-vowels/blade.png", import.meta.url).toString()],
+      [ASSET_KEYS.BARN_DOOR_MAP_DECORATIONS, new URL("../assets/barn-door-vowels/decorations-medieval.png", import.meta.url).toString()]
     ] as const;
-    farmMapTilesets.forEach(([key, fileName]) => {
-      this.load.image(
-        key,
-        new URL(`../assets/barn-door-vowels/${fileName}`, import.meta.url).toString()
-      );
+    farmMapTilesets.forEach(([key, url]) => {
+      this.load.image(key, url);
     });
     this.load.spritesheet(
       ASSET_KEYS.BARN_DOOR_BARN,
@@ -267,16 +265,16 @@ export class PreloadScene extends Phaser.Scene {
       { frameWidth: 64, frameHeight: 64 }
     );
     const farmAnimals = [
-      [ASSET_KEYS.BARN_DOOR_COW, "cow_walk.png", 128],
-      [ASSET_KEYS.BARN_DOOR_PIG, "pig_walk.png", 128],
-      [ASSET_KEYS.BARN_DOOR_SHEEP, "sheep_walk.png", 128],
-      [ASSET_KEYS.BARN_DOOR_LLAMA, "llama_walk.png", 128],
-      [ASSET_KEYS.BARN_DOOR_CHICKEN, "chicken_walk.png", 32]
+      [ASSET_KEYS.BARN_DOOR_COW, new URL("../assets/barn-door-vowels/cow_walk.png", import.meta.url).toString(), 128],
+      [ASSET_KEYS.BARN_DOOR_PIG, new URL("../assets/barn-door-vowels/pig_walk.png", import.meta.url).toString(), 128],
+      [ASSET_KEYS.BARN_DOOR_SHEEP, new URL("../assets/barn-door-vowels/sheep_walk.png", import.meta.url).toString(), 128],
+      [ASSET_KEYS.BARN_DOOR_LLAMA, new URL("../assets/barn-door-vowels/llama_walk.png", import.meta.url).toString(), 128],
+      [ASSET_KEYS.BARN_DOOR_CHICKEN, new URL("../assets/barn-door-vowels/chicken_walk.png", import.meta.url).toString(), 32]
     ] as const;
-    farmAnimals.forEach(([key, fileName, frameSize]) => {
+    farmAnimals.forEach(([key, url, frameSize]) => {
       this.load.spritesheet(
         key,
-        new URL(`../assets/barn-door-vowels/${fileName}`, import.meta.url).toString(),
+        url,
         { frameWidth: frameSize, frameHeight: frameSize }
       );
     });
@@ -670,7 +668,8 @@ export class PreloadScene extends Phaser.Scene {
       ASSET_KEYS.LADDER_MIDDLE,
       ASSET_KEYS.LADDER_BOTTOM,
       ASSET_KEYS.BARN_DOOR_TERRAIN,
-      ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS,
+      ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS_A,
+      ASSET_KEYS.BARN_DOOR_MAP_TERRAIN_ATLAS_B,
       ASSET_KEYS.BARN_DOOR_MAP_TERRAIN,
       ASSET_KEYS.BARN_DOOR_MAP_FENCE,
       ASSET_KEYS.BARN_DOOR_MAP_BARN,

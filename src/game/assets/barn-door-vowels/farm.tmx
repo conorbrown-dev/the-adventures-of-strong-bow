@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.12.2-2-geb83ddb9" orientation="orthogonal" renderorder="right-down" width="256" height="256" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="7">
- <tileset firstgid="1" source="terrain-map-v7.tileset.xml"/>
+ <tileset firstgid="1" source="terrain-map-v7-a.tileset.xml"/>
+ <tileset firstgid="7873" source="terrain-map-v7-b.tileset.xml"/>
  <tileset firstgid="15745" source="terrain-v7.tileset.xml"/>
  <tileset firstgid="17793" source="fence-medieval.tileset.xml"/>
  <tileset firstgid="18305" name="barn-sheet" tilewidth="32" tileheight="32" tilecount="27" columns="9">
