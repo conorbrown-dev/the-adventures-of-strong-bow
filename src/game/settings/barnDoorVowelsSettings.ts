@@ -1,17 +1,17 @@
 const STORAGE_KEY = "molly-learning-game-barn-door-vowels-settings";
 const DEFAULT_VOWEL_GOAL = 10;
-const DEFAULT_VOWELS = ['a', 'e', 'i', 'o', 'u'];
+const WORD_FRAGMENTS = ['ga', 'be', 'i', 'mo', 'bu'];
 const MAX_DEFAULT_VOWEL_GOAL = 20;
 
 export interface BarnDoorVowelsSettings {
-    vowels: string[]
+    wordFragments: string[]
     vowelGoal: number;
 }
 
 export function getDefaultBarnDoorVowelsSettings(): BarnDoorVowelsSettings {
     return {
         vowelGoal: DEFAULT_VOWEL_GOAL,
-        vowels: DEFAULT_VOWELS
+        wordFragments: WORD_FRAGMENTS
     };
 }
 
@@ -20,11 +20,11 @@ export function sanitizeBarnDoorVowelsSettings(
 ): BarnDoorVowelsSettings {
     const defaults = getDefaultBarnDoorVowelsSettings();
     const vowelGoal = clampCatchGoal(partial.vowelGoal ?? defaults.vowelGoal);
-    const vowels = defaults.vowels
+    const wordFragments = defaults.wordFragments
 
     return {
         vowelGoal,
-        vowels
+        wordFragments: wordFragments
     };
 }
 
