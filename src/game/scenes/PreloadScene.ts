@@ -197,6 +197,10 @@ export class PreloadScene extends Phaser.Scene {
         import.meta.url
       ).toString()
     );
+    this.load.audio(
+      ASSET_KEYS.BARN_DOOR_VOWELS_PRONOUNCE_WORD,
+      new URL("../assets/pronounce-the-word.mp3", import.meta.url).toString()
+    );
     this.load.image(
       ASSET_KEYS.BARN_DOOR_VOWELS_TITLE_SCREEN,
       new URL(

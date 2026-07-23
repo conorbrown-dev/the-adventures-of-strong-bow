@@ -90,6 +90,7 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
   private resolvingAnswer = false;
   private sceneShuttingDown = false;
   private activeSpeechRecognition?: BrowserSpeechRecognition;
+  private microphoneAccessGranted = false;
 
   constructor() {
     super(SCENE_KEYS.BARN_DOOR_VOWELS);
@@ -496,22 +497,25 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     this.resolvingAnswer = true;
     animal.stopMoving();
     this.showStatus(`Say “${animal.wordData.displayWordText}” into the microphone.`, COLORS.HIGHLIGHT);
-    await this.audioFeedbackSystem.speakPhrase(
-      `Say ${animal.wordData.displayWordText}.`,
-      { rate: 0.72, pitch: 1.04 }
+    await this.audioFeedbackSystem.playVoiceClip(
+      ASSET_KEYS.BARN_DOOR_VOWELS_PRONOUNCE_WORD,
+      { volume: 0.9 }
     );
     if (this.sceneShuttingDown || this.complete || this.currentAnimal !== animal) {
       return;
     }
 
-    const result = await this.listenForPronunciation(animal.wordData.displayWordText);
+    const microphoneReady = await this.requestMicrophoneAccess();
+    const result = microphoneReady
+      ? await this.listenForPronunciation(animal.wordData.displayWordText)
+      : "unavailable";
     if (this.sceneShuttingDown || this.complete || this.currentAnimal !== animal) {
       return;
     }
     if (result === "correct") {
       this.handleCorrectAnswer(animal);
     } else if (result === "unavailable") {
-      this.showStatus("Microphone speech recognition is unavailable. Please use Chrome and allow microphone access.", "#fff1a8");
+      this.showStatus("Microphone access or speech recognition is unavailable. Please allow microphone access and use a supported browser.", "#fff1a8");
       this.tweens.add({
         targets: animal,
         x: animal.spawnPosition.x,
@@ -630,6 +634,26 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
         finish("unavailable");
       }
     });
+  }
+
+  private async requestMicrophoneAccess(): Promise<boolean> {
+    if (this.microphoneAccessGranted) {
+      return true;
+    }
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      return false;
+    }
+    this.showStatus("Allow microphone access so we can hear your answer.", COLORS.HIGHLIGHT);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Speech recognition opens its own microphone stream. Stop this
+      // permission probe immediately so it does not compete for the device.
+      stream.getTracks().forEach((track) => track.stop());
+      this.microphoneAccessGranted = true;
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private matchesPronunciation(transcript: string, expected: string): boolean {
