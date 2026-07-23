@@ -2,3 +2,5 @@ node_modules
 dist
 # Windows Mark-of-the-Web metadata accidentally materialized as files
 *:Zone.Identifier
+playwright-report/
+test-results/

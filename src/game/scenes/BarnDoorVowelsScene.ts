@@ -624,7 +624,9 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
       recognition.continuous = false;
       recognition.maxAlternatives = 3;
       let settled = false;
-      let timeout: ReturnType<typeof setTimeout> | undefined;
+      // Browser timers return a numeric handle; explicitly keep this browser-only
+      // so Node's timer declarations cannot leak into the Phaser build.
+      let timeout: number | undefined;
       const finish = (result: PronunciationResult): void => {
         if (settled) return;
         settled = true;
