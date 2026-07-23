@@ -50,16 +50,19 @@ export class TitleScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    this.createButton(0, 350, "Fossil Dig", () => {
+    this.createButton(0, 300, "Fossil Dig", () => {
       this.scene.start(SCENE_KEYS.FOSSIL_DIG_TITLE);
     });
 
-    this.createButton(1, 470, "Kitten Catch", () => {
+    this.createButton(1, 415, "Kitten Catch", () => {
       this.scene.start(SCENE_KEYS.CAT_CATCH_TITLE);
     });
 
-    this.createButton(2, 580, "Barn Door Vowels", () => {
+    this.createButton(2, 530, "Barn Door Vowels", () => {
       this.scene.start(SCENE_KEYS.BARN_DOOR_VOWELS_TITLE);
+    });
+    this.createButton(3, 645, "Addition Lab", () => {
+      this.scene.start(SCENE_KEYS.ADDITION_TITLE);
     });
 
     this.cursors = this.input.keyboard!.createCursorKeys();

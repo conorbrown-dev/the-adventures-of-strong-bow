@@ -74,7 +74,14 @@ export const ASSET_KEYS = {
   KITTEN_CATCH_VOWELS: "voice-kitten-catch-vowels",
   KITTEN_CATCH_CONSONANTS: "voice-kitten-catch-consonants",
   KITTEN_CATCH_WAY_TO_GO: "voice-kitten-catch-way-to-go",
-  KITTEN_CATCH_IMPRESSIVE: "voice-kitten-catch-impressive-most-impressive"
+  KITTEN_CATCH_IMPRESSIVE: "voice-kitten-catch-impressive-most-impressive",
+  STARSHIP_SHEET: "addition-starship-sheet",
+  ENEMY_STARSHIP_SHEET: "addition-enemy-starship-sheet",
+  PLAYER_STARSHIP: "addition-player-starship",
+  BEAM_SHEET: "addition-beam-sheet",
+  PLAYER_LASER: "addition-player-laser",
+  ENEMY_LASER: "addition-enemy-laser",
+  ENEMY_BOMB: "addition-enemy-bomb"
 } as const;
 
 export const FOSSIL_ASSET_KEYS = {

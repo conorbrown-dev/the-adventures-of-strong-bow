@@ -38,6 +38,7 @@ export class PreloadScene extends Phaser.Scene {
 
   create(): void {
     this.applyTextureFilters();
+    this.createAdditionShipTextures();
     this.createPlaceholderTextures();
     this.createAnimations();
     this.scene.start(SCENE_KEYS.TITLE);
@@ -67,6 +68,19 @@ export class PreloadScene extends Phaser.Scene {
         margin: 0,
         spacing: 0
       }
+    );
+    this.load.image(
+      ASSET_KEYS.STARSHIP_SHEET,
+      new URL("../assets/starships.PNG", import.meta.url).toString()
+    );
+    this.load.spritesheet(
+      ASSET_KEYS.ENEMY_STARSHIP_SHEET,
+      new URL("../assets/enemy-starships.png", import.meta.url).toString(),
+      { frameWidth: 63, frameHeight: 80 }
+    );
+    this.load.image(
+      ASSET_KEYS.BEAM_SHEET,
+      new URL("../assets/beams.png", import.meta.url).toString()
     );
     this.load.spritesheet(
       ASSET_KEYS.KITTEN_CATCHER,
@@ -485,6 +499,48 @@ export class PreloadScene extends Phaser.Scene {
         import.meta.url
       ).toString()
     );
+  }
+
+  /** Prepares cropped, transparent gameplay sprites from the supplied art sheets. */
+  private createAdditionShipTextures(): void {
+    const source = this.textures.get(ASSET_KEYS.STARSHIP_SHEET).getSourceImage() as HTMLImageElement;
+    const beamSource = this.textures.get(ASSET_KEYS.BEAM_SHEET).getSourceImage() as HTMLImageElement;
+    const createTexture = (key: string, image: HTMLImageElement, sourceX: number, sourceY: number, width: number, height: number, preserveWhiteGlow = false): void => {
+      if (this.textures.exists(key)) return;
+      const texture = this.textures.createCanvas(key, width, height);
+      if (!texture) return;
+      const context = texture.context;
+      context.drawImage(image, sourceX, sourceY, width, height, 0, 0, width, height);
+      const pixels = context.getImageData(0, 0, width, height);
+      if (preserveWhiteGlow) {
+        const visited = new Uint8Array(width * height);
+        const pending: number[] = [];
+        const isWhite = (position: number): boolean => pixels.data[position * 4] > 245 && pixels.data[position * 4 + 1] > 245 && pixels.data[position * 4 + 2] > 245;
+        const visit = (x: number, y: number): void => {
+          const position = y * width + x;
+          if (visited[position] || !isWhite(position)) return;
+          visited[position] = 1; pending.push(position);
+        };
+        for (let x = 0; x < width; x += 1) { visit(x, 0); visit(x, height - 1); }
+        for (let y = 1; y < height - 1; y += 1) { visit(0, y); visit(width - 1, y); }
+        while (pending.length) {
+          const position = pending.pop()!;
+          pixels.data[position * 4 + 3] = 0;
+          const x = position % width; const y = Math.floor(position / width);
+          if (x > 0) visit(x - 1, y); if (x < width - 1) visit(x + 1, y);
+          if (y > 0) visit(x, y - 1); if (y < height - 1) visit(x, y + 1);
+        }
+      } else for (let index = 0; index < pixels.data.length; index += 4) {
+        if (pixels.data[index] > 235 && pixels.data[index + 1] > 235 && pixels.data[index + 2] > 235) pixels.data[index + 3] = 0;
+      }
+      context.putImageData(pixels, 0, 0);
+      texture.refresh();
+    };
+
+    createTexture(ASSET_KEYS.PLAYER_STARSHIP, source, 263, 0, 52, 58);
+    createTexture(ASSET_KEYS.PLAYER_LASER, beamSource, 128, 306, 58, 100, true);
+    createTexture(ASSET_KEYS.ENEMY_LASER, beamSource, 201, 306, 64, 100, true);
+    createTexture(ASSET_KEYS.ENEMY_BOMB, beamSource, 112, 237, 48, 55, true);
   }
 
   private createAnimations(): void {

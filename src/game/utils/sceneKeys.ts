@@ -1,5 +1,7 @@
 export const SCENE_KEYS = {
   BOOT: "BootScene",
+  ADDITION_GAME: "AdditionGameScene",
+  ADDITION_TITLE: "AdditionTitleScene",
   PRELOAD: "PreloadScene",
   TITLE: "TitleScene",
   FOSSIL_DIG_TITLE: "FossilDigTitleScene",
