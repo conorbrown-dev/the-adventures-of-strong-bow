@@ -27,6 +27,19 @@ const CLOSED_DESTINATION = new Phaser.Math.Vector2(258, 500);
 const ANIMAL_SPEED = 230;
 const WANDER_SPEED = 48;
 type AnimalDirection = "up" | "left" | "down" | "right";
+type PronunciationResult = "correct" | "incorrect" | "unavailable";
+type BrowserSpeechRecognition = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  maxAlternatives: number;
+  start(): void;
+  abort(): void;
+  onresult: ((event: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+};
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
 const ANIMAL_DIRECTION_ROWS: Record<AnimalDirection, number> = {
   up: 0,
   left: 1,
@@ -35,6 +48,8 @@ const ANIMAL_DIRECTION_ROWS: Record<AnimalDirection, number> = {
 };
 const BARN_DOOR_SENSOR = new Phaser.Geom.Rectangle(218, 345, 80, 72);
 const PASTURE_ENTRY_SENSOR = new Phaser.Geom.Rectangle(938, 535, 80, 82);
+const BARN_DOOR_CENTER = new Phaser.Math.Vector2(258, 381);
+const PASTURE_ENTRY_CENTER = new Phaser.Math.Vector2(978, 576);
 const BARN_DOOR_AVOIDANCE = new Phaser.Geom.Rectangle(175, 300, 170, 150);
 const PASTURE_ENTRY_AVOIDANCE = new Phaser.Geom.Rectangle(890, 490, 175, 175);
 const ANIMAL_SCREEN_BOUNDS = new Phaser.Geom.Rectangle(80, 145, GAME_WIDTH - 160, 560);
@@ -74,6 +89,7 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
   private complete = false;
   private resolvingAnswer = false;
   private sceneShuttingDown = false;
+  private activeSpeechRecognition?: BrowserSpeechRecognition;
 
   constructor() {
     super(SCENE_KEYS.BARN_DOOR_VOWELS);
@@ -107,6 +123,8 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.sceneShuttingDown = true;
       this.audioFeedbackSystem.interruptVoicePlayback();
+      this.activeSpeechRecognition?.abort();
+      this.activeSpeechRecognition = undefined;
     });
 
     void this.playIntroSequence();
@@ -470,22 +488,45 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     return direction?.clone() ?? new Phaser.Math.Vector2(1, 0);
   }
 
-  private resolveDestination(chosenType: VowelType): void {
+  private async resolveDestination(chosenType: VowelType): Promise<void> {
     const animal = this.currentAnimal;
     if (!animal || this.resolvingAnswer || this.complete) {
       return;
     }
     this.resolvingAnswer = true;
     animal.stopMoving();
-    if (chosenType === VowelType.CLOSED) {
-      this.flashBarnOpen();
+    this.showStatus(`Say “${animal.wordData.displayWordText}” into the microphone.`, COLORS.HIGHLIGHT);
+    await this.audioFeedbackSystem.speakPhrase(
+      `Say ${animal.wordData.displayWordText}.`,
+      { rate: 0.72, pitch: 1.04 }
+    );
+    if (this.sceneShuttingDown || this.complete || this.currentAnimal !== animal) {
+      return;
     }
-    const correct = animal.wordData.vowelType === chosenType;
-    if (correct) {
+
+    const result = await this.listenForPronunciation(animal.wordData.displayWordText);
+    if (this.sceneShuttingDown || this.complete || this.currentAnimal !== animal) {
+      return;
+    }
+    if (result === "correct") {
       this.handleCorrectAnswer(animal);
+    } else if (result === "unavailable") {
+      this.showStatus("Microphone speech recognition is unavailable. Please use Chrome and allow microphone access.", "#fff1a8");
+      this.tweens.add({
+        targets: animal,
+        x: animal.spawnPosition.x,
+        y: animal.spawnPosition.y,
+        duration: 400,
+        ease: "Sine.InOut",
+        onComplete: () => {
+          this.resolvingAnswer = false;
+          animal.setSelected(true);
+        }
+      });
     } else {
-      this.handleIncorrectAnswer(animal);
+      this.handleIncorrectPronunciation(animal);
     }
+    void chosenType;
   }
 
   private handleCorrectAnswer(animal: BarnDoorWordFragment): void {
@@ -495,10 +536,18 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     void this.audioFeedbackSystem.playCorrectFeedback(
       BARN_DOOR_CONGRATULATORY_VOICE_KEYS
     );
+    const destination = animal.wordData.vowelType === VowelType.CLOSED
+      ? BARN_DOOR_CENTER
+      : PASTURE_ENTRY_CENTER;
+    if (animal.wordData.vowelType === VowelType.CLOSED) {
+      this.flashBarnOpen();
+    }
     this.tweens.add({
       targets: animal,
+      x: destination.x,
+      y: destination.y,
       alpha: 0,
-      duration: 250,
+      duration: 430,
       onComplete: () => {
         animal.destroy();
         this.animals = this.animals.filter((entry) => entry !== animal);
@@ -514,16 +563,13 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     });
   }
 
-  private handleIncorrectAnswer(animal: BarnDoorWordFragment): void {
+  private handleIncorrectPronunciation(animal: BarnDoorWordFragment): void {
     this.audioFeedbackSystem.playIncorrectFeedback();
     void this.audioFeedbackSystem.playVoiceClip(
       ASSET_KEYS.BARN_DOOR_VOWELS_TRY_AGAIN,
       { volume: 0.9 }
     );
-    const correctPlace = animal.wordData.vowelType === VowelType.CLOSED
-      ? "closed barn"
-      : "open pasture";
-    this.showStatus(`Good try! “${animal.wordData.displayWordText}” goes to the ${correctPlace}.`, "#fff1a8");
+    this.showStatus(`Good try! Let’s say “${animal.wordData.displayWordText}” again.`, "#fff1a8");
     this.tweens.add({
       targets: animal,
       x: animal.spawnPosition.x,
@@ -536,6 +582,61 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
         animal.setSelected(true);
       }
     });
+  }
+
+  private listenForPronunciation(expected: string): Promise<PronunciationResult> {
+    if (typeof window === "undefined") {
+      return Promise.resolve("unavailable");
+    }
+    const recognitionWindow = window as typeof window & {
+      SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+      webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
+    };
+    const Recognition = recognitionWindow.SpeechRecognition ?? recognitionWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      return Promise.resolve("unavailable");
+    }
+
+    return new Promise<PronunciationResult>((resolve) => {
+      const recognition = new Recognition();
+      this.activeSpeechRecognition = recognition;
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.continuous = false;
+      recognition.maxAlternatives = 3;
+      let settled = false;
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      const finish = (result: PronunciationResult): void => {
+        if (settled) return;
+        settled = true;
+        if (timeout) window.clearTimeout(timeout);
+        if (this.activeSpeechRecognition === recognition) this.activeSpeechRecognition = undefined;
+        resolve(result);
+      };
+      recognition.onresult = (event) => {
+        const alternatives = event.results[event.resultIndex];
+        const heard = Array.from(alternatives, (alternative) => alternative.transcript);
+        finish(heard.some((transcript) => this.matchesPronunciation(transcript, expected)) ? "correct" : "incorrect");
+      };
+      recognition.onerror = () => finish("incorrect");
+      recognition.onend = () => finish("incorrect");
+      timeout = window.setTimeout(() => {
+        recognition.abort();
+        finish("incorrect");
+      }, 7000);
+      try {
+        recognition.start();
+      } catch {
+        finish("unavailable");
+      }
+    });
+  }
+
+  private matchesPronunciation(transcript: string, expected: string): boolean {
+    const normalize = (value: string): string => value.toLowerCase().replace(/[^a-z]/g, "");
+    const heard = normalize(transcript);
+    const target = normalize(expected);
+    return heard.includes(target);
   }
 
   private flashBarnOpen(): void {
