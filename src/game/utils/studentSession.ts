@@ -10,9 +10,27 @@ const SESSION_KEY = "mollys-learning-academy.student-session";
 const API_ROOT = import.meta.env.VITE_API_URL ?? "/api";
 
 export function loadStudentSession(): StudentSession | null {
-  try { return JSON.parse(localStorage.getItem(SESSION_KEY) ?? "null") as StudentSession | null; } catch { return null; }
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(SESSION_KEY) ?? "null");
+    if (!isStudentSession(value)) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return value;
+  } catch {
+    localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
 }
-export function saveStudentSession(session: StudentSession): void { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
+export function isStudentSession(value: unknown): value is StudentSession {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<StudentSession>;
+  return typeof candidate.token === "string" && !!candidate.student && typeof candidate.student.id === "string" && typeof candidate.student.username === "string" && typeof candidate.student.grade === "string" && Array.isArray(candidate.student.subjects);
+}
+export function saveStudentSession(session: StudentSession): void {
+  if (!isStudentSession(session)) throw new Error("The learning server returned an incomplete student session.");
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
 export function clearStudentSession(): void { localStorage.removeItem(SESSION_KEY); }
 
 export async function studentApi<T>(path: string, method = "GET", body?: object): Promise<T> {

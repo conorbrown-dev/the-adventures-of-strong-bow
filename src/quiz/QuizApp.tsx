@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { commonCoreQuizzes, gradeLabel, type CurriculumGrade, type CurriculumQuiz, type CurriculumSubject } from "../game/data/commonCoreQuizzes";
-import { clearStudentSession, loadStudentSession, saveStudentSession, studentApi, type StudentSession } from "../game/utils/studentSession";
+import { clearStudentSession, isStudentSession, loadStudentSession, saveStudentSession, studentApi, type StudentSession } from "../game/utils/studentSession";
 
 type Screen = "hidden" | "access" | "quiz" | "complete" | "progress";
 
@@ -44,6 +44,7 @@ export function QuizApp(): JSX.Element | null {
     if (!username.trim() || !/^\d{4}$/.test(pin)) { setMessage("Enter a username and exactly four PIN digits."); return; }
     try {
       const result = await studentApi<StudentSession>(createMode ? "/students" : "/auth/login", "POST", createMode ? { username: username.trim(), pin, grade, subjects } : { username: username.trim(), pin });
+      if (!isStudentSession(result)) throw new Error("The learning server returned an incomplete student session. Please sign in again.");
       saveStudentSession(result); setSession(result); startQuiz(result);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to sign in."); }
   }
