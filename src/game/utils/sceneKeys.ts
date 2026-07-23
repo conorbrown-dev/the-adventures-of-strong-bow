@@ -4,6 +4,8 @@ export const SCENE_KEYS = {
   ADDITION_TITLE: "AdditionTitleScene",
   SIGHT_WORDS_TITLE: "SightWordsTitleScene",
   SIGHT_WORDS_QUIZ: "SightWordsQuizScene",
+  STUDENT_LOGIN: "StudentLoginScene",
+  CURRICULUM_QUIZ: "CurriculumQuizScene",
   PAUSE: "PauseOverlayScene",
   PRELOAD: "PreloadScene",
   TITLE: "TitleScene",

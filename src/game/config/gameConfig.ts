@@ -18,6 +18,8 @@ import { AdditionTitleScene } from "../scenes/AdditionTitleScene";
 import { PauseOverlayScene } from "../scenes/PauseOverlayScene";
 import { SightWordsTitleScene } from "../scenes/SightWordsTitleScene";
 import { SightWordsQuizScene } from "../scenes/SightWordsQuizScene";
+import { StudentLoginScene } from "../scenes/StudentLoginScene";
+import { CurriculumQuizScene } from "../scenes/CurriculumQuizScene";
 
 export function createGameConfig(
   parent?: string
@@ -52,6 +54,8 @@ export function createGameConfig(
       AdditionGameScene,
       SightWordsTitleScene,
       SightWordsQuizScene,
+      StudentLoginScene,
+      CurriculumQuizScene,
       PauseOverlayScene,
       PreloadScene,
       TitleScene,
