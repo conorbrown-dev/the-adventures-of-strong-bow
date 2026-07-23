@@ -11,7 +11,8 @@
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "typecheck": "tsc --noEmit",
     "start": "node server.mjs",
-    "start:api": "npm --prefix server run start"
+    "start:api": "npm --prefix server run start",
+    "start:production": "node production.mjs"
   },
   "dependencies": {
     "@types/react": "^18.3.31",

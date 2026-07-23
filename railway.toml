@@ -1,0 +1,9 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm ci && npm --prefix server ci && npm --prefix server run prisma:generate && npm run build && npm --prefix server run build"
+
+[deploy]
+startCommand = "node production.mjs"
+healthcheckPath = "/"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"

@@ -7,11 +7,13 @@
   },
   "scripts": {
     "start": "nest start",
+    "start:prod": "node dist/main.js",
     "start:dev": "nest start --watch",
     "build": "nest build",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
