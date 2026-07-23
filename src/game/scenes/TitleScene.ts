@@ -51,7 +51,7 @@ export class TitleScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.createButton(0, 246, "Student Quizzes", () => {
-      this.scene.start(SCENE_KEYS.STUDENT_LOGIN);
+      window.dispatchEvent(new Event("quiz-ui:open"));
     });
     this.createButton(1, 340, "Fossil Dig", () => {
       this.scene.start(SCENE_KEYS.FOSSIL_DIG_TITLE);

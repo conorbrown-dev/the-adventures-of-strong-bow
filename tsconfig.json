@@ -15,6 +15,7 @@
     "noUnusedParameters": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
     "types": ["vite/client"]
   },
   "include": ["src"]
