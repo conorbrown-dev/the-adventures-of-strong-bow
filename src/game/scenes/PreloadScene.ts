@@ -27,7 +27,7 @@ export class PreloadScene extends Phaser.Scene {
     this.loadGameAssets();
 
     this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, "Loading MollyLearningGame...", {
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, "Loading Molly's Learning Academy...", {
         fontFamily: "Trebuchet MS",
         fontSize: "34px",
         fontStyle: "bold",

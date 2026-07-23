@@ -1,4 +1,4 @@
-# MollyLearningGame
+# MollyLearningAcademy
 
 Browser-based learning game prototype for young children, built with Phaser 3, TypeScript, and Vite.
 
