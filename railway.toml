@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm ci && npm --prefix server ci && npm --prefix server run prisma:generate && npm run build && npm --prefix server run build"
+buildCommand = "npm install --include=dev && npm --prefix server install --include=dev && npm --prefix server run prisma:generate && npm run build && npm --prefix server run build"
 
 [deploy]
 startCommand = "node production.mjs"
