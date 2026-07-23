@@ -41,7 +41,6 @@ export class BarnDoorWordFragment extends Phaser.GameObjects.Container {
     }
 
     setSelected(selected: boolean): void {
-        this.animal.setTint(selected ? 0xffe174 : 0xffffff);
         this.labelText.setColor(selected ? "#ffdf72" : "#fffaf0");
         this.setDepth(selected ? 16 : 12);
     }

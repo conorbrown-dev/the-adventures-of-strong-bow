@@ -507,7 +507,7 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
 
     const microphoneReady = await this.requestMicrophoneAccess();
     const result = microphoneReady
-      ? await this.listenForPronunciation(animal.wordData.displayWordText)
+      ? await this.listenForPronunciation(animal.wordData)
       : "unavailable";
     if (this.sceneShuttingDown || this.complete || this.currentAnimal !== animal) {
       return;
@@ -588,7 +588,7 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     });
   }
 
-  private listenForPronunciation(expected: string): Promise<PronunciationResult> {
+  private listenForPronunciation(expected: VowelsAndWordsData): Promise<PronunciationResult> {
     if (typeof window === "undefined") {
       return Promise.resolve("unavailable");
     }
@@ -656,11 +656,31 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     }
   }
 
-  private matchesPronunciation(transcript: string, expected: string): boolean {
-    const normalize = (value: string): string => value.toLowerCase().replace(/[^a-z]/g, "");
-    const heard = normalize(transcript);
-    const target = normalize(expected);
-    return heard.includes(target);
+  private matchesPronunciation(transcript: string, expected: VowelsAndWordsData): boolean {
+    const heardWords = transcript.toLowerCase().match(/[a-z]+/g) ?? [];
+    const expectedWords = this.getExpectedPronunciations(expected);
+    return heardWords.some((word) => expectedWords.includes(word));
+  }
+
+  private getExpectedPronunciations(wordData: VowelsAndWordsData): string[] {
+    const closedWord = wordData.word.toLowerCase();
+    if (wordData.vowelType === VowelType.CLOSED) {
+      // A closed syllable must be recognized as the word itself. For example,
+      // "tap" is accepted, but "tape" is not.
+      return [closedWord];
+    }
+
+    // Open fragments need their long-vowel pronunciation, not simply their
+    // displayed letters. These aliases match the words speech recognition is
+    // likely to return for the intended phonics sound.
+    const openAliases: Record<string, string[]> = {
+      ba: ["bay"], ca: ["cay", "kay"], da: ["day"], ga: ["gay"], la: ["lay"],
+      ma: ["may"], pa: ["pay"], ra: ["ray"], ta: ["tay"], va: ["vey"],
+      be: ["be", "bee"], he: ["he"], me: ["me"], we: ["we", "wee"], ze: ["zee"],
+      bi: ["by", "bye"], hi: ["hi", "high"], li: ["lie"], mi: ["my"], ti: ["tie"],
+      go: ["go"], no: ["no"], so: ["so"], bo: ["bo", "bow"], cu: ["cue", "queue"]
+    };
+    return openAliases[wordData.displayWordText.toLowerCase()] ?? [wordData.displayWordText.toLowerCase()];
   }
 
   private flashBarnOpen(): void {
