@@ -451,6 +451,18 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
         return;
       }
 
+      const body = animal.body as Phaser.Physics.Arcade.Body;
+      const hitFence = body.blocked.left || body.blocked.right || body.blocked.up || body.blocked.down;
+      if (hitFence) {
+        // Tile collisions stop Arcade bodies but do not choose a new wander
+        // direction automatically. Turn immediately so an animal cannot keep
+        // walking into a fence and look frozen.
+        state.direction.negate();
+        state.nextTurnAt = time + Phaser.Math.Between(900, 1800);
+        this.applyWanderMovement(animal, state.direction);
+        return;
+      }
+
       const predictedX = animal.x + state.direction.x * 46;
       const predictedY = animal.y + state.direction.y * 46;
       const leavingScreen = !ANIMAL_SCREEN_BOUNDS.contains(predictedX, predictedY);
