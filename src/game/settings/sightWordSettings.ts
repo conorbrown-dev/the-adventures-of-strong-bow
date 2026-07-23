@@ -15,12 +15,12 @@ export interface SightWordStats {
 }
 export type SightWordStatsMap = Partial<Record<SightWord, SightWordStats>>;
 
-const defaultSettings: SightWordSettings = { selectedWords: ["cat", "dog", "map", "pig", "sun"] };
+const defaultSettings: SightWordSettings = { selectedWords: ["the", "and", "said", "was", "can"] };
 
 export function loadSightWordSettings(): SightWordSettings {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(SETTINGS_KEY) ?? "{}") as Partial<SightWordSettings>;
-    const selectedWords = (parsed.selectedWords ?? defaultSettings.selectedWords).filter((word): word is SightWord => sightWords.includes(word as SightWord));
+    const selectedWords = (parsed.selectedWords ?? defaultSettings.selectedWords).filter((word): word is SightWord => sightWords.includes(word as typeof sightWords[number]));
     return { selectedWords: selectedWords.length ? selectedWords : [...defaultSettings.selectedWords] };
   } catch { return { ...defaultSettings }; }
 }
