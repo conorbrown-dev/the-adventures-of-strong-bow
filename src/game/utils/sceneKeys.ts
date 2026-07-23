@@ -2,6 +2,8 @@ export const SCENE_KEYS = {
   BOOT: "BootScene",
   ADDITION_GAME: "AdditionGameScene",
   ADDITION_TITLE: "AdditionTitleScene",
+  SIGHT_WORDS_TITLE: "SightWordsTitleScene",
+  SIGHT_WORDS_QUIZ: "SightWordsQuizScene",
   PAUSE: "PauseOverlayScene",
   PRELOAD: "PreloadScene",
   TITLE: "TitleScene",

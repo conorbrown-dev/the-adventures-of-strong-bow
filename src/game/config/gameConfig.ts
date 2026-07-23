@@ -16,6 +16,8 @@ import { BarnDoorVowelsTitleScene } from "../scenes/BarndoorVowelsTitleScene";
 import { AdditionGameScene } from "../scenes/AdditionGameScene";
 import { AdditionTitleScene } from "../scenes/AdditionTitleScene";
 import { PauseOverlayScene } from "../scenes/PauseOverlayScene";
+import { SightWordsTitleScene } from "../scenes/SightWordsTitleScene";
+import { SightWordsQuizScene } from "../scenes/SightWordsQuizScene";
 
 export function createGameConfig(
   parent?: string
@@ -48,6 +50,8 @@ export function createGameConfig(
       BootScene,
       AdditionTitleScene,
       AdditionGameScene,
+      SightWordsTitleScene,
+      SightWordsQuizScene,
       PauseOverlayScene,
       PreloadScene,
       TitleScene,
