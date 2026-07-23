@@ -126,6 +126,7 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.sceneShuttingDown = true;
       this.audioFeedbackSystem.interruptVoicePlayback();
+      this.stopBarnDoorAudio();
       this.activeSpeechRecognition?.abort();
       this.activeSpeechRecognition = undefined;
     });
@@ -512,7 +513,7 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     animal.stopMoving();
     this.showStatus(`Say “${animal.wordData.displayWordText}” into the microphone.`, COLORS.HIGHLIGHT);
     await this.audioFeedbackSystem.playVoiceClip(
-      ASSET_KEYS.BARN_DOOR_VOWELS_PRONOUNCE_WORD,
+      ASSET_KEYS.PRONOUNCE_WORD_PROMPT,
       { volume: 0.9 }
     );
     if (this.sceneShuttingDown || this.complete || this.currentAnimal !== animal) {
@@ -746,5 +747,16 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
       throw new Error("Barn Door Vowels has no configured word fragments.");
     }
     return selected;
+  }
+
+  private stopBarnDoorAudio(): void {
+    [
+      ASSET_KEYS.BARN_DOOR_VOWELS_INSTRUCTIONS,
+      ASSET_KEYS.BARN_DOOR_VOWELS_EXCELLENT,
+      ASSET_KEYS.BARN_DOOR_VOWELS_IMPRESSIVE,
+      ASSET_KEYS.BARN_DOOR_VOWELS_WAY_TO_GO_GIRL,
+      ASSET_KEYS.BARN_DOOR_VOWELS_TRY_AGAIN,
+      ASSET_KEYS.PRONOUNCE_WORD_PROMPT
+    ].forEach((key) => this.sound.stopByKey(key));
   }
 }

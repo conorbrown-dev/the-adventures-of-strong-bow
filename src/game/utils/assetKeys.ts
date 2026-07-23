@@ -13,7 +13,7 @@ export const ASSET_KEYS = {
   BARN_DOOR_VOWELS_IMPRESSIVE: "voice-barn-door-vowels-impressive",
   BARN_DOOR_VOWELS_WAY_TO_GO_GIRL: "voice-barn-door-vowels-way-to-go-girl",
   BARN_DOOR_VOWELS_TRY_AGAIN: "voice-barn-door-vowels-whoops-try-again",
-  BARN_DOOR_VOWELS_PRONOUNCE_WORD: "voice-barn-door-vowels-pronounce-word",
+  PRONOUNCE_WORD_PROMPT: "voice-pronounce-word-prompt",
   BARN_DOOR_VOWELS_TITLE_SCREEN: "barn-door-vowels-title-screen",
   BARN_DOOR_TERRAIN: "barn-door-terrain",
   BARN_DOOR_FARM_MAP: "barn-door-farm-map",

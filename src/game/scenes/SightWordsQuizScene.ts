@@ -66,7 +66,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
     this.wordText?.setText(this.currentWord).setAlpha(0).setScale(0.8);
     this.tweens.add({ targets: this.wordText, alpha: 1, scale: 1, duration: 240, ease: "Back.Out" });
     this.statusText?.setText("Read the word aloud when you hear the prompt.").setColor("#c5b5df");
-    await this.audio.playVoiceClip(ASSET_KEYS.BARN_DOOR_VOWELS_PRONOUNCE_WORD, { volume: 0.9 });
+    await this.audio.playVoiceClip(ASSET_KEYS.PRONOUNCE_WORD_PROMPT, { volume: 0.9 });
     if (this.finished || !this.currentWord) return;
     if (!await this.requestMicrophone()) { this.statusText?.setText("Please allow microphone access to practice sight words.").setColor("#ffb86b"); return; }
     this.startListening(this.currentWord);

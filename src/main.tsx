@@ -23,3 +23,16 @@ window.addEventListener("phaser-game:launch", (event) => {
   }
 });
 createRoot(quizRoot).render(<QuizApp />);
+
+async function requestInitialMicrophoneAccess(): Promise<void> {
+  if (!navigator.mediaDevices?.getUserMedia) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach((track) => track.stop());
+  } catch {
+    // The focused activities will show their existing microphone guidance if
+    // access is declined or the browser requires a later user gesture.
+  }
+}
+
+void requestInitialMicrophoneAccess();
