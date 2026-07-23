@@ -11,6 +11,7 @@ const CYAN = 0x45f6e5;
 export class SightWordsTitleScene extends Phaser.Scene {
   private settings: SightWordSettings = loadSightWordSettings();
   private panel?: Phaser.GameObjects.Container;
+  private settingsPage = 0;
 
   constructor() { super(SCENE_KEYS.SIGHT_WORDS_TITLE); }
 
@@ -43,7 +44,11 @@ export class SightWordsTitleScene extends Phaser.Scene {
     items.push(this.add.text(GAME_WIDTH / 2, 112, "CHOOSE A SMALL PRACTICE POOL", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "27px", color: "#ffffff" }).setOrigin(0.5));
     items.push(this.add.text(GAME_WIDTH / 2, 150, "Mastered words are automatically skipped. A word is mastered after 3 correct responses within 3.5 seconds.", { fontFamily: "Trebuchet MS, sans-serif", fontSize: "17px", color: "#c5b5df" }).setOrigin(0.5));
     const stats = loadSightWordStats();
-    sightWords.forEach((word, index) => {
+    const wordsPerPage = 20;
+    const pageCount = Math.ceil(sightWords.length / wordsPerPage);
+    this.settingsPage = Phaser.Math.Clamp(this.settingsPage, 0, pageCount - 1);
+    const pageWords = sightWords.slice(this.settingsPage * wordsPerPage, (this.settingsPage + 1) * wordsPerPage);
+    pageWords.forEach((word, index) => {
       const col = index % 5; const row = Math.floor(index / 5);
       const x = 350 + col * 165; const y = 230 + row * 92;
       const selected = this.settings.selectedWords.includes(word);
@@ -54,6 +59,9 @@ export class SightWordsTitleScene extends Phaser.Scene {
       const zone = this.add.zone(x, y, 145, 68).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.toggleWord(word));
       items.push(background, label, detail, zone);
     });
+    items.push(this.add.text(GAME_WIDTH / 2, 590, `PAGE ${this.settingsPage + 1} / ${pageCount}`, { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "16px", color: "#c5b5df" }).setOrigin(0.5));
+    if (this.settingsPage > 0) items.push(this.pageButton(400, 590, "‹ PREVIOUS", () => { this.settingsPage -= 1; this.showSettings(); }));
+    if (this.settingsPage < pageCount - 1) items.push(this.pageButton(966, 590, "NEXT ›", () => { this.settingsPage += 1; this.showSettings(); }));
     const done = this.add.rectangle(GAME_WIDTH / 2, 664, 180, 52, CYAN).setStrokeStyle(2, 0xffffff, 0.8);
     const doneText = this.add.text(GAME_WIDTH / 2, 664, "DONE", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "19px", color: "#090610" }).setOrigin(0.5);
     const doneZone = this.add.zone(GAME_WIDTH / 2, 664, 180, 52).setInteractive({ useHandCursor: true }).on("pointerdown", () => { saveSightWordSettings(this.settings); this.panel?.destroy(true); this.panel = undefined; });
@@ -65,5 +73,13 @@ export class SightWordsTitleScene extends Phaser.Scene {
     this.settings.selectedWords = selected.includes(word) ? selected.filter((entry) => entry !== word) : [...selected, word];
     if (this.settings.selectedWords.length === 0) this.settings.selectedWords = [word];
     this.showSettings();
+  }
+
+  private pageButton(x: number, y: number, label: string, action: () => void): Phaser.GameObjects.Container {
+    const background = this.add.rectangle(0, 0, 125, 38, 0x211735).setStrokeStyle(2, PURPLE);
+    const text = this.add.text(0, 0, label, { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "13px", color: "#ffffff" }).setOrigin(0.5);
+    const button = this.add.container(x, y, [background, text]);
+    button.add(this.add.zone(0, 0, 125, 38).setInteractive({ useHandCursor: true }).on("pointerdown", action));
+    return button;
   }
 }

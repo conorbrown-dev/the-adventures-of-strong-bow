@@ -15,7 +15,7 @@ export interface SightWordStats {
 }
 export type SightWordStatsMap = Partial<Record<SightWord, SightWordStats>>;
 
-const defaultSettings: SightWordSettings = { selectedWords: ["the", "and", "is", "you", "said"] };
+const defaultSettings: SightWordSettings = { selectedWords: ["cat", "dog", "map", "pig", "sun"] };
 
 export function loadSightWordSettings(): SightWordSettings {
   try {
