@@ -2,6 +2,7 @@ import Phaser from "phaser";
 
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { returnToLearningLibrary } from "../utils/gameNavigation";
 
 interface PauseOverlayData { pausedSceneKey?: string; }
 
@@ -19,7 +20,7 @@ export class PauseOverlayScene extends Phaser.Scene {
     this.createButton(390, "RESUME", 0x45f6e5, () => this.resumeGame());
     this.createButton(476, "MAIN MENU", 0xff70b8, () => {
       if (this.pausedSceneKey) this.scene.stop(this.pausedSceneKey);
-      this.scene.start(SCENE_KEYS.TITLE);
+      returnToLearningLibrary(this);
     });
     this.input.keyboard?.once("keydown-ESC", () => this.resumeGame());
   }

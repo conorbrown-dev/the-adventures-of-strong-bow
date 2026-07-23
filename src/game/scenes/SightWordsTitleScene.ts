@@ -4,6 +4,7 @@ import { sightWords, type SightWord } from "../data/sightWords";
 import { loadSightWordSettings, loadSightWordStats, saveSightWordSettings, type SightWordSettings } from "../settings/sightWordSettings";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { returnToLearningLibrary } from "../utils/gameNavigation";
 
 const PURPLE = 0xc681ff;
 const CYAN = 0x45f6e5;
@@ -23,8 +24,8 @@ export class SightWordsTitleScene extends Phaser.Scene {
     this.add.text(GAME_WIDTH / 2, 220, "read the word aloud before the timer runs out", { fontFamily: "Trebuchet MS, sans-serif", fontSize: "25px", color: "#c5b5df" }).setOrigin(0.5);
     this.createButton(385, "START QUIZ", CYAN, () => this.scene.start(SCENE_KEYS.SIGHT_WORDS_QUIZ));
     this.createButton(484, "WORD POOL & PROGRESS", PURPLE, () => this.showSettings());
-    this.createButton(583, "BACK TO GAMES", 0xff70b8, () => this.scene.start(SCENE_KEYS.TITLE));
-    this.input.keyboard?.once("keydown-ESC", () => this.scene.start(SCENE_KEYS.TITLE));
+    this.createButton(583, "BACK TO GAMES", 0xff70b8, () => returnToLearningLibrary(this));
+    this.input.keyboard?.once("keydown-ESC", () => returnToLearningLibrary(this));
   }
 
   private createButton(y: number, label: string, color: number, action: () => void): void {

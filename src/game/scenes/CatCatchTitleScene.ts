@@ -12,6 +12,7 @@ import { ASSET_KEYS } from "../utils/assetKeys";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
+import { returnToLearningLibrary } from "../utils/gameNavigation";
 
 interface CatTitleButton {
   image: Phaser.GameObjects.Image;
@@ -71,7 +72,7 @@ export class CatCatchTitleScene extends Phaser.Scene {
       674,
       ASSET_KEYS.KITTEN_CATCH_BUTTON_BACK,
       () => {
-        this.scene.start(SCENE_KEYS.TITLE);
+        returnToLearningLibrary(this);
       }
     );
     this.createSpinningBasket();
@@ -121,7 +122,7 @@ export class CatCatchTitleScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.escapeKey)) {
       playButtonClick(this);
-      this.scene.start(SCENE_KEYS.TITLE);
+      returnToLearningLibrary(this);
       return;
     }
 

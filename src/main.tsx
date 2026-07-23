@@ -17,6 +17,9 @@ const game = new Phaser.Game(createGameConfig("phaser-root"));
 window.addEventListener("quiz-ui:close", () => game.scene.start("TitleScene"));
 window.addEventListener("phaser-game:launch", (event) => {
   const sceneKey = (event as CustomEvent<string>).detail;
-  if (sceneKey) game.scene.start(sceneKey);
+  if (sceneKey) {
+    game.scene.stop("TitleScene");
+    game.scene.start(sceneKey);
+  }
 });
 createRoot(quizRoot).render(<QuizApp />);

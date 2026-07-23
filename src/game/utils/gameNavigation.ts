@@ -3,6 +3,11 @@ import Phaser from "phaser";
 import { GAME_WIDTH } from "./constants";
 import { SCENE_KEYS } from "./sceneKeys";
 
+export function returnToLearningLibrary(scene: Phaser.Scene): void {
+  scene.scene.start(SCENE_KEYS.TITLE);
+  window.dispatchEvent(new Event("quiz-ui:open"));
+}
+
 /** Adds the shared pause affordance and Escape-to-app-menu behavior to a game scene. */
 export function addGameNavigation(scene: Phaser.Scene): void {
   const button = scene.add
@@ -31,7 +36,7 @@ export function addGameNavigation(scene: Phaser.Scene): void {
       scene.scene.pause(scene.scene.key);
     });
 
-  const escapeHandler = (): void => { scene.scene.start(SCENE_KEYS.TITLE); };
+  const escapeHandler = (): void => { returnToLearningLibrary(scene); };
   scene.input.keyboard?.on("keydown-ESC", escapeHandler);
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
     scene.input.keyboard?.off("keydown-ESC", escapeHandler);

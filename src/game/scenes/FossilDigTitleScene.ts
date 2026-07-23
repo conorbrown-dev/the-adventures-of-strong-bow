@@ -9,6 +9,7 @@ import { ASSET_KEYS } from "../utils/assetKeys";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
+import { returnToLearningLibrary } from "../utils/gameNavigation";
 
 interface FossilTitleButton {
   button: Phaser.GameObjects.Image;
@@ -210,7 +211,7 @@ export class FossilDigTitleScene extends Phaser.Scene {
 
   private returnToGameSelect(): void {
     this.stopBackgroundMusic();
-    this.scene.start(SCENE_KEYS.TITLE);
+    returnToLearningLibrary(this);
   }
 
   private startBackgroundMusic(): void {

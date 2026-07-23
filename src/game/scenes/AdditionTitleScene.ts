@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import { type AdditionLayout, type AdditionSettings, type StarshipDifficulty, loadAdditionSettings, saveAdditionSettings } from "../settings/additionSettings";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { returnToLearningLibrary } from "../utils/gameNavigation";
 
 const PURPLE = 0xc681ff;
 const CYAN = 0x45f6e5;
@@ -23,8 +24,8 @@ export class AdditionTitleScene extends Phaser.Scene {
     this.add.text(GAME_WIDTH / 2, 244, "practice addition at your own pace", { fontFamily: "Trebuchet MS, sans-serif", fontSize: "27px", color: "#c5b5df" }).setOrigin(0.5);
     this.createButton(390, "START", CYAN, () => this.scene.start(SCENE_KEYS.ADDITION_GAME));
     this.createButton(494, "SETTINGS", PURPLE, () => this.showSettings());
-    this.createButton(598, "BACK TO GAMES", 0xff70b8, () => this.scene.start(SCENE_KEYS.TITLE));
-    this.input.keyboard?.on("keydown-ESC", () => this.scene.start(SCENE_KEYS.TITLE));
+    this.createButton(598, "BACK TO GAMES", 0xff70b8, () => returnToLearningLibrary(this));
+    this.input.keyboard?.on("keydown-ESC", () => returnToLearningLibrary(this));
   }
 
   private createButton(y: number, label: string, color: number, action: () => void): void {

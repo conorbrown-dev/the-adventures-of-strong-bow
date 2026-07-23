@@ -4,6 +4,7 @@ import { ASSET_KEYS } from "../utils/assetKeys";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
+import { returnToLearningLibrary } from "../utils/gameNavigation";
 
 export class BarnDoorVowelsTitleScene extends Phaser.Scene {
   private selectedIndex = 0;
@@ -44,7 +45,7 @@ export class BarnDoorVowelsTitleScene extends Phaser.Scene {
       this.scene.start(SCENE_KEYS.BARN_DOOR_VOWELS);
     });
     this.createButton(1, 535, "BACK", () => {
-      this.scene.start(SCENE_KEYS.TITLE);
+      returnToLearningLibrary(this);
     });
 
     this.cursors = this.input.keyboard?.createCursorKeys();
@@ -59,7 +60,7 @@ export class BarnDoorVowelsTitleScene extends Phaser.Scene {
     }
     if (Phaser.Input.Keyboard.JustDown(this.escapeKey)) {
       playButtonClick(this);
-      this.scene.start(SCENE_KEYS.TITLE);
+      returnToLearningLibrary(this);
     } else if (Phaser.Input.Keyboard.JustDown(this.cursors.down) || Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
       this.selectedIndex = (this.selectedIndex + 1) % this.buttons.length;
       playButtonHover(this);
