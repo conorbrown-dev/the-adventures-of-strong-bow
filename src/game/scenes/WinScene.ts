@@ -119,6 +119,10 @@ export class WinScene extends Phaser.Scene {
     this.escapeKey = this.input.keyboard!.addKey(
       Phaser.Input.Keyboard.KeyCodes.ESC
     );
+
+    this.time.delayedCall(3500, () => {
+      this.scene.start(this.playAgainSceneKey, this.playAgainData);
+    });
   }
 
   update(): void {

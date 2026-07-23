@@ -33,6 +33,7 @@ import {
   GAME_WIDTH,
 } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { addGameNavigation } from "../utils/gameNavigation";
 
 interface FossilDigSceneData {
   stageTheme?: FossilDigStageTheme;
@@ -189,6 +190,7 @@ export class FossilDigScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
 
     this.hud = new Hud(this, this.mode.config.title);
+    addGameNavigation(this);
     this.audioFeedbackSystem = new AudioFeedbackSystem(this);
     this.promptSystem = new LearningPromptSystem(
       this.hud,

@@ -15,6 +15,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { BarnDoorVowelsTitleScene } from "../scenes/BarndoorVowelsTitleScene";
 import { AdditionGameScene } from "../scenes/AdditionGameScene";
 import { AdditionTitleScene } from "../scenes/AdditionTitleScene";
+import { PauseOverlayScene } from "../scenes/PauseOverlayScene";
 
 export function createGameConfig(
   parent?: string
@@ -47,6 +48,7 @@ export function createGameConfig(
       BootScene,
       AdditionTitleScene,
       AdditionGameScene,
+      PauseOverlayScene,
       PreloadScene,
       TitleScene,
       FossilDigTitleScene,

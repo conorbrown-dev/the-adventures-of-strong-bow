@@ -9,6 +9,7 @@ import { loadCatCatchSettings } from "../settings/catCatchSettings";
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
 import { ASSET_KEYS, YARN_ASSET_KEYS } from "../utils/assetKeys";
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
+import { addGameNavigation } from "../utils/gameNavigation";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 interface LetterCatchSceneData {
@@ -72,6 +73,7 @@ export class LetterCatchScene extends Phaser.Scene {
 
     this.createBackground();
     this.createHud();
+    addGameNavigation(this);
 
     this.kitten = new KittenCatcher(this, GAME_WIDTH / 2, this.mode.config.groundY);
     this.basketCatchZone = this.add.zone(0, 0, 58, 24);

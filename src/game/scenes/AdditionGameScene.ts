@@ -1,8 +1,9 @@
 import Phaser from "phaser";
 
-import { type AdditionLayout, loadAdditionSettings } from "../settings/additionSettings";
+import { type AdditionLayout, type StarshipDifficulty, loadAdditionSettings } from "../settings/additionSettings";
 import { ASSET_KEYS } from "../utils/assetKeys";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
+import { addGameNavigation } from "../utils/gameNavigation";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 const NEON = {
@@ -21,11 +22,22 @@ interface Enemy {
   boss: boolean;
 }
 interface Projectile { sprite: Phaser.GameObjects.Image; speed: number; damage: number; playerOwned: boolean; }
+interface CombatDifficultySettings {
+  normalHealth: number; bossHealth: number; minSpeed: number; maxSpeed: number;
+  normalFireDelay: [number, number]; bossFireDelay: number; normalDamage: number;
+  bossCollisionDamage: number; bombDamage: number; playerSpeed: number;
+}
+const COMBAT_DIFFICULTIES: Record<StarshipDifficulty, CombatDifficultySettings> = {
+  easy: { normalHealth: 1, bossHealth: 10, minSpeed: 0.04, maxSpeed: 0.09, normalFireDelay: [2200, 3400], bossFireDelay: 1000, normalDamage: 7, bossCollisionDamage: 15, bombDamage: 12, playerSpeed: 0.58 },
+  normal: { normalHealth: 2, bossHealth: 20, minSpeed: 0.06, maxSpeed: 0.16, normalFireDelay: [1300, 2000], bossFireDelay: 650, normalDamage: 10, bossCollisionDamage: 25, bombDamage: 20, playerSpeed: 0.48 },
+  hard: { normalHealth: 3, bossHealth: 30, minSpeed: 0.1, maxSpeed: 0.2, normalFireDelay: [800, 1400], bossFireDelay: 450, normalDamage: 12, bossCollisionDamage: 35, bombDamage: 25, playerSpeed: 0.42 }
+};
 
 export class AdditionGameScene extends Phaser.Scene {
   private maximumSum = 10;
   private layout: AdditionLayout = "horizontal";
   private enemyShipCount = 8;
+  private starshipDifficulty: StarshipDifficulty = "easy";
   private problem: Problem = { first: 2, second: 3, total: 5 };
   private answer = "";
   private problemLayer?: Phaser.GameObjects.Container;
@@ -55,6 +67,7 @@ export class AdditionGameScene extends Phaser.Scene {
   private combatStatusText?: Phaser.GameObjects.Text;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private moveKeys?: { W: Phaser.Input.Keyboard.Key; A: Phaser.Input.Keyboard.Key; S: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key; };
+  private keyboardHandler?: (event: KeyboardEvent) => void;
 
   constructor() { super(SCENE_KEYS.ADDITION_GAME); }
 
@@ -63,6 +76,7 @@ export class AdditionGameScene extends Phaser.Scene {
     this.maximumSum = settings.maximumSum;
     this.layout = settings.layout;
     this.enemyShipCount = settings.enemyShipCount;
+    this.starshipDifficulty = settings.starshipDifficulty;
     this.cameras.main.setBackgroundColor(NEON.dark);
     this.createBackground();
     this.createHeader();
@@ -70,6 +84,7 @@ export class AdditionGameScene extends Phaser.Scene {
     this.createKeypad();
     this.createKeypadToggle();
     this.bindKeyboard();
+    addGameNavigation(this);
     this.newProblem();
   }
 
@@ -155,9 +170,15 @@ export class AdditionGameScene extends Phaser.Scene {
 
   private bindKeyboard(): void {
     this.cursors = this.input.keyboard?.createCursorKeys();
+    this.input.keyboard?.addCapture([
+      Phaser.Input.Keyboard.KeyCodes.UP,
+      Phaser.Input.Keyboard.KeyCodes.DOWN,
+      Phaser.Input.Keyboard.KeyCodes.LEFT,
+      Phaser.Input.Keyboard.KeyCodes.RIGHT,
+      Phaser.Input.Keyboard.KeyCodes.SPACE
+    ]);
     this.moveKeys = this.input.keyboard?.addKeys("W,A,S,D") as typeof this.moveKeys;
-    this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
-      if (event.key === "Escape") { this.scene.start(SCENE_KEYS.ADDITION_TITLE); return; }
+    this.keyboardHandler = (event: KeyboardEvent) => {
       if (this.phase === "ended" && event.key.toLowerCase() === "r") { this.scene.restart(); return; }
       if (this.phase === "combat") { if (event.code === "Space") this.firePlayerLaser(); return; }
       if (this.phase !== "learning") return;
@@ -165,6 +186,18 @@ export class AdditionGameScene extends Phaser.Scene {
       if (event.key === "Backspace") this.answer = this.answer.slice(0, -1);
       if (event.key === "Enter") this.checkAnswer();
       this.refreshAnswer();
+    };
+    this.input.keyboard?.on("keydown", this.keyboardHandler);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.keyboardHandler) this.input.keyboard?.off("keydown", this.keyboardHandler);
+      this.keyboardHandler = undefined;
+      this.input.keyboard?.removeCapture([
+        Phaser.Input.Keyboard.KeyCodes.UP,
+        Phaser.Input.Keyboard.KeyCodes.DOWN,
+        Phaser.Input.Keyboard.KeyCodes.LEFT,
+        Phaser.Input.Keyboard.KeyCodes.RIGHT,
+        Phaser.Input.Keyboard.KeyCodes.SPACE
+      ]);
     });
   }
 
@@ -199,8 +232,31 @@ export class AdditionGameScene extends Phaser.Scene {
     this.correctCount += 1;
     this.correctCountText?.setText(`CORRECT  ${this.correctCount} / ${CORRECT_ANSWERS_TO_LAUNCH}`);
     this.statusText?.setText(this.correctCount >= CORRECT_ANSWERS_TO_LAUNCH ? "LAUNCH SEQUENCE READY!" : "BRILLIANT!  NEXT SUM LOADING...").setColor("#45f6e5");
-    this.tweens.add({ targets: [this.problemLayer, this.answerText], scale: 1.06, duration: 120, yoyo: true });
+    this.createCorrectAnswerConfetti();
     this.time.delayedCall(750, () => this.correctCount >= CORRECT_ANSWERS_TO_LAUNCH ? this.launchCombat() : this.newProblem());
+  }
+
+  private createCorrectAnswerConfetti(): void {
+    const colors = [NEON.yellow, NEON.cyan, NEON.pink, NEON.purple, NEON.orange];
+    for (let index = 0; index < 32; index += 1) {
+      const confetti = this.add.rectangle(
+        GAME_WIDTH / 2 + Phaser.Math.Between(-70, 70),
+        365 + Phaser.Math.Between(-30, 30),
+        Phaser.Math.Between(7, 12),
+        Phaser.Math.Between(12, 20),
+        Phaser.Utils.Array.GetRandom(colors) ?? NEON.cyan
+      ).setRotation(Phaser.Math.FloatBetween(-0.8, 0.8)).setDepth(8);
+      this.tweens.add({
+        targets: confetti,
+        x: confetti.x + Phaser.Math.Between(-260, 260),
+        y: confetti.y + Phaser.Math.Between(-140, 220),
+        angle: Phaser.Math.Between(-540, 540),
+        alpha: 0,
+        duration: Phaser.Math.Between(600, 1000),
+        ease: "Quad.Out",
+        onComplete: () => confetti.destroy()
+      });
+    }
   }
 
   private launchCombat(): void {
@@ -226,7 +282,7 @@ export class AdditionGameScene extends Phaser.Scene {
 
   private movePlayer(delta: number): void {
     if (!this.player) return;
-    const speed = 0.48 * delta;
+    const speed = COMBAT_DIFFICULTIES[this.starshipDifficulty].playerSpeed * delta;
     let x = this.player.x; let y = this.player.y;
     if (this.cursors?.left.isDown || this.moveKeys?.A.isDown) x -= speed;
     if (this.cursors?.right.isDown || this.moveKeys?.D.isDown) x += speed;
@@ -255,16 +311,18 @@ export class AdditionGameScene extends Phaser.Scene {
   }
 
   private spawnEnemy(boss: boolean): void {
+    const difficulty = COMBAT_DIFFICULTIES[this.starshipDifficulty];
     const ship = this.add.image(Phaser.Math.Between(80, GAME_WIDTH - 80), -75, ASSET_KEYS.ENEMY_STARSHIP_SHEET, boss ? 1 : Phaser.Math.Between(0, 1)).setDepth(2);
     ship.setDisplaySize(boss ? 118 : 64, boss ? 146 : 80);
     if (boss) ship.setTint(0xff70b8);
-    this.enemies.push({ ship, health: boss ? 20 : 2, speed: boss ? 0.095 : Phaser.Math.FloatBetween(0.06, 0.16), fireAt: this.time.now + Phaser.Math.Between(800, 1600), boss });
+    this.enemies.push({ ship, health: boss ? difficulty.bossHealth : difficulty.normalHealth, speed: boss ? 0.095 : Phaser.Math.FloatBetween(difficulty.minSpeed, difficulty.maxSpeed), fireAt: this.time.now + Phaser.Math.Between(...difficulty.normalFireDelay), boss });
   }
 
   private recycleEnemy(enemy: Enemy, time: number): void {
+    const difficulty = COMBAT_DIFFICULTIES[this.starshipDifficulty];
     enemy.ship.setPosition(Phaser.Math.Between(80, GAME_WIDTH - 80), -75);
-    enemy.speed = enemy.boss ? 0.095 : Phaser.Math.FloatBetween(0.06, 0.16);
-    enemy.fireAt = time + Phaser.Math.Between(800, 1600);
+    enemy.speed = enemy.boss ? 0.095 : Phaser.Math.FloatBetween(difficulty.minSpeed, difficulty.maxSpeed);
+    enemy.fireAt = time + Phaser.Math.Between(...difficulty.normalFireDelay);
   }
 
   private updateEnemies(time: number, delta: number): void {
@@ -273,7 +331,11 @@ export class AdditionGameScene extends Phaser.Scene {
         enemy.ship.y = Math.min(190, enemy.ship.y + enemy.speed * delta);
         if (enemy.ship.y >= 190) enemy.ship.x = Phaser.Math.Clamp(enemy.ship.x + Math.sin(time / 450) * 0.18 * delta, 80, GAME_WIDTH - 80);
       } else enemy.ship.y += enemy.speed * delta;
-      if (time >= enemy.fireAt && enemy.ship.y > 30) { this.fireEnemyWeapon(enemy); enemy.fireAt = time + (enemy.boss ? 650 : Phaser.Math.Between(1300, 2000)); }
+      if (time >= enemy.fireAt && enemy.ship.y > 30) {
+        const difficulty = COMBAT_DIFFICULTIES[this.starshipDifficulty];
+        this.fireEnemyWeapon(enemy);
+        enemy.fireAt = time + (enemy.boss ? difficulty.bossFireDelay : Phaser.Math.Between(...difficulty.normalFireDelay));
+      }
       if (!enemy.boss && enemy.ship.y > GAME_HEIGHT + 100) {
         // Keep the same fleet member alive: it re-enters at the top with a
         // fresh lane and speed, so every ship must be defeated to summon the boss.
@@ -281,7 +343,7 @@ export class AdditionGameScene extends Phaser.Scene {
         continue;
       }
       if (this.player && Phaser.Geom.Intersects.RectangleToRectangle(enemy.ship.getBounds(), this.player.getBounds())) {
-        this.damagePlayer(enemy.boss ? 25 : 15);
+        this.damagePlayer(enemy.boss ? COMBAT_DIFFICULTIES[this.starshipDifficulty].bossCollisionDamage : COMBAT_DIFFICULTIES[this.starshipDifficulty].normalDamage + 5);
         if (this.phase === "combat") this.recycleEnemy(enemy, time);
       }
     }
@@ -290,7 +352,8 @@ export class AdditionGameScene extends Phaser.Scene {
   private fireEnemyWeapon(enemy: Enemy): void {
     const bomb = enemy.boss && Phaser.Math.Between(0, 2) === 0;
     const projectile = this.add.image(enemy.ship.x, enemy.ship.y + enemy.ship.displayHeight / 2, bomb ? ASSET_KEYS.ENEMY_BOMB : ASSET_KEYS.ENEMY_LASER).setDisplaySize(bomb ? 34 : 18, bomb ? 39 : 34).setDepth(3);
-    this.projectiles.push({ sprite: projectile, speed: bomb ? 0.36 : 0.56, damage: bomb ? 20 : 10, playerOwned: false });
+    const difficulty = COMBAT_DIFFICULTIES[this.starshipDifficulty];
+    this.projectiles.push({ sprite: projectile, speed: bomb ? 0.36 : 0.56, damage: bomb ? difficulty.bombDamage : difficulty.normalDamage, playerOwned: false });
   }
 
   private updateProjectiles(delta: number): void {

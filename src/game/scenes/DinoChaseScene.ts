@@ -19,6 +19,7 @@ import {
   GAME_HEIGHT
 } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { addGameNavigation } from "../utils/gameNavigation";
 
 interface DinoChaseSceneData {
   stageTheme?: FossilDigStageTheme;
@@ -40,6 +41,7 @@ export class DinoChaseScene extends Phaser.Scene {
 
   create(): void {
     this.stopDigBackgroundMusic();
+    addGameNavigation(this);
     const selectedDino = getDinoById(this.stageTheme.dinoId);
 
     this.cameras.main.setBackgroundColor(0xcde8ff);

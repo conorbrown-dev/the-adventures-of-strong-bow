@@ -7,6 +7,7 @@ import { createRandomBarnDoorVowelsStageTheme } from "../modes/barn-door-vowels/
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
 import { ASSET_KEYS } from "../utils/assetKeys";
 import { COLORS, GAME_WIDTH } from "../utils/constants";
+import { addGameNavigation } from "../utils/gameNavigation";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 const ANIMAL_KEYS = [
@@ -118,6 +119,7 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
     this.createHud();
     this.createControls();
     this.createMobileControls();
+    addGameNavigation(this);
     this.updateHud();
     this.showStatus("Listen, then choose where each animal belongs.", COLORS.TEXT_DARK);
 
