@@ -6,6 +6,7 @@ export interface CurriculumQuestion {
   choices: string[];
   answerIndex: number;
   standardCode: string;
+  acceptedAnswers: string[];
 }
 
 export interface CurriculumQuiz {
@@ -16,13 +17,13 @@ export interface CurriculumQuiz {
   questions: CurriculumQuestion[];
 }
 
-const q = (prompt: string, choices: string[], answerIndex: number, standardCode: string): CurriculumQuestion => ({ prompt, choices, answerIndex, standardCode });
+const q = (prompt: string, choices: string[], answerIndex: number, standardCode: string, acceptedAnswers?: string[]): CurriculumQuestion => ({ prompt, choices, answerIndex, standardCode, acceptedAnswers: acceptedAnswers ?? [choices[answerIndex]] });
 
 // Representative, teacher-friendly checks mapped to the official Common Core
 // identifiers. More quizzes can be added to this catalogue without changing UI.
 export const commonCoreQuizzes: CurriculumQuiz[] = [
   { id: "k-math-counting", title: "Kindergarten Counting", grade: "K", subject: "MATH", questions: [
-    q("What number comes after 6?", ["5", "7", "8"], 1, "K.CC.A.2"), q("Which group has 5 stars?", ["★★★", "★★★★★", "★★★★★★"], 1, "K.CC.B.4"), q("2 apples and 1 apple make…", ["2", "3", "4"], 1, "K.OA.A.1") ] },
+    q("What number comes after 6?", ["5", "7", "8"], 1, "K.CC.A.2", ["seven", "7"]), q("How many stars are in this group? Five stars.", ["★★★", "★★★★★", "★★★★★★"], 1, "K.CC.B.4", ["five", "5", "five stars"]), q("2 apples and 1 apple make…", ["2", "3", "4"], 1, "K.OA.A.1", ["three", "3"]) ] },
   { id: "k-ela-letters", title: "Kindergarten Letters & Stories", grade: "K", subject: "ELA", questions: [
     q("Which letter makes the /m/ sound?", ["m", "s", "t"], 0, "RF.K.3.A"), q("What is the first sound in sun?", ["/s/", "/n/", "/u/"], 0, "RF.K.2.D"), q("After listening to a story, what can you do?", ["Ask and answer questions about it", "Read only numbers", "Skip every page"], 0, "RL.K.1") ] },
   { id: "1-math-add-subtract", title: "Grade 1 Addition & Subtraction", grade: "GRADE_1", subject: "MATH", questions: [
