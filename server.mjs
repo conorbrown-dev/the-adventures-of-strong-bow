@@ -51,9 +51,31 @@ function safePathname(requestUrl) {
   return normalizedPath === path.sep ? "/index.html" : normalizedPath;
 }
 
+function proxyApi(request, response) {
+  const upstream = http.request({
+    host: "127.0.0.1",
+    port: 3000,
+    path: request.url,
+    method: request.method,
+    headers: request.headers
+  }, (upstreamResponse) => {
+    response.writeHead(upstreamResponse.statusCode ?? 502, upstreamResponse.headers);
+    upstreamResponse.pipe(response);
+  });
+  upstream.on("error", () => {
+    response.writeHead(503, { "Content-Type": "application/json; charset=utf-8" });
+    response.end(JSON.stringify({ message: "The learning server is unavailable. Start the student API and try again." }));
+  });
+  request.pipe(upstream);
+}
+
 const server = http.createServer(async (request, response) => {
   try {
     const pathname = safePathname(request.url || "/");
+    if (pathname === "/api" || pathname.startsWith("/api/")) {
+      proxyApi(request, response);
+      return;
+    }
     const requestedPath = path.join(distDir, pathname);
     const filePath = requestedPath.startsWith(distDir) ? requestedPath : indexFile;
 

@@ -40,6 +40,10 @@ export async function studentApi<T>(path: string, method = "GET", body?: object)
     headers: { "Content-Type": "application/json", ...(session ? { Authorization: `Bearer ${session.token}` } : {}) },
     body: body ? JSON.stringify(body) : undefined
   });
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error("The learning server is unavailable. Start the student API and try again.");
+  }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message ?? "Unable to reach the learning server.");
   return payload as T;
