@@ -22,6 +22,7 @@ interface Enemy {
   boss: boolean;
 }
 interface Projectile { sprite: Phaser.GameObjects.Image; speed: number; damage: number; playerOwned: boolean; }
+interface RepairKit { pickup: Phaser.GameObjects.Container; speed: number; }
 interface CombatDifficultySettings {
   normalHealth: number; bossHealth: number; minSpeed: number; maxSpeed: number;
   normalFireDelay: [number, number]; bossFireDelay: number; normalDamage: number;
@@ -56,6 +57,7 @@ export class AdditionGameScene extends Phaser.Scene {
   private player?: Phaser.GameObjects.Image;
   private enemies: Enemy[] = [];
   private projectiles: Projectile[] = [];
+  private repairKits: RepairKit[] = [];
   private playerHealth = 100;
   private shipsDestroyed = 0;
   private shipsSpawned = 0;
@@ -70,6 +72,25 @@ export class AdditionGameScene extends Phaser.Scene {
   private keyboardHandler?: (event: KeyboardEvent) => void;
 
   constructor() { super(SCENE_KEYS.ADDITION_GAME); }
+
+  init(): void {
+    this.phase = "learning";
+    this.answer = "";
+    this.correctCount = 0;
+    this.keypadVisible = false;
+    this.mathObjects = [];
+    this.mathStagePanels = [];
+    this.backgroundStars = [];
+    this.enemies = [];
+    this.projectiles = [];
+    this.repairKits = [];
+    this.playerHealth = 100;
+    this.shipsDestroyed = 0;
+    this.shipsSpawned = 0;
+    this.bossSpawned = false;
+    this.nextSpawnAt = 0;
+    this.nextShotAt = 0;
+  }
 
   create(): void {
     const settings = loadAdditionSettings();
@@ -95,6 +116,7 @@ export class AdditionGameScene extends Phaser.Scene {
     this.spawnShips(time);
     this.updateEnemies(time, delta);
     this.updateProjectiles(delta);
+    this.updateRepairKits(delta);
   }
 
   private trackMath<T extends Phaser.GameObjects.GameObject>(object: T): T {
@@ -149,7 +171,7 @@ export class AdditionGameScene extends Phaser.Scene {
       const isClear = value === "clear";
       const bg = this.add.rectangle(x, y, 62, 51, isGo ? NEON.cyan : 0x1b1430, 1).setStrokeStyle(2, isGo ? NEON.cyan : isClear ? NEON.pink : NEON.purple, 0.8);
       const text = this.add.text(x, y + 1, isGo ? "GO" : isClear ? "⌫" : value, { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: isClear ? "24px" : "21px", color: isGo ? "#090610" : NEON.ink }).setOrigin(0.5);
-      const zone = this.add.zone(x, y, 62, 51).setInteractive({ useHandCursor: true }).on("pointerover", () => { bg.setScale(1.08); text.setScale(1.08); }).on("pointerout", () => { bg.setScale(1); text.setScale(1); }).on("pointerup", () => this.handlePad(value));
+      const zone = this.add.zone(x, y, 62, 51).setInteractive({ useHandCursor: true }).on("pointerover", () => { bg.setScale(1.08); text.setScale(1.08); }).on("pointerout", () => { bg.setScale(1); text.setScale(1); }).on("pointerdown", () => this.handlePad(value));
       keypadLayer.add([bg, text, zone]);
     });
     keypadLayer.setVisible(false);
@@ -159,7 +181,7 @@ export class AdditionGameScene extends Phaser.Scene {
     const x = 986; const y = 70;
     this.keypadToggleBackground = this.trackMath(this.add.rectangle(x, y, 52, 46, 0x171028, 1).setStrokeStyle(2, NEON.purple, 0.8));
     const label = this.trackMath(this.add.text(x, y + 1, "⌨", { fontFamily: "Arial, sans-serif", fontSize: "28px", color: NEON.ink }).setOrigin(0.5));
-    const zone = this.trackMath(this.add.zone(x, y, 52, 46).setInteractive({ useHandCursor: true }).on("pointerover", () => this.keypadToggleBackground?.setStrokeStyle(2, NEON.cyan, 1)).on("pointerout", () => this.refreshKeypadToggle()).on("pointerup", () => {
+    const zone = this.trackMath(this.add.zone(x, y, 52, 46).setInteractive({ useHandCursor: true }).on("pointerover", () => this.keypadToggleBackground?.setStrokeStyle(2, NEON.cyan, 1)).on("pointerout", () => this.refreshKeypadToggle()).on("pointerdown", () => {
       this.keypadVisible = !this.keypadVisible;
       this.keypadLayer?.setVisible(this.keypadVisible);
       this.statusText?.setText(this.keypadVisible ? "Click numbers, or type an answer" : "Type an answer, or open the number pad").setColor(NEON.muted);
@@ -367,8 +389,35 @@ export class AdditionGameScene extends Phaser.Scene {
     }
   }
 
+  private spawnRepairKit(x: number, y: number): void {
+    const pickup = this.add.container(x, y).setDepth(4);
+    const caseShape = this.add.circle(0, 0, 19, 0x43c970).setStrokeStyle(3, 0xe9fff0, 0.9);
+    const cross = this.add.text(0, -1, "+", { fontFamily: "Arial Black, sans-serif", fontSize: "28px", color: "#ffffff" }).setOrigin(0.5);
+    pickup.add([caseShape, cross]);
+    this.repairKits.push({ pickup, speed: 0.11 });
+  }
+
+  private updateRepairKits(delta: number): void {
+    for (const repairKit of [...this.repairKits]) {
+      repairKit.pickup.y += repairKit.speed * delta;
+      if (repairKit.pickup.y > GAME_HEIGHT + 40) {
+        this.removeRepairKit(repairKit);
+        continue;
+      }
+      if (this.player && Phaser.Geom.Intersects.RectangleToRectangle(repairKit.pickup.getBounds(), this.player.getBounds())) {
+        this.playerHealth = Math.min(100, this.playerHealth + 25);
+        this.healthText?.setText(`HULL  ${this.playerHealth}`).setColor("#45f6e5");
+        this.combatStatusText?.setText("REPAIR KIT COLLECTED  +25 HULL").setColor("#45f6e5").setVisible(true);
+        this.time.delayedCall(1200, () => this.phase === "combat" && this.combatStatusText?.setVisible(false));
+        this.removeRepairKit(repairKit);
+      }
+    }
+  }
+
   private removeProjectile(projectile: Projectile): void { projectile.sprite.destroy(); this.projectiles = this.projectiles.filter((item) => item !== projectile); }
+  private removeRepairKit(repairKit: RepairKit): void { repairKit.pickup.destroy(); this.repairKits = this.repairKits.filter((item) => item !== repairKit); }
   private removeEnemy(enemy: Enemy, destroyed: boolean): void {
+    if (destroyed) this.spawnRepairKit(enemy.ship.x, enemy.ship.y);
     enemy.ship.destroy(); this.enemies = this.enemies.filter((item) => item !== enemy);
     if (destroyed && !enemy.boss) { this.shipsDestroyed += 1; this.fleetText?.setText(`FLEET  ${this.shipsDestroyed} / ${this.enemyShipCount}`); }
     if (destroyed && enemy.boss) this.finishCombat(true);
@@ -385,6 +434,7 @@ export class AdditionGameScene extends Phaser.Scene {
   private finishCombat(won: boolean): void {
     this.phase = "ended";
     this.projectiles.forEach(({ sprite }) => sprite.destroy()); this.projectiles = [];
+    this.repairKits.forEach(({ pickup }) => pickup.destroy()); this.repairKits = [];
     this.enemies.forEach(({ ship }) => ship.destroy()); this.enemies = [];
     this.combatStatusText?.setText(won ? "BOSS DEFEATED — NEXT MISSION IN 4..." : "SHIP LOST — NEW MISSION IN 4...").setColor(won ? "#45f6e5" : "#ff70b8").setFontSize(28).setVisible(true);
     this.time.delayedCall(4000, () => this.scene.restart());
