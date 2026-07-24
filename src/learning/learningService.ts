@@ -3,7 +3,7 @@ export type LearningGrade = "K" | "1" | "2";
 export type LearningQuestion = { id: string; templateId: string; standardId: string; subject: LearningSubject; grade: LearningGrade; skill: string; prompt: string; audioText: string; choices: string[]; answer: string; explanation: string; domain: string; passage?: string; visual?: string };
 export type LearningAttempt = { questionId: string; standardId: string; subject: LearningSubject; correct: boolean; at: string };
 
-export const reviewedTemplateMetadata = [
+const legacyReviewedTemplateMetadata = [
   ["K.RF.1.d", "letter-match", "Recognize letter pairs", "ELA", "Reading foundational skills"], ["K.RF.1.d", "letter-name", "Name a letter", "ELA", "Reading foundational skills"],
   ["K.RF.2.a", "rhyme", "Find rhymes", "ELA", "Reading foundational skills"], ["K.RF.2.a", "rhyme-picture", "Hear rhymes", "ELA", "Reading foundational skills"],
   ["K.RF.2.d", "middle-vowel", "Hear middle sounds", "ELA", "Reading foundational skills"], ["K.RF.2.d", "cvc-sound", "Hear CVC sounds", "ELA", "Reading foundational skills"],
@@ -15,11 +15,13 @@ export const reviewedTemplateMetadata = [
   , ["2.RL.1", "passage-detail", "Find a detail in a passage", "ELA", "Reading literature"], ["2.L.2", "sentence-punctuation", "Choose sentence punctuation", "ELA", "Language"]
   , ["2.NBT.A.1", "hundreds-tens-ones", "Build three-digit numbers", "Math", "Number and operations in base ten"], ["2.MD.C.7", "clock-time", "Read time to five minutes", "Math", "Measurement and data"], ["2.MD.C.8", "money-total", "Count U.S. coins", "Math", "Measurement and data"]
 ] as const;
+export const reviewedTemplateMetadata = catalog.templates.map((template) => [template.standardId, template.id, template.generatorKind, template.subject === "ela" ? "ELA" : "Math", template.grade] as const);
 export const REVIEW_NOTE = "Internal project review; not professional educator certification.";
 const storageKey = "molly-learning-attempts-v1";
 const pick = <T,>(values: readonly T[], seed: number): T => values[Math.abs(seed) % values.length];
 
-export const originalPassages = [{ id: "quiet-nest", title: "A Quiet Nest", gradeBand: "2", wordCount: 32, provenance: "Project original", review: "reviewed", text: "Mina found a small nest in the willow tree. She watched from far away. A blue bird brought soft grass to the nest. Mina whispered, 'The bird is making a safe home.'" }];
+export const originalPassages = catalog.passages.map((passage) => ({ ...passage, gradeBand: passage.grade, review: passage.reviewStatus }));
+void legacyReviewedTemplateMetadata;
 
 export function nextQuestion(seed: number, subject: LearningSubject | "Mixed" = "Mixed", grade: LearningGrade = "K"): LearningQuestion {
   if (grade === "1") {
@@ -42,3 +44,4 @@ export function nextQuestion(seed: number, subject: LearningSubject | "Mixed" = 
 export function evaluateLearningAnswer(question: LearningQuestion, answer: string): boolean { return question.answer.trim().toLowerCase() === answer.trim().toLowerCase(); }
 export function loadAttempts(): LearningAttempt[] { try { return JSON.parse(localStorage.getItem(storageKey) ?? "[]") as LearningAttempt[]; } catch { return []; } }
 export function saveAttempt(attempt: LearningAttempt): void { const all = loadAttempts(); if (all.some((item) => item.questionId === attempt.questionId)) return; localStorage.setItem(storageKey, JSON.stringify([...all, attempt])); }
+import catalog from "../../data/curriculum/content/k2-catalog.json";

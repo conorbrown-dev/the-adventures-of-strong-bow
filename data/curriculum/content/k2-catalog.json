@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "reviewNote": "Internally reviewed for project use; not professional educator certification.",
+  "templates": [
+    { "id": "k.rf.1.d.letter-match", "standardId": "K.RF.1.d", "grade": "K", "subject": "ela", "generatorKind": "matchUpperLowerLetters", "responseType": "classification", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
+    { "id": "k.rf.2.a.rhyme", "standardId": "K.RF.2.a", "grade": "K", "subject": "ela", "generatorKind": "rhymeChoice", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
+    { "id": "k.cc.a.2.next-number", "standardId": "K.CC.A.2", "grade": "K", "subject": "math", "generatorKind": "nextNumber", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
+    { "id": "1.rf.3.silent-e-decode", "standardId": "1.RF.3", "grade": "1", "subject": "ela", "generatorKind": "silentEDecode", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
+    { "id": "1.nbt.b.2.tens-and-ones", "standardId": "1.NBT.B.2", "grade": "1", "subject": "math", "generatorKind": "placeValueConstruction", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
+    { "id": "2.rl.1.passage-detail", "standardId": "2.RL.1", "grade": "2", "subject": "ela", "generatorKind": "passageDetail", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
+    { "id": "2.md.c.7.clock-time", "standardId": "2.MD.C.7", "grade": "2", "subject": "math", "generatorKind": "clockTime", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
+    { "id": "2.md.c.8.money-total", "standardId": "2.MD.C.8", "grade": "2", "subject": "math", "generatorKind": "moneyTotal", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } }
+  ],
+  "passages": [{ "id": "quiet-nest", "title": "A Quiet Nest", "grade": "2", "wordCount": 32, "provenance": "Project original", "reviewStatus": "reviewed", "text": "Mina found a small nest in the willow tree. She watched from far away. A blue bird brought soft grass to the nest. Mina whispered, 'The bird is making a safe home.'" }],
+  "unsupported": [{ "standardId": "K.RF.4", "reason": "Expressive oral-reading fluency needs recording and adult review.", "capabilityRequired": "adult observation", "adultObservationRecommended": true, "futureSupportPlanned": true }]
+}
