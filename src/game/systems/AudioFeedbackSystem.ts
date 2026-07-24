@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { speak as speakWithModel, stopSpeaking } from "../../quiz/speech";
 import { getConfiguredSfxVolume } from "../settings/parentalSettings";
 import { ASSET_KEYS } from "../utils/assetKeys";
 
@@ -75,12 +76,7 @@ export class AudioFeedbackSystem {
   async playCorrectFeedback(
     voiceKeys: readonly string[] = CORRECT_FEEDBACK_VOICE_KEYS
   ): Promise<void> {
-    this.ensureAudioContext();
-    this.playToneSequence([
-      { frequency: 460, duration: 0.08, type: "sine" },
-      { frequency: 620, duration: 0.1, type: "triangle" },
-      { frequency: 820, duration: 0.14, type: "sine" }
-    ]);
+    this.playCorrectChime();
 
     await this.wait(120);
     await this.playVoiceClipInternal(
@@ -90,6 +86,16 @@ export class AudioFeedbackSystem {
       },
       this.beginVoiceSequence()
     );
+  }
+
+  /** A mode-neutral success sound for activities without recorded praise. */
+  playCorrectChime(): void {
+    this.ensureAudioContext();
+    this.playToneSequence([
+      { frequency: 460, duration: 0.08, type: "sine" },
+      { frequency: 620, duration: 0.1, type: "triangle" },
+      { frequency: 820, duration: 0.14, type: "sine" }
+    ]);
   }
 
   playIncorrectFeedback(): void {
@@ -162,34 +168,16 @@ export class AudioFeedbackSystem {
     options: SpeakOptions = {},
     token = this.beginVoiceSequence()
   ): Promise<void> {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      return;
-    }
-
     this.stopActiveVoiceSound();
-    window.speechSynthesis.cancel();
-
-    await new Promise<void>((resolve) => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = options.rate ?? 0.86;
-      utterance.pitch = options.pitch ?? 1;
-      utterance.volume = 1;
-      utterance.onend = () => resolve();
-      utterance.onerror = () => resolve();
-      if (!this.isVoiceSequenceCurrent(token)) {
-        resolve();
-        return;
-      }
-      window.speechSynthesis.speak(utterance);
-    });
+    if (!this.isVoiceSequenceCurrent(token)) return;
+    void options;
+    await speakWithModel(text);
   }
 
   private beginVoiceSequence(): number {
     this.voiceSequenceToken += 1;
     this.stopActiveVoiceSound();
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    stopSpeaking();
 
     return this.voiceSequenceToken;
   }
@@ -279,8 +267,6 @@ export class AudioFeedbackSystem {
   }
 
   private destroy(): void {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    stopSpeaking();
   }
 }

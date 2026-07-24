@@ -65,7 +65,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
     this.wordText?.setText(this.currentWord).setAlpha(0).setScale(0.8);
     this.tweens.add({ targets: this.wordText, alpha: 1, scale: 1, duration: 240, ease: "Back.Out" });
     this.statusText?.setText("Read the word aloud when you hear the prompt.").setColor("#c5b5df");
-    await this.audio.speakPhrase("Read the word aloud.", { rate: 0.84, pitch: 1.04 });
+    await this.audio.speakPhrase("Read the word aloud.");
     if (this.finished || !this.currentWord) return;
     if (!await this.requestMicrophone()) { this.statusText?.setText("Please allow microphone access to practice sight words.").setColor("#ffb86b"); return; }
     this.startListening(this.currentWord);
@@ -109,7 +109,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
     const seconds = (responseMs / 1000).toFixed(1);
     if (correct) {
       this.statusText?.setText(stats.mastered ? `Mastered! ${seconds}s — this word will now rotate out.` : `Correct! ${seconds}s`).setColor("#45f6e5");
-      void this.audio.playCorrectFeedback();
+      this.audio.playCorrectChime();
     } else {
       this.statusText?.setText(`Try again next time. Response: ${seconds}s`).setColor("#ff70b8");
       this.audio.playIncorrectFeedback();

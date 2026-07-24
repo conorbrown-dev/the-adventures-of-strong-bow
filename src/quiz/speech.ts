@@ -1,5 +1,6 @@
 const PREFERRED_VOICE_NAMES = ["Microsoft Aria", "Microsoft Jenny", "Google US English", "Samantha", "Ava", "Karen", "Moira"];
 let activeAudio: HTMLAudioElement | undefined;
+let resolveActiveAudio: (() => void) | undefined;
 let speechRequest = 0;
 const modelAudioCache = new Map<string, Blob>();
 const pendingModelAudio = new Map<string, Promise<Blob | undefined>>();
@@ -49,10 +50,21 @@ export async function speak(text: string): Promise<boolean> {
   try {
     const blob = await loadModelAudio(text);
     if (blob) {
+      stopActiveAudio();
       const audio = new Audio(URL.createObjectURL(blob));
       activeAudio = audio;
-      audio.onended = () => { URL.revokeObjectURL(audio.src); if (activeAudio === audio) activeAudio = undefined; };
-      if (request === speechRequest) await audio.play();
+      const completed = new Promise<void>((resolve) => {
+        resolveActiveAudio = resolve;
+        audio.onended = () => {
+          URL.revokeObjectURL(audio.src);
+          if (activeAudio === audio) activeAudio = undefined;
+          if (resolveActiveAudio === resolve) resolveActiveAudio = undefined;
+          resolve();
+        };
+      });
+      if (request !== speechRequest) return false;
+      await audio.play();
+      await completed;
       return true;
     }
   } catch {
@@ -71,10 +83,16 @@ export async function speak(text: string): Promise<boolean> {
 
 export function stopSpeaking(): void {
   speechRequest += 1;
+  stopActiveAudio();
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+
+function stopActiveAudio(): void {
   if (activeAudio) {
     activeAudio.pause();
     URL.revokeObjectURL(activeAudio.src);
     activeAudio = undefined;
   }
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  resolveActiveAudio?.();
+  resolveActiveAudio = undefined;
 }
