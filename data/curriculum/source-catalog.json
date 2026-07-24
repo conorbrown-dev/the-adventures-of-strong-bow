@@ -1,0 +1,49 @@
+[
+  {
+    "id": "ccss-k5-vendored",
+    "title": "Vendored Common Core K-5 Math and ELA Dataset",
+    "path": "data/curriculum/generated/common-core-k5-standards.json",
+    "license": "Common Core Public License",
+    "role": "authoritative-project-import",
+    "ingestPolicy": "Import directly; verify manifest hashes and exact record count. Preserve officialId, canonicalId, statement, provenance, and instructionalStatus."
+  },
+  {
+    "id": "ccss-recovery-snapshot",
+    "title": "Pinned Recovery CSV Snapshot",
+    "path": "resources/raw/ccss-recovery-source-philngo-rev-02895145.csv",
+    "sourceUrl": "https://gist.github.com/philngo/2735248c98c3e0cd7814/raw/02895145c97bee04998d8860781b4de97081fd4e/ccss.csv",
+    "license": "Standards text used under Common Core Public License",
+    "role": "reproducibility-source",
+    "ingestPolicy": "Do not fetch during builds. Rebuild locally with the pinned copy."
+  },
+  {
+    "id": "ccss-math-pdf",
+    "title": "Common Core State Standards for Mathematics",
+    "url": "https://corestandards.org/wp-content/uploads/2023/09/Math_Standards1.pdf",
+    "license": "Common Core Public License",
+    "role": "official-human-reference",
+    "ingestPolicy": "Use for review; do not parse during production builds."
+  },
+  {
+    "id": "ccss-ela-pdf",
+    "title": "Common Core State Standards for English Language Arts & Literacy",
+    "url": "https://corestandards.org/wp-content/uploads/2023/09/ELA_Standards1.pdf",
+    "license": "Common Core Public License",
+    "role": "official-human-reference",
+    "ingestPolicy": "Use for review; do not parse during production builds."
+  },
+  {
+    "id": "ccss-broken-xml",
+    "title": "Retired Official XML Archive",
+    "url": "https://thecorestandards.org/wp-content/uploads/ccssi.zip",
+    "role": "unavailable",
+    "ingestPolicy": "Returns 404 as of 2026-07-24; never require."
+  },
+  {
+    "id": "ccss-broken-csv",
+    "title": "Unavailable Official Identifier CSV",
+    "url": "https://www.thecorestandards.org/assets/E0607_ccss_identifiers.csv",
+    "role": "unavailable",
+    "ingestPolicy": "Returns 404 as of 2026-07-24; never require."
+  }
+]

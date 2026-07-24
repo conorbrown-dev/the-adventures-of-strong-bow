@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "recordCount": 695,
+  "leafRecordCount": 619,
+  "assessableRecordCount": 601,
+  "notApplicableAtGradeCount": 18,
+  "countsBySubjectAndGrade": {
+    "ela:1": 86,
+    "ela:2": 75,
+    "ela:3": 92,
+    "ela:4": 88,
+    "ela:5": 86,
+    "ela:K": 77,
+    "math:1": 24,
+    "math:2": 28,
+    "math:3": 37,
+    "math:4": 37,
+    "math:5": 40,
+    "math:K": 25
+  },
+  "files": {
+    "ccss-recovery-source-philngo-rev-02895145.csv": {
+      "sha256": "64610d0e0fb8b0fdd782d292c188796b2ab98533105dd9f729cbe1d8d80d7ba4",
+      "bytes": 381135
+    },
+    "common-core-k5-standards.json": {
+      "sha256": "7928359f4f7c2aec8aa49688e30ec1ab2245a93c4d3e044d3097cc8bd583aab7",
+      "bytes": 1135167
+    },
+    "common-core-k5-standards.csv": {
+      "sha256": "81b1f077cfb6d7ef599a04ea0613dbc273746454ef99f3f78df2d2531f46257e",
+      "bytes": 179094
+    }
+  }
+}

@@ -1,0 +1,49 @@
+jQuery(document).ready(function($) {
+
+  var base = window.location.protocol + '//' + window.location.hostname;
+
+  $('a').on('click', function(e) {
+    var data = {};
+    var elem = $(this);
+    var href = (typeof(elem.attr('href')) != 'undefined' ) ? elem.attr('href') : '';
+
+    if (href.match(/^mailto\:/i)) {
+      data.action = 'email';
+      data.category = 'links';
+      data.label = href.replace(/^mailto\:/i, '');
+    }
+    else if (href.match(/^window\.print/i)) {
+      data.action = 'print';
+      data.category = 'links';
+      data.label = document.title;
+    }
+    else if (href.match(/\.(zip|exe|dmg|pdf|doc.*|xls.*|ppt.*|mp3|txt|rar|wma|mov|avi|wmv|flv|wav)$/i)) {
+      data.action = 'file download';
+      data.category = 'links';
+      data.label = href.replace(/ /g, '-');
+    }
+    else if (href.match(/^https?\:/i) && href.indexOf('//' + window.location.hostname) == -1) {
+      data.action = 'external';
+      data.category = 'links';
+      data.label = href.replace(/^https?\:\/\//i, '');
+    }
+
+    if (data.hasOwnProperty('action')) {
+      _gaq.push(['_trackEvent', data.category, data.action, data.label]);
+      e.preventDefault();
+
+      window.setTimeout(function(nw) {
+        if (typeof nw == 'undefined' || nw) {
+          window.open(href);
+        }
+        else {
+          window.location.replace(href);
+        }
+      }, 250, elem.attr('target') == '_blank');
+    }
+  });
+
+  $('#video').on('show.bs.modal', function() {
+    _gaq.push(['_trackEvent', 'video', 'play']);
+  });
+});

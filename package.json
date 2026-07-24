@@ -16,6 +16,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "curriculum:download": "npm run curriculum:validate",
+    "curriculum:validate": "npm --prefix server run curriculum:validate",
+    "curriculum:import": "npm --prefix server run curriculum:import",
+    "curriculum:coverage": "npm --prefix server run curriculum:coverage",
+    "test:curriculum": "npm --prefix server run test:curriculum",
     "start": "node server.mjs",
     "start:api": "npm --prefix server run start",
     "start:production": "node production.mjs"

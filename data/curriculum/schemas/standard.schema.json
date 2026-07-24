@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mollys-learning-game.local/schemas/standard.schema.json",
+  "title": "Curriculum Standard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "officialId",
+    "canonicalId",
+    "subject",
+    "grade",
+    "gradeName",
+    "domainCode",
+    "domain",
+    "statement",
+    "isLeaf",
+    "instructionalStatus",
+    "source",
+    "license",
+    "active"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "officialId": {
+      "type": "string",
+      "minLength": 2
+    },
+    "canonicalId": {
+      "type": "string",
+      "minLength": 2
+    },
+    "subject": {
+      "enum": [
+        "math",
+        "ela"
+      ]
+    },
+    "grade": {
+      "enum": [
+        "K",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ]
+    },
+    "gradeName": {
+      "type": "string"
+    },
+    "domainCode": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "strand": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "clusterCode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "parentId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sourceItem": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "childFriendlyDescription": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "isLeaf": {
+      "type": "boolean"
+    },
+    "instructionalStatus": {
+      "enum": [
+        "assessable",
+        "broadStandard",
+        "notApplicableAtGrade"
+      ]
+    },
+    "prerequisiteIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publisher",
+        "package",
+        "reference",
+        "recoverySourceUrl",
+        "recoveryRevision",
+        "officialReferencePdf",
+        "verification"
+      ],
+      "properties": {
+        "publisher": {
+          "type": "string"
+        },
+        "package": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "recoverySourceUrl": {
+          "type": "string"
+        },
+        "recoveryRevision": {
+          "type": "string"
+        },
+        "officialReferencePdf": {
+          "type": "string"
+        },
+        "verification": {
+          "type": "string"
+        }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "notice"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "notice": {
+          "type": "string"
+        }
+      }
+    },
+    "active": {
+      "type": "boolean"
+    }
+  }
+}

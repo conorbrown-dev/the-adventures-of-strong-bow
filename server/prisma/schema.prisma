@@ -75,3 +75,31 @@ model QuizAttempt {
 
   @@index([studentId, subject, grade])
 }
+
+model CurriculumStandard {
+  officialId               String   @id
+  canonicalId              String   @unique
+  subject                  String
+  grade                    String
+  gradeName                String
+  domainCode               String
+  domain                   String
+  strand                   String?
+  clusterCode              String?
+  parentId                 String?
+  sourceItem               String?
+  statement                String
+  childFriendlyDescription String?
+  isLeaf                   Boolean
+  instructionalStatus      String
+  prerequisiteIds          Json     @default("[]")
+  tags                     Json     @default("[]")
+  source                   Json
+  license                  Json
+  active                   Boolean
+  importedAt               DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([subject, grade, domainCode])
+  @@index([active, instructionalStatus])
+}

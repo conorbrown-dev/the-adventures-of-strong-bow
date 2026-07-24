@@ -1,0 +1,69 @@
+window.Core = window.Core || {};
+
+Core.cookies = (function() {
+
+  var cache;
+
+  function read(name) {
+    if (!cache) {
+      var cookies = document.cookie.split('; ');
+      cache = {};
+
+      for (var i = 0; i < cookies.length; i++) {
+        var pair = cookies[i].split('=');
+        cache[pair[0]] = pair[1];
+      }
+    } 
+
+    return cache.hasOwnProperty(name) ? cache[name] : null;
+  }
+
+  function write(name, value, time) {
+    var expires = '';
+
+    if (time) {
+      var date = new Date();
+      date.setTime(date.getTime() + time);
+      expires = '; expires=' + date.toGMTString();
+    }
+
+    document.cookie = name + '=' + value + expires + '; path=/';
+    cache[name] = value;
+  }
+
+  return {
+    read: read,
+    write: write
+  }
+
+}());
+
+jQuery(document).ready(function($) {
+  $('.modal.video').on('hide.bs.modal', function() {
+    var $player = $(this).find('iframe'),
+        url = window.location.protocol + $player.attr('src').split('?')[0];
+
+    $player[0].contentWindow.postMessage(JSON.stringify({
+      method: 'unload'
+    }), url);
+  });
+
+  $('#search-tab').click(function(e) {
+    e.preventDefault();
+
+    $(this).toggleClass('active');
+    $('.search-dropdown').slideToggle();
+  });
+
+  $('a[href^="http"]').each(function() {
+    var href = $(this).attr('href');
+
+    if (href.indexOf('//' + window.location.hostname) == -1) {
+      $(this).attr('target', '_blank');
+    }
+  });
+  
+  $('a[href$=".pdf"], a[href$=".PDF"]').each(function() {
+    $(this).attr('target', '_blank');
+  });
+});

@@ -1,0 +1,331 @@
+[
+  {
+    "schemaVersion": 1,
+    "id": "k.cc.a.1.count-next",
+    "version": 1,
+    "primaryStandardId": "K.CC.A.1",
+    "supportingStandardIds": [],
+    "subject": "math",
+    "grade": "K",
+    "responseType": "singleChoice",
+    "prompt": {
+      "text": "What number comes next after {{start}}?",
+      "audioText": "What number comes next after {{start}}?",
+      "instructions": "Choose one number."
+    },
+    "generator": {
+      "kind": "nextNumber",
+      "parameters": {
+        "minimum": 0,
+        "maximum": 20,
+        "choiceCount": 3
+      }
+    },
+    "answerSpec": null,
+    "distractorStrategy": {
+      "kind": "offsets",
+      "offsets": [
+        -1,
+        2,
+        10
+      ],
+      "excludeOutsideBounds": true
+    },
+    "difficulty": {
+      "band": 1,
+      "dimensions": {
+        "numberRange": "0-20",
+        "visualSupport": "optional"
+      }
+    },
+    "gameModes": [
+      "fossilDigging",
+      "spaceShooter"
+    ],
+    "modalities": {
+      "requiresReading": false,
+      "audioSupported": true,
+      "visualSupported": true
+    },
+    "diagnosticEligible": true,
+    "provenance": {
+      "origin": "original",
+      "sourceTitle": null,
+      "sourceUrl": null,
+      "license": "Project original",
+      "attribution": null,
+      "generatorProvider": null,
+      "generatorModel": null,
+      "generatorPromptVersion": null
+    },
+    "review": {
+      "status": "draft",
+      "reviewer": null,
+      "reviewedAt": null,
+      "notes": "Example only; an adult must review before production."
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "k.cc.a.3.match-numeral-to-count",
+    "version": 1,
+    "primaryStandardId": "K.CC.A.3",
+    "supportingStandardIds": [],
+    "subject": "math",
+    "grade": "K",
+    "responseType": "singleChoice",
+    "prompt": {
+      "text": "How many fossils are there?",
+      "audioText": "Count the fossils. How many are there?",
+      "instructions": "Choose the number that matches the fossils."
+    },
+    "generator": {
+      "kind": "countVisualObjects",
+      "parameters": {
+        "minimum": 0,
+        "maximum": 20,
+        "objectKey": "fossil",
+        "choiceCount": 4,
+        "avoidDenseLayoutAbove": 12
+      }
+    },
+    "answerSpec": null,
+    "distractorStrategy": {
+      "kind": "countingErrors",
+      "includeOffByOne": true,
+      "includeDigitReversalWhenValid": false
+    },
+    "difficulty": {
+      "band": 1,
+      "dimensions": {
+        "numberRange": "0-20",
+        "arrangement": "organized-or-scattered"
+      }
+    },
+    "gameModes": [
+      "fossilDigging"
+    ],
+    "modalities": {
+      "requiresReading": false,
+      "audioSupported": true,
+      "visualSupported": true
+    },
+    "diagnosticEligible": true,
+    "provenance": {
+      "origin": "original",
+      "sourceTitle": null,
+      "sourceUrl": null,
+      "license": "Project original",
+      "attribution": null,
+      "generatorProvider": null,
+      "generatorModel": null,
+      "generatorPromptVersion": null
+    },
+    "review": {
+      "status": "draft",
+      "reviewer": null,
+      "reviewedAt": null,
+      "notes": "Example only; an adult must review before production."
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "k.rf.1.d.classify-letter",
+    "version": 1,
+    "primaryStandardId": "K.RF.1.d",
+    "supportingStandardIds": [],
+    "subject": "ela",
+    "grade": "K",
+    "responseType": "classification",
+    "prompt": {
+      "text": "Put each letter with its matching uppercase or lowercase letter.",
+      "audioText": "Match each uppercase letter to its lowercase letter.",
+      "instructions": "Drag each letter to its match."
+    },
+    "generator": {
+      "kind": "matchUpperLowerLetters",
+      "parameters": {
+        "pairCount": 4,
+        "excludeConfusablePairsAtBandOne": [
+          "I",
+          "l"
+        ]
+      }
+    },
+    "answerSpec": null,
+    "distractorStrategy": null,
+    "difficulty": {
+      "band": 1,
+      "dimensions": {
+        "pairCount": 4,
+        "confusability": "low"
+      }
+    },
+    "gameModes": [
+      "fossilDigging",
+      "dragonAdventure"
+    ],
+    "modalities": {
+      "requiresReading": false,
+      "audioSupported": true,
+      "visualSupported": true
+    },
+    "diagnosticEligible": true,
+    "provenance": {
+      "origin": "original",
+      "sourceTitle": null,
+      "sourceUrl": null,
+      "license": "Project original",
+      "attribution": null,
+      "generatorProvider": null,
+      "generatorModel": null,
+      "generatorPromptVersion": null
+    },
+    "review": {
+      "status": "draft",
+      "reviewer": null,
+      "reviewedAt": null,
+      "notes": "Example only; an adult must review before production."
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "k.rf.2.a.choose-rhyme",
+    "version": 1,
+    "primaryStandardId": "K.RF.2.a",
+    "supportingStandardIds": [],
+    "subject": "ela",
+    "grade": "K",
+    "responseType": "singleChoice",
+    "prompt": {
+      "text": "Which word rhymes with {{targetWord}}?",
+      "audioText": "Which word rhymes with {{targetWord}}?",
+      "instructions": "Listen and choose the rhyming word."
+    },
+    "generator": {
+      "kind": "rhymeChoice",
+      "parameters": {
+        "wordFamilies": [
+          "-at",
+          "-an",
+          "-ig",
+          "-op",
+          "-ug"
+        ],
+        "choiceCount": 3,
+        "audioRequired": true
+      }
+    },
+    "answerSpec": null,
+    "distractorStrategy": {
+      "kind": "phonologicalNearMisses",
+      "allowSameInitialDifferentRime": true,
+      "allowDifferentInitialSameVowelOnly": true
+    },
+    "difficulty": {
+      "band": 1,
+      "dimensions": {
+        "wordShape": "CVC",
+        "audioSupport": "required"
+      }
+    },
+    "gameModes": [
+      "fossilDigging",
+      "dragonAdventure"
+    ],
+    "modalities": {
+      "requiresReading": false,
+      "audioSupported": true,
+      "visualSupported": true
+    },
+    "diagnosticEligible": true,
+    "provenance": {
+      "origin": "original",
+      "sourceTitle": null,
+      "sourceUrl": null,
+      "license": "Project original",
+      "attribution": null,
+      "generatorProvider": null,
+      "generatorModel": null,
+      "generatorPromptVersion": null
+    },
+    "review": {
+      "status": "draft",
+      "reviewer": null,
+      "reviewedAt": null,
+      "notes": "Word-family list requires educator review."
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "id": "k.rf.2.d.identify-middle-vowel",
+    "version": 1,
+    "primaryStandardId": "K.RF.2.d",
+    "supportingStandardIds": [],
+    "subject": "ela",
+    "grade": "K",
+    "responseType": "singleChoice",
+    "prompt": {
+      "text": "Listen to {{word}}. What sound is in the middle?",
+      "audioText": "Listen to {{word}}. What sound is in the middle?",
+      "instructions": "Choose the vowel sound you hear."
+    },
+    "generator": {
+      "kind": "cvcMedialVowel",
+      "parameters": {
+        "vowels": [
+          "a",
+          "e",
+          "i",
+          "o",
+          "u"
+        ],
+        "excludeFinalConsonants": [
+          "l",
+          "r",
+          "x"
+        ],
+        "choiceCount": 3,
+        "audioRequired": true
+      }
+    },
+    "answerSpec": null,
+    "distractorStrategy": {
+      "kind": "otherShortVowels",
+      "avoidDuplicatePhoneme": true
+    },
+    "difficulty": {
+      "band": 1,
+      "dimensions": {
+        "wordShape": "CVC",
+        "position": "medial"
+      }
+    },
+    "gameModes": [
+      "fossilDigging",
+      "spaceShooter"
+    ],
+    "modalities": {
+      "requiresReading": false,
+      "audioSupported": true,
+      "visualSupported": true
+    },
+    "diagnosticEligible": true,
+    "provenance": {
+      "origin": "original",
+      "sourceTitle": null,
+      "sourceUrl": null,
+      "license": "Project original",
+      "attribution": null,
+      "generatorProvider": null,
+      "generatorModel": null,
+      "generatorPromptVersion": null
+    },
+    "review": {
+      "status": "draft",
+      "reviewer": null,
+      "reviewedAt": null,
+      "notes": "Pronunciation assets and word list require educator review."
+    }
+  }
+]

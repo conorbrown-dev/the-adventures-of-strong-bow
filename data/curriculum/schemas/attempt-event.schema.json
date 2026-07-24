@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mollys-learning-game.local/schemas/attempt-event.schema.json",
+  "title": "Attempt Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "learnerId",
+    "sessionId",
+    "questionInstanceId",
+    "templateId",
+    "standardIds",
+    "submittedAnswer",
+    "isCorrect",
+    "usedHint",
+    "attemptedAt",
+    "gameMode"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "id": {
+      "type": "string"
+    },
+    "learnerId": {
+      "type": "string"
+    },
+    "sessionId": {
+      "type": "string"
+    },
+    "questionInstanceId": {
+      "type": "string"
+    },
+    "templateId": {
+      "type": "string"
+    },
+    "standardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "submittedAnswer": {},
+    "isCorrect": {
+      "type": "boolean"
+    },
+    "usedHint": {
+      "type": "boolean"
+    },
+    "responseDurationMs": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "attemptedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gameMode": {
+      "enum": [
+        "fossilDigging",
+        "dragonAdventure",
+        "spaceShooter",
+        "storyBoss",
+        "diagnostic"
+      ]
+    }
+  }
+}

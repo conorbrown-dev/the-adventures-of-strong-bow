@@ -15,6 +15,10 @@
     "build": "nest build",
     "typecheck": "tsc --noEmit",
     "test": "jest --runInBand",
+    "test:curriculum": "jest --runInBand curriculum",
+    "curriculum:validate": "npm run build && node dist/curriculum/infrastructure/cli/curriculum.js validate",
+    "curriculum:import": "npm run build && node dist/curriculum/infrastructure/cli/curriculum.js import",
+    "curriculum:coverage": "npm run build && node dist/curriculum/infrastructure/cli/curriculum.js report",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy"

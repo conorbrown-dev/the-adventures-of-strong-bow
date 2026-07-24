@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mollys-learning-game.local/schemas/mastery-record.schema.json",
+  "title": "Mastery Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "learnerId",
+    "standardId",
+    "state",
+    "scoredAttempts",
+    "correctAttempts",
+    "distinctSessions",
+    "distinctTemplates",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "learnerId": {
+      "type": "string"
+    },
+    "standardId": {
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "notStarted",
+        "learning",
+        "practicing",
+        "mastered",
+        "reviewDue"
+      ]
+    },
+    "scoredAttempts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "correctAttempts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rollingAccuracy": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "distinctSessions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "distinctTemplates": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "masteredAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "reviewStage": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "nextReviewAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

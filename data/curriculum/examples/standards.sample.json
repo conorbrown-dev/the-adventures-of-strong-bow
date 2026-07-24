@@ -1,0 +1,169 @@
+[
+  {
+    "schemaVersion": 1,
+    "officialId": "K.CC.A.1",
+    "subject": "math",
+    "grade": "K",
+    "strand": null,
+    "domain": "Counting and Cardinality",
+    "cluster": "Know number names and the count sequence.",
+    "parentId": "K.CC.A",
+    "statement": "Count to 100 by ones and by tens.",
+    "childFriendlyDescription": "I can count to 100 by ones and by tens.",
+    "prerequisiteIds": [],
+    "tags": [
+      "counting",
+      "sequence"
+    ],
+    "source": {
+      "publisher": "NGA Center/CCSSO",
+      "package": "Common Core State Standards for Mathematics",
+      "reference": "Math_Standards1.pdf"
+    },
+    "license": {
+      "name": "Common Core Public License",
+      "notice": "\u00a9 Copyright 2010. National Governors Association Center for Best Practices and Council of Chief State School Officers. All rights reserved."
+    },
+    "active": true
+  },
+  {
+    "schemaVersion": 1,
+    "officialId": "K.CC.A.2",
+    "subject": "math",
+    "grade": "K",
+    "strand": null,
+    "domain": "Counting and Cardinality",
+    "cluster": "Know number names and the count sequence.",
+    "parentId": "K.CC.A",
+    "statement": "Count forward beginning from a given number within the known sequence (instead of having to begin at 1).",
+    "childFriendlyDescription": "I can keep counting from a number other than one.",
+    "prerequisiteIds": [
+      "K.CC.A.1"
+    ],
+    "tags": [
+      "counting",
+      "sequence"
+    ],
+    "source": {
+      "publisher": "NGA Center/CCSSO",
+      "package": "Common Core State Standards for Mathematics",
+      "reference": "Math_Standards1.pdf"
+    },
+    "license": {
+      "name": "Common Core Public License",
+      "notice": "\u00a9 Copyright 2010. National Governors Association Center for Best Practices and Council of Chief State School Officers. All rights reserved."
+    },
+    "active": true
+  },
+  {
+    "schemaVersion": 1,
+    "officialId": "K.CC.A.3",
+    "subject": "math",
+    "grade": "K",
+    "strand": null,
+    "domain": "Counting and Cardinality",
+    "cluster": "Know number names and the count sequence.",
+    "parentId": "K.CC.A",
+    "statement": "Write numbers from 0 to 20. Represent a number of objects with a written numeral 0-20 (with 0 representing a count of no objects).",
+    "childFriendlyDescription": "I can write numbers from 0 to 20 and match a number to a group of objects.",
+    "prerequisiteIds": [
+      "K.CC.A.1"
+    ],
+    "tags": [
+      "numerals",
+      "counting"
+    ],
+    "source": {
+      "publisher": "NGA Center/CCSSO",
+      "package": "Common Core State Standards for Mathematics",
+      "reference": "Math_Standards1.pdf"
+    },
+    "license": {
+      "name": "Common Core Public License",
+      "notice": "\u00a9 Copyright 2010. National Governors Association Center for Best Practices and Council of Chief State School Officers. All rights reserved."
+    },
+    "active": true
+  },
+  {
+    "schemaVersion": 1,
+    "officialId": "K.RF.1.d",
+    "subject": "ela",
+    "grade": "K",
+    "strand": "Reading Foundational Skills",
+    "domain": "Print Concepts",
+    "cluster": null,
+    "parentId": "K.RF.1",
+    "statement": "Recognize and name all upper- and lowercase letters of the alphabet.",
+    "childFriendlyDescription": "I can name uppercase and lowercase letters.",
+    "prerequisiteIds": [],
+    "tags": [
+      "alphabet",
+      "letter-recognition"
+    ],
+    "source": {
+      "publisher": "NGA Center/CCSSO",
+      "package": "Common Core State Standards for English Language Arts & Literacy",
+      "reference": "ELA_Standards1.pdf"
+    },
+    "license": {
+      "name": "Common Core Public License",
+      "notice": "\u00a9 Copyright 2010. National Governors Association Center for Best Practices and Council of Chief State School Officers. All rights reserved."
+    },
+    "active": true
+  },
+  {
+    "schemaVersion": 1,
+    "officialId": "K.RF.2.a",
+    "subject": "ela",
+    "grade": "K",
+    "strand": "Reading Foundational Skills",
+    "domain": "Phonological Awareness",
+    "cluster": null,
+    "parentId": "K.RF.2",
+    "statement": "Recognize and produce rhyming words.",
+    "childFriendlyDescription": "I can hear and make rhyming words.",
+    "prerequisiteIds": [],
+    "tags": [
+      "rhyme",
+      "phonological-awareness"
+    ],
+    "source": {
+      "publisher": "NGA Center/CCSSO",
+      "package": "Common Core State Standards for English Language Arts & Literacy",
+      "reference": "ELA_Standards1.pdf"
+    },
+    "license": {
+      "name": "Common Core Public License",
+      "notice": "\u00a9 Copyright 2010. National Governors Association Center for Best Practices and Council of Chief State School Officers. All rights reserved."
+    },
+    "active": true
+  },
+  {
+    "schemaVersion": 1,
+    "officialId": "K.RF.2.d",
+    "subject": "ela",
+    "grade": "K",
+    "strand": "Reading Foundational Skills",
+    "domain": "Phonological Awareness",
+    "cluster": null,
+    "parentId": "K.RF.2",
+    "statement": "Isolate and pronounce the initial, medial vowel, and final sounds (phonemes) in three-phoneme (consonant-vowel-consonant, or CVC) words.",
+    "childFriendlyDescription": "I can say the first, middle, and last sounds in a short word.",
+    "prerequisiteIds": [],
+    "tags": [
+      "phoneme",
+      "cvc",
+      "segmenting"
+    ],
+    "source": {
+      "publisher": "NGA Center/CCSSO",
+      "package": "Common Core State Standards for English Language Arts & Literacy",
+      "reference": "ELA_Standards1.pdf"
+    },
+    "license": {
+      "name": "Common Core Public License",
+      "notice": "\u00a9 Copyright 2010. National Governors Association Center for Best Practices and Council of Chief State School Officers. All rights reserved."
+    },
+    "active": true
+  }
+]
