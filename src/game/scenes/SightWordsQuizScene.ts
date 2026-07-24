@@ -4,7 +4,7 @@ import { type SightWord } from "../data/sightWords";
 import { loadSightWordSettings, loadSightWordStats, recordSightWordAttempt, RESPONSE_THRESHOLD_MS } from "../settings/sightWordSettings";
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
-import { addGameNavigation } from "../utils/gameNavigation";
+import { addGameNavigation, returnToLearningLibrary } from "../utils/gameNavigation";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 
 type BrowserRecognition = {
@@ -120,11 +120,11 @@ export class SightWordsQuizScene extends Phaser.Scene {
   private showFinished(): void {
     this.finished = true; this.listening = false;
     this.wordText?.setText("Great work!").setFontSize(78).setColor("#45f6e5");
-    this.statusText?.setText("This practice pool is complete. Return to the studio to adjust words or review progress.").setColor("#ffffff");
+    this.statusText?.setText("This practice pool is complete. Return to the game menu to choose another activity.").setColor("#ffffff");
     this.timerFill?.setDisplaySize(0, 16); this.timerText?.setText("");
     const button = this.add.rectangle(GAME_WIDTH / 2, 650, 250, 56, 0xc681ff).setStrokeStyle(2, 0xffffff, 0.8);
-    const label = this.add.text(GAME_WIDTH / 2, 650, "WORD STUDIO", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "19px", color: "#ffffff" }).setOrigin(0.5);
-    this.add.zone(GAME_WIDTH / 2, 650, 250, 56).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.scene.start(SCENE_KEYS.SIGHT_WORDS_TITLE));
+    const label = this.add.text(GAME_WIDTH / 2, 650, "GAME MENU", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "19px", color: "#ffffff" }).setOrigin(0.5);
+    this.add.zone(GAME_WIDTH / 2, 650, 250, 56).setInteractive({ useHandCursor: true }).on("pointerdown", () => returnToLearningLibrary(this));
     void button; void label;
   }
 }

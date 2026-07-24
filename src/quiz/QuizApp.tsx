@@ -4,7 +4,7 @@ import { clearStudentSession, isStudentSession, loadStudentSession, saveStudentS
 import { speak, stopSpeaking } from "./speech";
 import { chooseQuiz, isCorrectAnswer } from "./quizLogic";
 
-type Screen = "hidden" | "access" | "library" | "lesson" | "quiz" | "complete" | "progress";
+type Screen = "hidden" | "home" | "games" | "access" | "library" | "lesson" | "quiz" | "complete" | "progress";
 type BrowserRecognition = {
   lang: string; continuous: boolean; interimResults: boolean;
   start(): void;
@@ -15,7 +15,7 @@ type BrowserRecognition = {
 type BrowserRecognitionConstructor = new () => BrowserRecognition;
 
 export function QuizApp(): JSX.Element | null {
-  const [screen, setScreen] = useState<Screen>("hidden");
+  const [screen, setScreen] = useState<Screen>("home");
   const [session, setSession] = useState<StudentSession | null>(loadStudentSession());
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
@@ -53,7 +53,13 @@ export function QuizApp(): JSX.Element | null {
     if (!current) return;
     setActiveSubject(subject); setQuiz(chooseQuiz(current, subject)); setQuestionIndex(0); setCorrect(0); setResponse(""); setFeedback(""); setStartedAt(Date.now()); setMessage(""); setScreen("lesson");
   }
-  function close(): void { stopSpeaking(); setScreen("hidden"); window.dispatchEvent(new Event("quiz-ui:close")); }
+  function close(): void { stopSpeaking(); setScreen("home"); }
+  function openLessons(): void {
+    stopSpeaking();
+    const current = loadStudentSession();
+    setSession(current);
+    setScreen(current ? "library" : "access");
+  }
   async function login(): Promise<void> {
     if (!username.trim() || !/^\d{4}$/.test(pin)) { setMessage("Enter a username and exactly four PIN digits."); return; }
     try {
@@ -93,14 +99,16 @@ export function QuizApp(): JSX.Element | null {
     try { const data = await studentApi<{ summary: { completedQuizzes: number; accuracy: number | null; masteredSightWords: number } }>(`/students/${session.student.id}/progress`); setProgress(data.summary); setScreen("progress"); }
     catch { setMessage("Progress is temporarily unavailable."); }
   }
-  function signOut(): void { clearStudentSession(); setSession(null); setUsername(""); setPin(""); setScreen("access"); }
-  function launchGame(scene: string): void { setScreen("hidden"); window.dispatchEvent(new CustomEvent("phaser-game:launch", { detail: scene })); }
+  function signOut(): void { clearStudentSession(); setSession(null); setUsername(""); setPin(""); setScreen("home"); }
+  function launchGame(scene: string, sceneData?: object): void { stopSpeaking(); setScreen("hidden"); window.dispatchEvent(new CustomEvent("phaser-game:launch", { detail: { scene, sceneData } })); }
 
   if (screen === "hidden") return null;
-  return <main className="quiz-app"><section className="quiz-shell">
-    <header className="quiz-header"><p>{heading}</p><button className="text-button" onClick={close}>GAMES</button></header>
+  return <main className={`quiz-app ${screen === "home" || screen === "games" ? "menu-app" : ""}`}><section className="quiz-shell">
+    {screen !== "home" && screen !== "games" && <header className="quiz-header"><p>{heading}</p><button className="text-button" onClick={close}>MAIN MENU</button></header>}
+    {screen === "home" && <div className="library-panel main-menu-panel"><p className="eyebrow">MOLLY'S LEARNING ACADEMY</p><h1>Choose an adventure</h1><p>Explore a lesson or play a learning game.</p><div className="library-grid main-menu-grid"><MenuCard title="Lessons & Quizzes" description="Explore guided Math, Reading, and Language practice." color="cyan" onClick={openLessons} /><MenuCard title="Games" description="Choose a focused learning game to play." color="pink" onClick={() => { stopSpeaking(); setScreen("games"); }} /></div></div>}
+    {screen === "games" && <div className="library-panel main-menu-panel"><p className="eyebrow">LEARNING GAMES</p><h1>Pick a game</h1><p>Each game starts immediately after you choose it.</p><div className="library-grid"> <MenuCard title="Sight Word Studio" description="Listen, say, and practise high-frequency words." color="yellow" onClick={() => launchGame("SightWordsQuizScene")} /><MenuCard title="Vowel Sounds" description="Practise short and long vowel sounds at the barn." color="pink" onClick={() => launchGame("BarnDoorVowelsScene")} /><MenuCard title="Addition Lab" description="Solve sums, then launch into starship mode." color="cyan" onClick={() => launchGame("AdditionGameScene")} /><MenuCard title="Fossil Dig" description="Find fossils and build a dinosaur skeleton." color="purple" onClick={() => launchGame("FossilDigScene")} /><MenuCard title="Kitten Catch: Vowels" description="Catch vowels and build early reading skills." color="yellow" onClick={() => launchGame("LetterCatchScene", { variant: "vowels" })} /><MenuCard title="Kitten Catch: Consonants" description="Catch consonants and build early reading skills." color="purple" onClick={() => launchGame("LetterCatchScene", { variant: "consonants" })} /></div><div className="actions"><button className="secondary" onClick={close}>BACK</button></div></div>}
     {screen === "access" && <div className="access-panel"><h1>{createMode ? "CREATE STUDENT" : "STUDENT QUIZZES"}</h1><p>{createMode ? "Set up a username, four-digit PIN, grade, and subjects." : "Sign in with your username and four-digit PIN."}</p><label>Username<input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" /></label><label>PIN<input value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" type="password" autoComplete="current-password" /></label>{createMode && <><label>Grade<select value={grade} onChange={(event) => setGrade(event.target.value as CurriculumGrade)}>{(["K", "GRADE_1", "GRADE_2", "GRADE_3", "GRADE_4", "GRADE_5"] as CurriculumGrade[]).map((item) => <option key={item} value={item}>{gradeLabel(item)}</option>)}</select></label><fieldset><legend>Subjects</legend>{(["ELA", "MATH"] as CurriculumSubject[]).map((subject) => <label className="check" key={subject}><input type="checkbox" checked={subjects.includes(subject)} onChange={() => toggleSubject(subject)} /> {subject === "ELA" ? "English Language Arts" : "Math"}</label>)}</fieldset></>}{message && <p className="error">{message}</p>}<div className="actions"><button onClick={() => void login()}>{createMode ? "CREATE STUDENT" : "SIGN IN"}</button><button className="secondary" onClick={() => { setCreateMode((current) => !current); setMessage(""); }}>{createMode ? "I HAVE AN ACCOUNT" : "NEW STUDENT"}</button>{!createMode && <button className="secondary" onClick={demo}>DEMO MODE</button>}</div><p className="hint">Demo Mode unlocks all K–5 ELA and Math quizzes without saving results.</p></div>}
-    {screen === "library" && session && <div className="library-panel"><p className="eyebrow">CHOOSE YOUR PRACTICE</p><h1>What would you like to learn?</h1><p>Pick a subject lesson or a focused learning game.</p><h2>Lessons</h2><div className="library-grid">{(session.demo || session.student.subjects.includes("MATH")) && <LibraryCard title="Math Lessons" description={`${session.demo ? "All grades" : gradeLabel(session.student.grade)} · guided lesson and oral practice`} color="cyan" onClick={() => startQuiz(session, "MATH")} />}{(session.demo || session.student.subjects.includes("ELA")) && <LibraryCard title="Reading & Language" description={`${session.demo ? "All grades" : gradeLabel(session.student.grade)} · guided lesson and oral practice`} color="purple" onClick={() => startQuiz(session, "ELA")} />}</div><h2>Learning Games</h2><div className="library-grid"> <LibraryCard title="Sight Word Studio" description="Listen, say, and practise high-frequency words." color="yellow" onClick={() => launchGame("SightWordsTitleScene")} /><LibraryCard title="Vowel Sounds" description="Practise short and long vowel sounds at the barn." color="pink" onClick={() => launchGame("BarnDoorVowelsTitleScene")} /><LibraryCard title="Addition Lab" description="Solve sums, then launch into starship mode." color="cyan" onClick={() => launchGame("AdditionTitleScene")} /><LibraryCard title="Fossil Dig" description="Find fossils and build a dinosaur skeleton." color="purple" onClick={() => launchGame("FossilDigTitleScene")} /><LibraryCard title="Kitten Catch" description="Catch letters and build early reading skills." color="yellow" onClick={() => launchGame("CatCatchTitleScene")} /></div><div className="actions"><button className="secondary" onClick={() => void viewProgress()}>MY PROGRESS</button><button className="secondary" onClick={signOut}>SIGN OUT</button></div></div>}
+    {screen === "library" && session && <div className="library-panel"><p className="eyebrow">LESSONS & QUIZZES</p><h1>What would you like to learn?</h1><p>Pick a subject for a guided lesson and oral practice.</p><div className="library-grid">{(session.demo || session.student.subjects.includes("MATH")) && <MenuCard title="Math Lessons" description={`${session.demo ? "All grades" : gradeLabel(session.student.grade)} · guided lesson and oral practice`} color="cyan" onClick={() => startQuiz(session, "MATH")} />}{(session.demo || session.student.subjects.includes("ELA")) && <MenuCard title="Reading & Language" description={`${session.demo ? "All grades" : gradeLabel(session.student.grade)} · guided lesson and oral practice`} color="purple" onClick={() => startQuiz(session, "ELA")} />}</div><div className="actions"><button className="secondary" onClick={() => void viewProgress()}>MY PROGRESS</button><button className="secondary" onClick={signOut}>SIGN OUT</button></div></div>}
     {screen === "lesson" && quiz && <div className="lesson-panel"><p className="eyebrow">MINI LESSON · {quiz.title.toUpperCase()}</p><div className="prompt"><h1>{quiz.lesson.title}</h1><SpeakerButton text={`${quiz.lesson.title}. ${quiz.lesson.explanation} Key idea: ${quiz.lesson.keyIdea}`} label="Read lesson aloud" /></div><p className="lesson-explanation">{quiz.lesson.explanation}</p><aside><strong>KEY IDEA</strong><span>{quiz.lesson.keyIdea}</span></aside><div className="actions"><button onClick={() => { stopSpeaking(); setScreen("quiz"); }}>START PRACTICE</button></div></div>}
     {screen === "quiz" && quiz && question && <div className="quiz-panel"><p className="eyebrow">{quiz.title.toUpperCase()} · {questionIndex + 1} OF {quiz.questions.length}</p><div className="prompt"><h1>{question.prompt}</h1><SpeakerButton text={question.prompt} label="Read question aloud" /></div><section className="oral-answer"><p>Say your answer out loud.</p><button className="microphone-button" onClick={listen}>{listening ? "LISTENING…" : "🎙️ SAY ANSWER"}</button><p className="or">or type an answer</p><form onSubmit={(event) => { event.preventDefault(); answer(response); }}><input aria-label="Type your answer" value={response} onChange={(event) => setResponse(event.target.value)} /><button type="submit">CHECK</button></form>{feedback && <p className="feedback">{feedback}</p>}</section><footer><button className="text-button" onClick={() => void viewProgress()}>MY PROGRESS</button><button className="text-button pink" onClick={signOut}>SIGN OUT</button></footer></div>}
     {screen === "complete" && quiz && <div className="result-panel"><p className="eyebrow">QUIZ COMPLETE</p><h1>Great learning!</h1><p>You scored <strong>{correct} / {quiz.questions.length}</strong>.</p><p>{session?.demo ? "Demo activity is not saved." : "Your progress has been saved."}</p><div className="actions"><button onClick={() => startQuiz()}>NEXT QUIZ</button><button className="secondary" onClick={() => setScreen("library")}>CHOOSE PRACTICE</button><button className="secondary" onClick={() => void viewProgress()}>MY PROGRESS</button></div></div>}
@@ -112,6 +120,7 @@ function SpeakerButton({ text, label }: { text: string; label: string }): JSX.El
   return <button className="speaker-button" onClick={() => speak(text)} aria-label={label} title={label}><span aria-hidden="true">🔊</span></button>;
 }
 
-function LibraryCard({ title, description, color, onClick }: { title: string; description: string; color: "cyan" | "purple" | "yellow" | "pink"; onClick: () => void }): JSX.Element {
-  return <button className={`library-card ${color}`} onClick={onClick}><strong>{title}</strong><span>{description}</span></button>;
+function MenuCard({ title, description, color, onClick }: { title: string; description: string; color: "cyan" | "purple" | "yellow" | "pink"; onClick: () => void }): JSX.Element {
+  const announce = (): void => { void speak(title); };
+  return <button className={`library-card ${color}`} onClick={onClick} onMouseEnter={announce} onFocus={announce}><strong>{title}</strong><span>{description}</span></button>;
 }
