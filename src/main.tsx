@@ -1,9 +1,7 @@
-import Phaser from "phaser";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./style.css";
 import { QuizApp } from "./quiz/QuizApp";
-import { createGameConfig } from "./game/config/gameConfig";
 
 const app = document.getElementById("app");
 if (!app) throw new Error("Missing #app container");
@@ -14,27 +12,38 @@ const quizRoot = document.createElement("div");
 quizRoot.id = "quiz-root";
 app.append(phaserRoot, quizRoot);
 
-const game = new Phaser.Game(createGameConfig("phaser-root"));
 let phaserReady = false;
+let game: import("phaser").Game | undefined;
 
-function startGameScene({ scene, sceneData }: { scene: string; sceneData?: object }): void {
-  game.scene.stop("TitleScene");
-  game.scene.start(scene, sceneData);
+async function ensureGame(): Promise<import("phaser").Game> {
+  if (game) return game;
+  const [{ default: Phaser }, { createGameConfig }] = await Promise.all([import("phaser"), import("./game/config/gameConfig")]);
+  game = new Phaser.Game(createGameConfig("phaser-root"));
+  return game;
+}
+
+function startGameScene(activeGame: import("phaser").Game, { scene, sceneData }: { scene: string; sceneData?: object }): void {
+  activeGame.scene.stop("TitleScene");
+  activeGame.scene.start(scene, sceneData);
 }
 
 window.addEventListener("phaser:ready", () => { phaserReady = true; });
-window.addEventListener("quiz-ui:close", () => game.scene.start("TitleScene"));
+window.addEventListener("quiz-ui:close", () => { void ensureGame().then((activeGame) => activeGame.scene.start("TitleScene")); });
 window.addEventListener("phaser-game:launch", (event) => {
   const launch = (event as CustomEvent<{ scene: string; sceneData?: object }>).detail;
   if (!launch.scene) return;
-  if (phaserReady) { startGameScene(launch); return; }
-  window.addEventListener("phaser:ready", () => startGameScene(launch), { once: true });
+  void ensureGame().then((activeGame) => {
+    if (phaserReady) { startGameScene(activeGame, launch); return; }
+    window.addEventListener("phaser:ready", () => startGameScene(activeGame, launch), { once: true });
+  });
 });
 window.addEventListener("phaser-game:stop", () => {
-  game.scene.getScenes(true)
+  const activeGame = game;
+  if (!activeGame) return;
+  activeGame.scene.getScenes(true)
     .filter((scene) => !["BootScene", "PreloadScene", "TitleScene"].includes(scene.scene.key))
-    .forEach((scene) => game.scene.stop(scene.scene.key));
-  if (!game.scene.isActive("TitleScene")) game.scene.start("TitleScene");
+    .forEach((scene) => activeGame.scene.stop(scene.scene.key));
+  if (!activeGame.scene.isActive("TitleScene")) activeGame.scene.start("TitleScene");
 });
 createRoot(quizRoot).render(<BrowserRouter><QuizApp /></BrowserRouter>);
 
