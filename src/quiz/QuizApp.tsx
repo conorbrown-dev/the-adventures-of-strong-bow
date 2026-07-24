@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { gradeLabel, type CurriculumGrade, type CurriculumQuiz, type CurriculumSubject } from "../game/data/commonCoreQuizzes";
 import { clearStudentSession, isStudentSession, loadStudentSession, saveStudentSession, studentApi, type StudentSession } from "../game/utils/studentSession";
-import { speak, stopSpeaking, warmSpeech } from "./speech";
+import { speak, speakOnHover, stopSpeaking, warmSpeech } from "./speech";
 import { chooseQuiz, isCorrectAnswer } from "./quizLogic";
 
 type Screen = "hidden" | "home" | "games" | "access" | "library" | "lesson" | "quiz" | "complete" | "progress";
@@ -161,6 +161,6 @@ function SpeakerButton({ text, label }: { text: string; label: string }): JSX.El
 }
 
 function MenuCard({ title, description, color, onClick }: { title: string; description: string; color: "cyan" | "purple" | "yellow" | "pink"; onClick: () => void }): JSX.Element {
-  const announce = (): void => { void speak(title); };
+  const announce = (): void => { speakOnHover(title); };
   return <button className={`library-card ${color}`} onClick={onClick} onMouseEnter={announce} onFocus={announce}><strong>{title}</strong><span>{description}</span></button>;
 }

@@ -2,6 +2,7 @@ const PREFERRED_VOICE_NAMES = ["Microsoft Aria", "Microsoft Jenny", "Google US E
 let activeAudio: HTMLAudioElement | undefined;
 let resolveActiveAudio: (() => void) | undefined;
 let speechRequest = 0;
+let pendingHoverSpeech: number | undefined;
 const modelAudioCache = new Map<string, Blob>();
 const pendingModelAudio = new Map<string, Promise<Blob | undefined>>();
 
@@ -45,6 +46,19 @@ export function warmSpeech(texts: readonly string[]): void {
   void Promise.all(texts.map((text) => loadModelAudio(text)));
 }
 
+/**
+ * Announces a control only after hover settles, preventing rapid pointer
+ * movement from creating a stream of competing labels.
+ */
+export function speakOnHover(text: string): void {
+  if (pendingHoverSpeech !== undefined) window.clearTimeout(pendingHoverSpeech);
+  stopSpeaking();
+  pendingHoverSpeech = window.setTimeout(() => {
+    pendingHoverSpeech = undefined;
+    void speak(text);
+  }, 180);
+}
+
 export async function speak(text: string): Promise<boolean> {
   const request = ++speechRequest;
   try {
@@ -83,6 +97,10 @@ export async function speak(text: string): Promise<boolean> {
 
 export function stopSpeaking(): void {
   speechRequest += 1;
+  if (pendingHoverSpeech !== undefined) {
+    window.clearTimeout(pendingHoverSpeech);
+    pendingHoverSpeech = undefined;
+  }
   stopActiveAudio();
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 }
