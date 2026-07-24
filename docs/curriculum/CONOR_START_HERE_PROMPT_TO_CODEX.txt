@@ -1,0 +1,1 @@
+Read docs/curriculum/CODEX_EXECUTION_GUIDE.md first, followed by the governing prompt and the applicable numbered ticket. Treat the execution guide as the current source of truth when older prompts conflict with the requirement that Learning remain separate from all existing games.
