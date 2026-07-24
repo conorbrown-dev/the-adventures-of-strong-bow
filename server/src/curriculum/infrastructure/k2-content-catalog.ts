@@ -1,11 +1,77 @@
-import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { getCurriculumPaths, loadAndValidateVendoredStandards } from "./vendored-standards.validator";
 
+export type CatalogReviewStatus = "draft" | "validated" | "reviewed" | "retired";
+export type CatalogTemplate = {
+  id: string; standardId: string; grade: string; subject: string; generatorKind: string;
+  responseType: string; diagnosticEligible: boolean; audioSupported: boolean; provenance: string;
+  review: { status: CatalogReviewStatus; reviewer?: string; reviewedAt?: string; note?: string; contentHash?: string };
+};
+export type K2Catalog = { schemaVersion: number; templates: CatalogTemplate[]; passages: unknown[]; unsupported: unknown[] };
+const catalogPath = () => resolve(getCurriculumPaths().root, "data/curriculum/content/k2-catalog.json");
+const validStatuses = new Set<CatalogReviewStatus>(["draft", "validated", "reviewed", "retired"]);
+const kindergartenStandards = ["K.RF.1.d", "K.RF.2.a", "K.RF.2.d", "K.CC.A.1", "K.CC.A.2", "K.CC.A.3"] as const;
+
+export function contentHash(template: CatalogTemplate): string {
+  const { review: _review, ...content } = template;
+  return createHash("sha256").update(JSON.stringify(content)).digest("hex");
+}
+
+export async function loadK2ContentCatalog(): Promise<K2Catalog> {
+  return JSON.parse(await readFile(catalogPath(), "utf8")) as K2Catalog;
+}
+
 export async function validateK2ContentCatalog(): Promise<{ templates: number; passages: number; unsupported: number }> {
-  const root = getCurriculumPaths().root;
-  const catalog = JSON.parse(await readFile(resolve(root, "data/curriculum/content/k2-catalog.json"), "utf8")) as { templates: Array<{ standardId: string; review: { status: string; reviewer: string }; provenance: string }>; passages: unknown[]; unsupported: unknown[] };
+  const catalog = await loadK2ContentCatalog();
+  if (catalog.schemaVersion !== 1 || !Array.isArray(catalog.templates)) throw new Error("Invalid K–2 content catalog schema.");
   const standards = new Set((await loadAndValidateVendoredStandards()).records.filter((standard) => standard.active).map((standard) => standard.officialId));
-  for (const template of catalog.templates) if (!standards.has(template.standardId) || template.review.status !== "reviewed" || template.review.reviewer !== "Project content review" || !template.provenance) throw new Error("Invalid K–2 production content catalog.");
+  const ids = new Set<string>();
+  for (const template of catalog.templates) {
+    if (!template.id || ids.has(template.id) || !standards.has(template.standardId) || !template.provenance || !template.audioSupported || !validStatuses.has(template.review?.status)) throw new Error(`Invalid K–2 production content template: ${template.id ?? "unknown"}.`);
+    ids.add(template.id);
+    if (template.review.status === "reviewed" && template.review.contentHash && template.review.contentHash !== contentHash(template)) throw new Error(`Approval is stale because reviewed content changed: ${template.id}.`);
+    if (template.review.contentHash && (!template.review.reviewer || !template.review.reviewedAt || Number.isNaN(Date.parse(template.review.reviewedAt)))) throw new Error(`Approval metadata is incomplete: ${template.id}.`);
+  }
   return { templates: catalog.templates.length, passages: catalog.passages.length, unsupported: catalog.unsupported.length };
+}
+
+export async function kindergartenCoverageReport(): Promise<Record<string, { total: number; reviewedDiagnosticProbes: number; status: string }>> {
+  const catalog = await loadK2ContentCatalog();
+  return Object.fromEntries(kindergartenStandards.map((standardId) => {
+    const templates = catalog.templates.filter((template) => template.standardId === standardId && template.diagnosticEligible && template.review.status !== "retired");
+    const reviewed = templates.filter((template) => template.review.status === "reviewed").length;
+    return [standardId, { total: templates.length, reviewedDiagnosticProbes: reviewed, status: reviewed >= 4 ? "assessment-ready" : "awaiting-human-review" }];
+  }));
+}
+
+export async function createK2ReviewPacket(): Promise<string> {
+  const catalog = await loadK2ContentCatalog();
+  const candidates = catalog.templates.filter((template) => template.grade === "K" && template.review.status === "validated");
+  const packet = ["# Kindergarten curriculum review packet", "", "These templates are validated technical drafts. Human approval is required before production use.", "", ...candidates.map((template) => `## ${template.id}\n\n- Standard: ${template.standardId}\n- Generator: ${template.generatorKind}\n- Response: ${template.responseType}\n- Accessibility: audio supported\n- Provenance: ${template.provenance}\n- Review action: approve, return to draft, or retire\n`)].join("\n");
+  const output = resolve(getCurriculumPaths().root, "data/curriculum/content/kindergarten-review-packet.md");
+  await writeFile(output, packet, "utf8");
+  return output;
+}
+
+export async function approveK2Template(templateId: string, reviewer: string, note: string): Promise<CatalogTemplate> {
+  if (!reviewer.trim()) throw new Error("A named human reviewer is required.");
+  const catalog = await loadK2ContentCatalog();
+  const template = catalog.templates.find((item) => item.id === templateId);
+  if (!template) throw new Error(`Unknown content template: ${templateId}`);
+  if (template.review.status === "retired") throw new Error("Retired content cannot be approved.");
+  template.review = { status: "reviewed", reviewer, reviewedAt: new Date().toISOString(), note: note || "Approved for production use.", contentHash: contentHash(template) };
+  await writeFile(catalogPath(), `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
+  return template;
+}
+
+export async function changeK2TemplateStatus(templateId: string, status: "draft" | "retired", reviewer: string, note: string): Promise<CatalogTemplate> {
+  if (!reviewer.trim()) throw new Error("A named human reviewer is required.");
+  const catalog = await loadK2ContentCatalog();
+  const template = catalog.templates.find((item) => item.id === templateId);
+  if (!template) throw new Error(`Unknown content template: ${templateId}`);
+  template.review = { status, reviewer, reviewedAt: new Date().toISOString(), note: note || (status === "retired" ? "Retired by reviewer." : "Returned to draft by reviewer.") };
+  await writeFile(catalogPath(), `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
+  return template;
 }
