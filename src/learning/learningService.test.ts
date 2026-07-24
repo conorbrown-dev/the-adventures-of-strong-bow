@@ -6,6 +6,6 @@ describe("standalone Learning service", () => {
     expect(nextQuestion(12, "ELA")).toEqual(nextQuestion(12, "ELA"));
     const question = nextQuestion(7, "Math");
     expect(evaluateLearningAnswer(question, question.answer)).toBe(true);
-    expect(reviewedTemplateMetadata).toHaveLength(12);
+    expect(reviewedTemplateMetadata.length).toBeGreaterThanOrEqual(20);
   });
 });

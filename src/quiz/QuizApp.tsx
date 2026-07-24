@@ -47,12 +47,27 @@ export function QuizApp(): JSX.Element | null {
   const [activeSubject, setActiveSubject] = useState<CurriculumSubject | undefined>();
 
   useEffect(() => {
-    const open = () => { navigate("/lessons"); };
+    const open = () => { navigate(loadStudentSession() ? "/" : "/lessons"); };
     window.addEventListener("quiz-ui:open", open);
     return () => window.removeEventListener("quiz-ui:open", open);
   }, [navigate]);
 
   useEffect(() => {
+    const current = loadStudentSession();
+    if (location.pathname === "/lessons") {
+      setSession(current);
+      if (current) { navigate("/", { replace: true }); return; }
+      window.dispatchEvent(new Event("phaser-game:stop"));
+      setScreen("access");
+      return;
+    }
+    if (!current) {
+      setSession(null);
+      window.dispatchEvent(new Event("phaser-game:stop"));
+      navigate("/lessons", { replace: true });
+      return;
+    }
+    setSession(current);
     const game = gameRoutes[location.pathname as keyof typeof gameRoutes];
     if (game) {
       stopSpeaking();
@@ -64,12 +79,6 @@ export function QuizApp(): JSX.Element | null {
     window.dispatchEvent(new Event("phaser-game:stop"));
     if (location.pathname === "/games") { setScreen("games"); return; }
     if (location.pathname.startsWith("/learning")) { stopSpeaking(); setScreen("learning"); return; }
-    if (location.pathname === "/lessons") {
-      const current = loadStudentSession();
-      setSession(current);
-      setScreen(current ? "library" : "access");
-      return;
-    }
     if (location.pathname !== "/") navigate("/", { replace: true });
     setScreen("home");
   }, [location.pathname, navigate]);
@@ -100,20 +109,20 @@ export function QuizApp(): JSX.Element | null {
   function close(): void { stopSpeaking(); navigate("/"); }
   function openLessons(): void {
     stopSpeaking();
-    navigate("/lessons");
+    setScreen("library");
   }
   async function login(): Promise<void> {
     if (!username.trim() || !/^\d{4}$/.test(pin)) { setMessage("Enter a username and exactly four PIN digits."); return; }
     try {
       const result = await studentApi<StudentSession>(createMode ? "/students" : "/auth/login", "POST", createMode ? { username: username.trim(), pin, grade, subjects } : { username: username.trim(), pin });
       if (!isStudentSession(result)) throw new Error("The learning server returned an incomplete student session. Please sign in again.");
-      saveStudentSession(result); setSession(result); setScreen("library");
+      saveStudentSession(result); setSession(result); navigate("/");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to sign in."); }
   }
   function toggleSubject(subject: CurriculumSubject): void { setSubjects((current) => current.includes(subject) ? current.length === 1 ? current : current.filter((item) => item !== subject) : [...current, subject]); }
   function demo(): void {
     const result: StudentSession = { demo: true, token: "demo-mode", student: { id: "demo-player", username: "Demo Player", grade: "K", subjects: ["ELA", "MATH"] } };
-    saveStudentSession(result); setSession(result); setScreen("library");
+    saveStudentSession(result); setSession(result); navigate("/");
   }
   function answer(transcript: string): void {
     if (!quiz || !question) return;
@@ -141,7 +150,7 @@ export function QuizApp(): JSX.Element | null {
     try { const data = await studentApi<{ summary: { completedQuizzes: number; accuracy: number | null; masteredSightWords: number } }>(`/students/${session.student.id}/progress`); setProgress(data.summary); setScreen("progress"); }
     catch { setMessage("Progress is temporarily unavailable."); }
   }
-  function signOut(): void { clearStudentSession(); setSession(null); setUsername(""); setPin(""); navigate("/"); }
+  function signOut(): void { clearStudentSession(); setSession(null); setUsername(""); setPin(""); navigate("/lessons"); }
   function launchGame(path: keyof typeof gameRoutes): void { navigate(path); }
 
   if (screen === "hidden") return null;
