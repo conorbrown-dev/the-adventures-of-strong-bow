@@ -103,3 +103,67 @@ model CurriculumStandard {
   @@index([subject, grade, domainCode])
   @@index([active, instructionalStatus])
 }
+
+model CurriculumAttemptEvent {
+  id                    String   @id
+  learnerId             String
+  sessionId             String
+  questionInstanceId    String
+  templateId            String
+  templateVersion       Int
+  primaryStandardId     String
+  supportingStandardIds Json     @default("[]")
+  submittedAnswer       Json
+  correct               Boolean
+  usedHint              Boolean
+  independent           Boolean
+  purpose               String
+  deliveryContext       String?
+  responseDurationMs    Int?
+  responseType          String
+  attemptedAt           DateTime
+
+  @@index([learnerId, primaryStandardId, attemptedAt])
+}
+
+model CurriculumMasteryRecord {
+  learnerId         String
+  standardId        String
+  state             String
+  scoredAttemptCount Int
+  masteryAchievedAt DateTime?
+  reviewStage       Int?
+  nextReviewAt      DateTime?
+  updatedAt         DateTime
+
+  @@id([learnerId, standardId])
+  @@index([learnerId, state, nextReviewAt])
+}
+
+model CurriculumLearningTarget {
+  learnerId  String
+  standardId String
+  active     Boolean
+
+  @@id([learnerId, standardId])
+}
+
+model CurriculumPrerequisiteLink {
+  standardId             String
+  prerequisiteStandardId String
+  source                 String
+  reviewed               Boolean
+
+  @@id([standardId, prerequisiteStandardId])
+}
+
+model CurriculumDiagnosticPlacement {
+  id                String   @id @default(cuid())
+  learnerId         String
+  grouping          String
+  grade             String
+  learningTargetIds Json     @default("[]")
+  completedAt       DateTime
+
+  @@index([learnerId, grouping, completedAt])
+}

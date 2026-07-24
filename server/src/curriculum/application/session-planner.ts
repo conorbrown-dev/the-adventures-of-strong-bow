@@ -1,0 +1,4 @@
+import type { SelectionRequest, SelectionResult } from "./question-selection";
+import { selectNextQuestion } from "./question-selection";
+export interface SessionPlan { questions: SelectionResult[]; message: string; }
+export function planSession(request: SelectionRequest, count = 10): SessionPlan { const questions: SelectionResult[] = []; const recent: string[] = [...(request.recentTemplateIds ?? [])]; for (let index = 0; index < count; index += 1) { const result = selectNextQuestion({ ...request, seed: `${request.seed}:${index}`, recentTemplateIds: recent }); if (!result.template) break; questions.push(result); recent.push(result.template.id); } return { questions, message: questions.length ? "Balanced session plan created with priority content first." : "No eligible reviewed content is available for this session." }; }
