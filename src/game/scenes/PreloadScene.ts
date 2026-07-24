@@ -42,6 +42,7 @@ export class PreloadScene extends Phaser.Scene {
     this.createPlaceholderTextures();
     this.createAnimations();
     this.scene.start(SCENE_KEYS.TITLE);
+    window.dispatchEvent(new Event("phaser:ready"));
   }
 
   private loadGameAssets(): void {

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import "./style.css";
 import { QuizApp } from "./quiz/QuizApp";
 import { createGameConfig } from "./game/config/gameConfig";
@@ -14,15 +15,28 @@ quizRoot.id = "quiz-root";
 app.append(phaserRoot, quizRoot);
 
 const game = new Phaser.Game(createGameConfig("phaser-root"));
+let phaserReady = false;
+
+function startGameScene({ scene, sceneData }: { scene: string; sceneData?: object }): void {
+  game.scene.stop("TitleScene");
+  game.scene.start(scene, sceneData);
+}
+
+window.addEventListener("phaser:ready", () => { phaserReady = true; });
 window.addEventListener("quiz-ui:close", () => game.scene.start("TitleScene"));
 window.addEventListener("phaser-game:launch", (event) => {
-  const { scene: sceneKey, sceneData } = (event as CustomEvent<{ scene: string; sceneData?: object }>).detail;
-  if (sceneKey) {
-    game.scene.stop("TitleScene");
-    game.scene.start(sceneKey, sceneData);
-  }
+  const launch = (event as CustomEvent<{ scene: string; sceneData?: object }>).detail;
+  if (!launch.scene) return;
+  if (phaserReady) { startGameScene(launch); return; }
+  window.addEventListener("phaser:ready", () => startGameScene(launch), { once: true });
 });
-createRoot(quizRoot).render(<QuizApp />);
+window.addEventListener("phaser-game:stop", () => {
+  game.scene.getScenes(true)
+    .filter((scene) => !["BootScene", "PreloadScene", "TitleScene"].includes(scene.scene.key))
+    .forEach((scene) => game.scene.stop(scene.scene.key));
+  if (!game.scene.isActive("TitleScene")) game.scene.start("TitleScene");
+});
+createRoot(quizRoot).render(<BrowserRouter><QuizApp /></BrowserRouter>);
 
 async function requestInitialMicrophoneAccess(): Promise<void> {
   if (!navigator.mediaDevices?.getUserMedia) return;
