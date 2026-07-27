@@ -157,8 +157,8 @@ def main() -> None:
             raise ValueError(f"Known verification sample failed: {code}")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    OUT_JSON.write_text(
-        json.dumps({
+    with OUT_JSON.open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(json.dumps({
             "schemaVersion": 1,
             "title": "Common Core K-5 Mathematics and ELA Standards",
             "copyrightNotice": NOTICE,
@@ -168,9 +168,8 @@ def main() -> None:
             ),
             "recordCount": len(records),
             "records": records
-        }, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8"
-    )
+        }, indent=2, ensure_ascii=False))
+        stream.write("\n")
 
     fields = [
         "officialId", "canonicalId", "subject", "grade", "gradeName",
@@ -204,7 +203,9 @@ def main() -> None:
             OUT_CSV.name: {"sha256": checksum(OUT_CSV), "bytes": OUT_CSV.stat().st_size}
         }
     }
-    OUT_MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    with OUT_MANIFEST.open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(json.dumps(manifest, indent=2))
+        stream.write("\n")
 
     print(f"Built {len(records)} standards.")
     print(f"JSON: {OUT_JSON}")
