@@ -45,6 +45,11 @@ export async function studentApi<T>(path: string, method = "GET", body?: object)
     throw new Error("The learning server is unavailable. Start the student API and try again.");
   }
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message ?? "Unable to reach the learning server.");
+  if (!response.ok) {
+    if (response.status >= 500) {
+      throw new Error("The learning service is temporarily unavailable. Please try again soon.");
+    }
+    throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message ?? "Unable to reach the learning server.");
+  }
   return payload as T;
 }
