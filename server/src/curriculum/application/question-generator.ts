@@ -10,7 +10,7 @@ class Random {
 
 const wordFamilies: Record<string, string[]> = { "-at": ["cat", "bat", "hat"], "-an": ["can", "fan", "man"], "-ig": ["pig", "dig", "wig"], "-op": ["hop", "mop", "top"], "-ug": ["bug", "hug", "rug"] };
 const cvcWords = [{ word: "cat", vowel: "a" }, { word: "bed", vowel: "e" }, { word: "pig", vowel: "i" }, { word: "hop", vowel: "o" }, { word: "sun", vowel: "u" }];
-const letters = "ABCDEFGHJKMNOPQRSTUVWX YZ".replace(/\s/g, "").split("");
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const params = (template: QuestionTemplate) => template.generator.parameters as Record<string, unknown>;
 const numberParam = (values: Record<string, unknown>, key: string) => Number(values[key]);
 const text = (template: QuestionTemplate, values: Record<string, string | number>) => template.prompt.text.replace(/{{(.*?)}}/g, (_, key: string) => String(values[key] ?? ""));
@@ -30,13 +30,29 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = { ...choiceInteraction(random.shuffle([answer, ...random.shuffle(pool).slice(0, count - 1)])), visual: { objectKey: String(configuration.objectKey), count: answer } }; canonicalAnswer = answer; explanation = `There are ${answer} objects.`;
   } else if (template.generator.kind === "matchUpperLowerLetters") {
     const pairCount = numberParam(configuration, "pairCount"); const selected = random.shuffle(letters).slice(0, pairCount); const lower = random.shuffle(selected.map((letter) => letter.toLowerCase()));
-    interaction = { kind: "matching", left: selected, right: lower }; canonicalAnswer = Object.fromEntries(selected.map((letter) => [letter, letter.toLowerCase()])); explanation = "Each uppercase letter matches the same lowercase letter.";
+    interaction = template.responseType === "classification" ? { kind: "classification", items: [...selected, ...lower], categories: ["uppercase", "lowercase"], target: { uppercase: selected, lowercase: lower } } : { kind: "matching", left: selected, right: lower, target: { uppercase: selected, lowercase: lower } };
+    canonicalAnswer = template.responseType === "classification" ? Object.fromEntries([...selected.map((letter) => [letter, "uppercase"]), ...lower.map((letter) => [letter, "lowercase"])]) : Object.fromEntries(selected.map((letter) => [letter, letter.toLowerCase()])); explanation = "Each uppercase letter matches the same lowercase letter.";
   } else if (template.generator.kind === "rhymeChoice") {
     const families = configuration.wordFamilies as string[]; const family = families[random.integer(0, families.length - 1)]; const words = wordFamilies[family]; const targetWord = words[random.integer(0, words.length - 1)]; const answer = words.find((word) => word !== targetWord)!; const distractors = Object.entries(wordFamilies).filter(([key]) => key !== family).flatMap(([, wordsForFamily]) => wordsForFamily);
     const count = numberParam(configuration, "choiceCount"); interaction = choiceInteraction(random.shuffle([answer, ...random.shuffle(distractors).slice(0, count - 1)])); canonicalAnswer = answer; values = { targetWord }; explanation = `${targetWord} and ${answer} end with the same sound.`;
   } else if (template.generator.kind === "cvcMedialVowel") {
     const allowed = configuration.vowels as string[]; const candidates = cvcWords.filter((candidate) => allowed.includes(candidate.vowel)); const picked = candidates[random.integer(0, candidates.length - 1)]; const count = numberParam(configuration, "choiceCount");
     interaction = choiceInteraction(random.shuffle([picked.vowel, ...random.shuffle(allowed.filter((vowel) => vowel !== picked.vowel)).slice(0, count - 1)])); canonicalAnswer = picked.vowel; values = { word: picked.word }; explanation = `The middle vowel in ${picked.word} is ${picked.vowel}.`;
+  } else if (template.generator.kind === "letterIdentification") {
+    const letter = letters[random.integer(0, letters.length - 1)]; const requested = String(configuration.case ?? "lower"); const answer = requested === "upper" ? letter : letter.toLowerCase();
+    const pool = letters.map((item) => requested === "upper" ? item : item.toLowerCase()).filter((item) => item !== answer);
+    interaction = { ...choiceInteraction(random.shuffle([answer, ...random.shuffle(pool).slice(0, 2)])), target: { letter, requestedCase: requested } }; canonicalAnswer = answer; values = { letter: requested === "upper" ? letter.toLowerCase() : letter }; explanation = `${answer} is the ${requested}case form of the letter ${letter}.`;
+  } else if (template.generator.kind === "rhymeOddOne") {
+    const family = Object.keys(wordFamilies)[random.integer(0, Object.keys(wordFamilies).length - 1)]; const rhyming = random.shuffle(wordFamilies[family]).slice(0, 2); const odd = random.shuffle(Object.entries(wordFamilies).filter(([key]) => key !== family).flatMap(([, words]) => words))[0];
+    interaction = { ...choiceInteraction(random.shuffle([...rhyming, odd])), target: { family, odd } }; canonicalAnswer = odd; values = {}; explanation = `${odd} does not end with the same sound as ${rhyming.join(" and ")}.`;
+  } else if (template.generator.kind === "cvcSound") {
+    const picked = cvcWords[random.integer(0, cvcWords.length - 1)]; const position = template.id.includes("final") ? "final" : "initial"; const answer = position === "initial" ? picked.word[0] : picked.word.at(-1)!;
+    const pool = ["b", "c", "d", "f", "g", "h", "m", "n", "p", "r", "s", "t"].filter((sound) => sound !== answer);
+    interaction = { ...choiceInteraction(random.shuffle([answer, ...random.shuffle(pool).slice(0, 2)])), target: { word: picked.word, phonemePosition: position } }; canonicalAnswer = answer; values = { word: picked.word, position }; explanation = `The ${position} sound in ${picked.word} is ${answer}.`;
+  } else if (template.generator.kind === "countSequence") {
+    const start = random.integer(1, 15); const ordered = [start, start + 1, start + 2].map(String);
+    if (template.responseType === "sequence") { interaction = { kind: "sequence", items: random.shuffle(ordered), target: { start, ordered } }; canonicalAnswer = ordered; values = { start }; explanation = `Count forward: ${ordered.join(", ")}.`; }
+    else { const answer = ordered[1]; interaction = { ...choiceInteraction(random.shuffle([answer, String(start + 3), String(Math.max(0, start - 1))])), target: { start } }; canonicalAnswer = answer; values = { start }; explanation = `${answer} comes after ${start}.`; }
   } else if (template.generator.kind === "additionWithinRange") {
     const min = numberParam(configuration, "minimum"); const max = numberParam(configuration, "maximum"); const count = numberParam(configuration, "choiceCount");
     const answer = random.integer(min, max); const left = random.integer(0, answer); const right = answer - left;

@@ -20,7 +20,7 @@ async function main(): Promise<void> {
   }
   if (command === "content:validate") { console.log(JSON.stringify(await validateK2ContentCatalog(), null, 2)); return; }
   if (command === "content:coverage") { console.log(JSON.stringify(await kindergartenCoverageReport(), null, 2)); return; }
-  if (command === "content:review-packet") { console.log(JSON.stringify({ packet: await createK2ReviewPacket() }, null, 2)); return; }
+  if (command === "content:review-packet") { console.log(JSON.stringify(await createK2ReviewPacket(), null, 2)); return; }
   if (command === "content:approve") {
     const args = process.argv.slice(3); const templateId = args[args.indexOf("--template") + 1]; const reviewer = args[args.indexOf("--reviewer") + 1]; const noteIndex = args.indexOf("--note"); const note = noteIndex >= 0 ? args[noteIndex + 1] ?? "" : "";
     if (!templateId || !reviewer) throw new Error("Usage: curriculum content:approve --template <id> --reviewer <name> [--note <note>]");

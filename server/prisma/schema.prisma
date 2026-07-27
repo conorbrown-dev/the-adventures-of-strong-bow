@@ -124,6 +124,23 @@ model CurriculumAttemptEvent {
   attemptedAt           DateTime
 
   @@index([learnerId, primaryStandardId, attemptedAt])
+  @@unique([learnerId, sessionId, questionInstanceId, purpose])
+}
+
+model CurriculumLearningSession {
+  id          String   @id
+  learnerId   String
+  purpose     String
+  seed        Int
+  position    Int
+  length      Int
+  state       Json
+  status      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  completedAt DateTime?
+
+  @@index([learnerId, status, updatedAt])
 }
 
 model CurriculumMasteryRecord {

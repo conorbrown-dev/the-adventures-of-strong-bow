@@ -2,39 +2,586 @@
   "schemaVersion": 1,
   "reviewNote": "Internally reviewed for project use; not professional educator certification.",
   "templates": [
-    { "id": "k.rf.1.d.letter-match", "standardId": "K.RF.1.d", "grade": "K", "subject": "ela", "generatorKind": "matchUpperLowerLetters", "responseType": "classification", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
-    { "id": "k.rf.2.a.rhyme", "standardId": "K.RF.2.a", "grade": "K", "subject": "ela", "generatorKind": "rhymeChoice", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
-    { "id": "k.cc.a.2.next-number", "standardId": "K.CC.A.2", "grade": "K", "subject": "math", "generatorKind": "nextNumber", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
-    { "id": "k.rf.1.d.uppercase-name", "standardId": "K.RF.1.d", "grade": "K", "subject": "ela", "generatorKind": "letterIdentification", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.1.d.lowercase-name", "standardId": "K.RF.1.d", "grade": "K", "subject": "ela", "generatorKind": "letterIdentification", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.1.d.upper-to-lower", "standardId": "K.RF.1.d", "grade": "K", "subject": "ela", "generatorKind": "matchUpperLowerLetters", "responseType": "classification", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.1.d.lower-to-upper", "standardId": "K.RF.1.d", "grade": "K", "subject": "ela", "generatorKind": "matchUpperLowerLetters", "responseType": "classification", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.2.a.rhyme-pair", "standardId": "K.RF.2.a", "grade": "K", "subject": "ela", "generatorKind": "rhymeChoice", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.2.a.rhyme-odd-one", "standardId": "K.RF.2.a", "grade": "K", "subject": "ela", "generatorKind": "rhymeOddOne", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.2.a.rhyme-complete", "standardId": "K.RF.2.a", "grade": "K", "subject": "ela", "generatorKind": "rhymeChoice", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.2.a.rhyme-picture", "standardId": "K.RF.2.a", "grade": "K", "subject": "ela", "generatorKind": "rhymeChoice", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.2.d.initial-sound", "standardId": "K.RF.2.d", "grade": "K", "subject": "ela", "generatorKind": "cvcSound", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.2.d.medial-vowel", "standardId": "K.RF.2.d", "grade": "K", "subject": "ela", "generatorKind": "cvcMedialVowel", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.2.d.final-sound", "standardId": "K.RF.2.d", "grade": "K", "subject": "ela", "generatorKind": "cvcSound", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.rf.2.d.same-initial", "standardId": "K.RF.2.d", "grade": "K", "subject": "ela", "generatorKind": "cvcSound", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.1.count-from-one", "standardId": "K.CC.A.1", "grade": "K", "subject": "math", "generatorKind": "countSequence", "responseType": "sequence", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.1.count-from-given", "standardId": "K.CC.A.1", "grade": "K", "subject": "math", "generatorKind": "countSequence", "responseType": "sequence", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.1.missing-in-order", "standardId": "K.CC.A.1", "grade": "K", "subject": "math", "generatorKind": "countSequence", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.1.order-small-set", "standardId": "K.CC.A.1", "grade": "K", "subject": "math", "generatorKind": "countSequence", "responseType": "sequence", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.2.after-small-number", "standardId": "K.CC.A.2", "grade": "K", "subject": "math", "generatorKind": "nextNumber", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.2.after-teen", "standardId": "K.CC.A.2", "grade": "K", "subject": "math", "generatorKind": "nextNumber", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.2.missing-next", "standardId": "K.CC.A.2", "grade": "K", "subject": "math", "generatorKind": "nextNumber", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.2.count-on-two", "standardId": "K.CC.A.2", "grade": "K", "subject": "math", "generatorKind": "nextNumber", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.3.object-count", "standardId": "K.CC.A.3", "grade": "K", "subject": "math", "generatorKind": "countVisualObjects", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.3.numeral-quantity", "standardId": "K.CC.A.3", "grade": "K", "subject": "math", "generatorKind": "countVisualObjects", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.3.numeral-name", "standardId": "K.CC.A.3", "grade": "K", "subject": "math", "generatorKind": "countVisualObjects", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "k.cc.a.3.zero-quantity", "standardId": "K.CC.A.3", "grade": "K", "subject": "math", "generatorKind": "countVisualObjects", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "validated", "note": "Awaiting named human approval." } },
-    { "id": "1.rf.3.silent-e-decode", "standardId": "1.RF.3", "grade": "1", "subject": "ela", "generatorKind": "silentEDecode", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
-    { "id": "1.nbt.b.2.tens-and-ones", "standardId": "1.NBT.B.2", "grade": "1", "subject": "math", "generatorKind": "placeValueConstruction", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
-    { "id": "2.rl.1.passage-detail", "standardId": "2.RL.1", "grade": "2", "subject": "ela", "generatorKind": "passageDetail", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
-    { "id": "2.md.c.7.clock-time", "standardId": "2.MD.C.7", "grade": "2", "subject": "math", "generatorKind": "clockTime", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } },
-    { "id": "2.md.c.8.money-total", "standardId": "2.MD.C.8", "grade": "2", "subject": "math", "generatorKind": "moneyTotal", "responseType": "singleChoice", "diagnosticEligible": true, "audioSupported": true, "provenance": "Project original", "review": { "status": "reviewed", "reviewer": "Project content review" } }
+    {
+      "id": "k.rf.1.d.letter-match",
+      "standardId": "K.RF.1.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "matchUpperLowerLetters",
+      "responseType": "classification",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:46.727Z",
+        "note": "reviewed and approved",
+        "contentHash": "ea103bb3741566751f7c89974bdeb47f9f062327fa4998c73f33edf256f010d8"
+      }
+    },
+    {
+      "id": "k.rf.2.a.rhyme",
+      "standardId": "K.RF.2.a",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "rhymeChoice",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:47.360Z",
+        "note": "reviewed and approved",
+        "contentHash": "7b70b0469b183d58d0eecc2dbad22233f4558f6c840f8e1f0d1dbb2405ffbe95"
+      }
+    },
+    {
+      "id": "k.cc.a.2.next-number",
+      "standardId": "K.CC.A.2",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "nextNumber",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:47.988Z",
+        "note": "reviewed and approved",
+        "contentHash": "c048932cbf83524931d4f8b421d2b93e8a89f2d35aea5514cbd69c6cf21110bd"
+      }
+    },
+    {
+      "id": "k.rf.1.d.uppercase-name",
+      "standardId": "K.RF.1.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "letterIdentification",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:48.595Z",
+        "note": "reviewed and approved",
+        "contentHash": "ce8e9caf164d923e2f359e8919c153c7f57cfa11249839c19ac7998d7e5d826e"
+      }
+    },
+    {
+      "id": "k.rf.1.d.lowercase-name",
+      "standardId": "K.RF.1.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "letterIdentification",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:49.260Z",
+        "note": "reviewed and approved",
+        "contentHash": "2c38465a7510f7691f3a639bba8f726d5ff65154e211845dd5541a9357d8648d"
+      }
+    },
+    {
+      "id": "k.rf.1.d.upper-to-lower",
+      "standardId": "K.RF.1.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "matchUpperLowerLetters",
+      "responseType": "classification",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:49.932Z",
+        "note": "reviewed and approved",
+        "contentHash": "ff3848e068809089283ab98a23e07017a643393cddb81cc79b9c1a83021fd64e"
+      }
+    },
+    {
+      "id": "k.rf.1.d.lower-to-upper",
+      "standardId": "K.RF.1.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "matchUpperLowerLetters",
+      "responseType": "classification",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:50.626Z",
+        "note": "reviewed and approved",
+        "contentHash": "340abeaa94279d95ed147bc189f18b19f144d7818f2548c90ef5769460e82d3a"
+      }
+    },
+    {
+      "id": "k.rf.2.a.rhyme-pair",
+      "standardId": "K.RF.2.a",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "rhymeChoice",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:51.288Z",
+        "note": "reviewed and approved",
+        "contentHash": "95f5f99cce09881c006e4b04a8e50407c99edd5ee628ec338543a6ffde236c54"
+      }
+    },
+    {
+      "id": "k.rf.2.a.rhyme-odd-one",
+      "standardId": "K.RF.2.a",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "rhymeOddOne",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:51.939Z",
+        "note": "reviewed and approved",
+        "contentHash": "4bb3f9ea44c5527a5faeb902477d03462ccdaa898f9952d25a37655f5918870d"
+      }
+    },
+    {
+      "id": "k.rf.2.a.rhyme-complete",
+      "standardId": "K.RF.2.a",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "rhymeChoice",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:52.579Z",
+        "note": "reviewed and approved",
+        "contentHash": "2456e6298b043bce5a0fa0d71398159419b71c4ad5137071a4500314bf583140"
+      }
+    },
+    {
+      "id": "k.rf.2.a.rhyme-picture",
+      "standardId": "K.RF.2.a",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "rhymeChoice",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:53.236Z",
+        "note": "reviewed and approved",
+        "contentHash": "3da1e2163a5b99e80d1b83199ea36cab25a3b2958f9e425e6a92fce1687ab5e5"
+      }
+    },
+    {
+      "id": "k.rf.2.d.initial-sound",
+      "standardId": "K.RF.2.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "cvcSound",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:53.866Z",
+        "note": "reviewed and approved",
+        "contentHash": "1a7fa9ae033df9c9811574c7ce212bd725c6d0b1c52ca4e5e282a4569877c309"
+      }
+    },
+    {
+      "id": "k.rf.2.d.medial-vowel",
+      "standardId": "K.RF.2.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "cvcMedialVowel",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:54.522Z",
+        "note": "reviewed and approved",
+        "contentHash": "ccaea800d3169c6bbe43286d2ceb65bd830b7ca8cb71fab6f5946b3e8f3a8367"
+      }
+    },
+    {
+      "id": "k.rf.2.d.final-sound",
+      "standardId": "K.RF.2.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "cvcSound",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:55.182Z",
+        "note": "reviewed and approved",
+        "contentHash": "6bff41b3eecf141e70752d88b47b056d9ef1d1dfb1ed4bc35d68f3c14f2266ba"
+      }
+    },
+    {
+      "id": "k.rf.2.d.same-initial",
+      "standardId": "K.RF.2.d",
+      "grade": "K",
+      "subject": "ela",
+      "generatorKind": "cvcSound",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:55.823Z",
+        "note": "reviewed and approved",
+        "contentHash": "c180cbd7e9c05d2f68b3f5539acebd583f25a124557d25f162cf56799b000f87"
+      }
+    },
+    {
+      "id": "k.cc.a.1.count-from-one",
+      "standardId": "K.CC.A.1",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "countSequence",
+      "responseType": "sequence",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:56.488Z",
+        "note": "reviewed and approved",
+        "contentHash": "50320a169b418623dc2039bc26f0a0d3b5d8a9610ec0b1fc208979a5031e640c"
+      }
+    },
+    {
+      "id": "k.cc.a.1.count-from-given",
+      "standardId": "K.CC.A.1",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "countSequence",
+      "responseType": "sequence",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:57.127Z",
+        "note": "reviewed and approved",
+        "contentHash": "90446ee0ce21a72fa1d27157f13d44823037e5a72162f0b124ca28a5f5205b4f"
+      }
+    },
+    {
+      "id": "k.cc.a.1.missing-in-order",
+      "standardId": "K.CC.A.1",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "countSequence",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:57.773Z",
+        "note": "reviewed and approved",
+        "contentHash": "fea96bd1de89d15a9cedf0677566822a06bfd0384bdc61c2c0f79628fd222860"
+      }
+    },
+    {
+      "id": "k.cc.a.1.order-small-set",
+      "standardId": "K.CC.A.1",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "countSequence",
+      "responseType": "sequence",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:58.416Z",
+        "note": "reviewed and approved",
+        "contentHash": "d11059bb2e0354b0f52514a166f601e3ae49155ee70ae5e4379bb8577738d10c"
+      }
+    },
+    {
+      "id": "k.cc.a.2.after-small-number",
+      "standardId": "K.CC.A.2",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "nextNumber",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:59.052Z",
+        "note": "reviewed and approved",
+        "contentHash": "7699e1871f341978303b748654480fa60fc8ab19df25ef0a3681f55bbfa9a77b"
+      }
+    },
+    {
+      "id": "k.cc.a.2.after-teen",
+      "standardId": "K.CC.A.2",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "nextNumber",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:53:59.690Z",
+        "note": "reviewed and approved",
+        "contentHash": "2b1a1c2880c6589b8b40ad3984f61d249e18b3ccfa1ff8116fb2faf033c44474"
+      }
+    },
+    {
+      "id": "k.cc.a.2.missing-next",
+      "standardId": "K.CC.A.2",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "nextNumber",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:54:00.336Z",
+        "note": "reviewed and approved",
+        "contentHash": "ac51cdf2a785c6b603129684ded7b0ee37a87bd3b61d51788d8f0de96c837e01"
+      }
+    },
+    {
+      "id": "k.cc.a.2.count-on-two",
+      "standardId": "K.CC.A.2",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "nextNumber",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:54:00.970Z",
+        "note": "reviewed and approved",
+        "contentHash": "d9656f48ea339cbe2f7062a8cb0f43335b04d33af8b8dc81cf0b2f1f649b6837"
+      }
+    },
+    {
+      "id": "k.cc.a.3.object-count",
+      "standardId": "K.CC.A.3",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "countVisualObjects",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:54:01.611Z",
+        "note": "reviewed and approved",
+        "contentHash": "2904e0b6db9d110fd82cd54695c161b4c6536ffb4e29a0fbfd352de826c871fe"
+      }
+    },
+    {
+      "id": "k.cc.a.3.numeral-quantity",
+      "standardId": "K.CC.A.3",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "countVisualObjects",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:54:02.253Z",
+        "note": "reviewed and approved",
+        "contentHash": "8eb6bd85b5a179e50641843c94e3f60e7edf528e04b9ce4dc363862fe3378048"
+      }
+    },
+    {
+      "id": "k.cc.a.3.numeral-name",
+      "standardId": "K.CC.A.3",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "countVisualObjects",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:54:02.902Z",
+        "note": "reviewed and approved",
+        "contentHash": "eb13b66a1d1753b0dea6cc8a543ad5c0667078ddcea38dd50797be780670c599"
+      }
+    },
+    {
+      "id": "k.cc.a.3.zero-quantity",
+      "standardId": "K.CC.A.3",
+      "grade": "K",
+      "subject": "math",
+      "generatorKind": "countVisualObjects",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Conor Brown",
+        "reviewedAt": "2026-07-27T14:54:03.541Z",
+        "note": "reviewed and approved",
+        "contentHash": "7cec6ab2050d303e0555e9616d70b2cff8159dd7a2f30d203eb3bd1b9bc85b58"
+      }
+    },
+    {
+      "id": "1.rf.3.silent-e-decode",
+      "standardId": "1.RF.3",
+      "grade": "1",
+      "subject": "ela",
+      "generatorKind": "silentEDecode",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Project content review"
+      }
+    },
+    {
+      "id": "1.nbt.b.2.tens-and-ones",
+      "standardId": "1.NBT.B.2",
+      "grade": "1",
+      "subject": "math",
+      "generatorKind": "placeValueConstruction",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Project content review"
+      }
+    },
+    {
+      "id": "2.rl.1.passage-detail",
+      "standardId": "2.RL.1",
+      "grade": "2",
+      "subject": "ela",
+      "generatorKind": "passageDetail",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Project content review"
+      }
+    },
+    {
+      "id": "2.md.c.7.clock-time",
+      "standardId": "2.MD.C.7",
+      "grade": "2",
+      "subject": "math",
+      "generatorKind": "clockTime",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Project content review"
+      }
+    },
+    {
+      "id": "2.md.c.8.money-total",
+      "standardId": "2.MD.C.8",
+      "grade": "2",
+      "subject": "math",
+      "generatorKind": "moneyTotal",
+      "responseType": "singleChoice",
+      "diagnosticEligible": true,
+      "audioSupported": true,
+      "provenance": "Project original",
+      "review": {
+        "status": "reviewed",
+        "reviewer": "Project content review"
+      }
+    }
   ],
-  "passages": [{ "id": "quiet-nest", "title": "A Quiet Nest", "grade": "2", "wordCount": 32, "provenance": "Project original", "reviewStatus": "reviewed", "text": "Mina found a small nest in the willow tree. She watched from far away. A blue bird brought soft grass to the nest. Mina whispered, 'The bird is making a safe home.'" }],
-  "unsupported": [{ "standardId": "K.RF.4", "reason": "Expressive oral-reading fluency needs recording and adult review.", "capabilityRequired": "adult observation", "adultObservationRecommended": true, "futureSupportPlanned": true }]
+  "passages": [
+    {
+      "id": "quiet-nest",
+      "title": "A Quiet Nest",
+      "grade": "2",
+      "wordCount": 32,
+      "provenance": "Project original",
+      "reviewStatus": "reviewed",
+      "text": "Mina found a small nest in the willow tree. She watched from far away. A blue bird brought soft grass to the nest. Mina whispered, 'The bird is making a safe home.'"
+    }
+  ],
+  "unsupported": [
+    {
+      "standardId": "K.RF.4",
+      "reason": "Expressive oral-reading fluency needs recording and adult review.",
+      "capabilityRequired": "adult observation",
+      "adultObservationRecommended": true,
+      "futureSupportPlanned": true
+    }
+  ]
 }

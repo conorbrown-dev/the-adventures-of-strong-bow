@@ -16,4 +16,5 @@ export class PrismaProgressRepository implements ProgressRepository {
   async listLearningTargets(learnerId: string): Promise<LearningTarget[]> { return this.prisma.curriculumLearningTarget.findMany({ where: { learnerId } }); }
   async listPrerequisites(standardId: string): Promise<PrerequisiteLink[]> { return this.prisma.curriculumPrerequisiteLink.findMany({ where: { standardId } }).then((rows) => rows.map((row) => ({ ...row, source: row.source as PrerequisiteLink["source"] }))); }
   async saveDiagnosticPlacement(placement: DiagnosticPlacement) { await this.prisma.curriculumDiagnosticPlacement.create({ data: { ...placement, learningTargetIds: placement.learningTargetIds } }); }
+  async listDiagnosticPlacements(learnerId: string): Promise<DiagnosticPlacement[]> { return (await this.prisma.curriculumDiagnosticPlacement.findMany({ where: { learnerId }, orderBy: { completedAt: "desc" } })).map((row) => ({ ...row, learningTargetIds: row.learningTargetIds as string[] })); }
 }

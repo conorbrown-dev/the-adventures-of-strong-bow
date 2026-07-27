@@ -11,4 +11,5 @@ export class InMemoryProgressRepository implements ProgressRepository {
   async listLearningTargets(learnerId: string) { return this.targets.filter((item) => item.learnerId === learnerId); }
   async listPrerequisites(standardId: string) { return this.prerequisites.filter((item) => item.standardId === standardId); }
   async saveDiagnosticPlacement(placement: DiagnosticPlacement) { this.placements.push(placement); }
+  async listDiagnosticPlacements(learnerId: string) { return this.placements.filter((item) => item.learnerId === learnerId); }
 }

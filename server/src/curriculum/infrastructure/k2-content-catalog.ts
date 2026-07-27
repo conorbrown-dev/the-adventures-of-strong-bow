@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { getCurriculumPaths, loadAndValidateVendoredStandards } from "./vendored-standards.validator";
+import { writeReviewPacket } from "./k2-review-packet";
 
 export type CatalogReviewStatus = "draft" | "validated" | "reviewed" | "retired";
 export type CatalogTemplate = {
@@ -46,13 +47,11 @@ export async function kindergartenCoverageReport(): Promise<Record<string, { tot
   }));
 }
 
-export async function createK2ReviewPacket(): Promise<string> {
+export async function createK2ReviewPacket(): Promise<{ html: string; json: string }> {
   const catalog = await loadK2ContentCatalog();
-  const candidates = catalog.templates.filter((template) => template.grade === "K" && template.review.status === "validated");
-  const packet = ["# Kindergarten curriculum review packet", "", "These templates are validated technical drafts. Human approval is required before production use.", "", ...candidates.map((template) => `## ${template.id}\n\n- Standard: ${template.standardId}\n- Generator: ${template.generatorKind}\n- Response: ${template.responseType}\n- Accessibility: audio supported\n- Provenance: ${template.provenance}\n- Review action: approve, return to draft, or retire\n`)].join("\n");
-  const output = resolve(getCurriculumPaths().root, "data/curriculum/content/kindergarten-review-packet.md");
-  await writeFile(output, packet, "utf8");
-  return output;
+  const standards = (await loadAndValidateVendoredStandards()).records;
+  const result = await writeReviewPacket(catalog.templates, standards, resolve(getCurriculumPaths().root, "data/curriculum/content"));
+  return { html: result.html, json: result.json };
 }
 
 export async function approveK2Template(templateId: string, reviewer: string, note: string): Promise<CatalogTemplate> {

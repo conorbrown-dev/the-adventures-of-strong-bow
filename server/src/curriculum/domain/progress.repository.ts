@@ -10,4 +10,5 @@ export interface ProgressRepository {
   listLearningTargets(learnerId: string): Promise<LearningTarget[]>;
   listPrerequisites(standardId: string): Promise<PrerequisiteLink[]>;
   saveDiagnosticPlacement(placement: DiagnosticPlacement): Promise<void>;
+  listDiagnosticPlacements(learnerId: string): Promise<DiagnosticPlacement[]>;
 }
