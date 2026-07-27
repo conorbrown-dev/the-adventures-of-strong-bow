@@ -15,9 +15,15 @@ RUN npm --prefix server install --include=dev
 
 COPY . .
 
+# Curriculum runtime consumes these immutable vendored artifacts. Copy them
+# explicitly and reject the image if they do not match one another.
+COPY data/curriculum/generated/common-core-k5-standards.json /app/data/curriculum/generated/common-core-k5-standards.json
+COPY data/curriculum/generated/common-core-k5-manifest.json /app/data/curriculum/generated/common-core-k5-manifest.json
+
 RUN npm --prefix server run prisma:generate \
   && npm run build \
-  && npm --prefix server run build
+  && npm --prefix server run build \
+  && node server/dist/curriculum/infrastructure/cli/curriculum.js validate
 
 ENV PIPER_MODEL_PATH=/app/en_US-hfc_female-medium.onnx
 EXPOSE 8080
