@@ -85,12 +85,11 @@ function parseJson<T>(text: string, label: string): T {
 
 async function validateManifest(paths: CurriculumPaths, manifest: StandardsManifest): Promise<void> {
   const standardsFile = manifest.files["common-core-k5-standards.json"];
-  const recoveryFile = manifest.files["ccss-recovery-source-philngo-rev-02895145.csv"];
-  if (!standardsFile || !recoveryFile) throw new CurriculumImportError("Manifest is missing required vendored file metadata.");
-  await Promise.all([
-    validateFileHash(paths.standards, standardsFile, "standards dataset"),
-    validateFileHash(paths.recoverySource, recoveryFile, "recovery source")
-  ]);
+  if (!standardsFile) throw new CurriculumImportError("Manifest is missing required standards dataset metadata.");
+  // The recovery CSV documents how this immutable artifact was built. Runtime
+  // must validate the shipped artifact itself and must not depend on recovery
+  // inputs that are not needed to serve curriculum content.
+  await validateFileHash(paths.standards, standardsFile, "standards dataset");
 }
 
 async function validateFileHash(path: string, expected: ManifestFile, label: string): Promise<void> {

@@ -26,6 +26,11 @@ describe("vendored Common Core K-5 importer", () => {
     expect(dataset.records.filter((record) => record.active && record.isLeaf && record.instructionalStatus === "assessable")).toHaveLength(601);
   });
 
+  it("validates the shipped standards artifact without requiring the recovery source", async () => {
+    const paths = getCurriculumPaths();
+    await expect(loadAndValidateVendoredStandards({ ...paths, recoverySource: join(tmpdir(), "missing-recovery-source.csv") })).resolves.toMatchObject({ records: expect.any(Array) });
+  });
+
   it("is idempotent and retains inactive placeholders outside quiz targets", async () => {
     const repository = new InMemoryStandardRepository();
     const first = await importVendoredStandards(repository);
