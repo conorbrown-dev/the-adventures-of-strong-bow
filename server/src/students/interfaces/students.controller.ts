@@ -4,7 +4,8 @@ import {
   CreateStudentDto,
   LoginStudentDto,
   RecordQuizAttemptDto,
-  UpdateAssignmentsDto
+  UpdateAssignmentsDto,
+  UpdateSubjectLevelDto
 } from "./dtos";
 
 @Controller()
@@ -29,6 +30,11 @@ export class StudentsController {
   @Put("students/:studentId/assignments")
   updateAssignments(@Param("studentId") studentId: string, @Body() dto: UpdateAssignmentsDto) {
     return this.students.updateAssignments(studentId, dto);
+  }
+
+  @Put("students/:studentId/subject-level")
+  updateSubjectLevel(@Param("studentId") studentId: string, @Body() dto: UpdateSubjectLevelDto) {
+    return this.students.updateSubjectLevel(studentId, dto);
   }
 
   @Post("students/:studentId/quiz-attempts")

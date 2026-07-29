@@ -21,7 +21,7 @@ describe("StudentsService", () => {
     jest.mocked(argon2.hash).mockResolvedValue("hashed-pin" as never);
     const result = await new StudentsService(prisma).createStudent({ username: "molly", pin: "1234", grade: "K" as never, subjects: ["ELA", "MATH"] as never });
     expect(argon2.hash).toHaveBeenCalledWith("1234");
-    expect(result.student).toEqual({ id: "student-1", username: "molly", grade: "K", subjects: ["ELA", "MATH"] });
+    expect(result.student).toEqual({ id: "student-1", username: "molly", grade: "K", subjects: ["ELA", "MATH"], curriculumLevels: { ELA: "K", MATH: "K" } });
     expect(result.token).toEqual(expect.any(String));
   });
 

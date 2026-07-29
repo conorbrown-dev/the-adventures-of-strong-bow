@@ -15,6 +15,7 @@ const generators: Record<string, { responseType: string; required: string[] }> =
   , placeValueConstruction: { responseType: "singleChoice", required: [] }
   , gradeOneMath: { responseType: "singleChoice", required: ["skill"] }
   , gradeOneEla: { responseType: "singleChoice", required: ["skill"] }
+  , gradeOneElaAdult: { responseType: "constructedResponse", required: ["skill"] }
   , additionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , subtractionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , compareNumbers: { responseType: "singleChoice", required: ["minimum", "maximum"] }

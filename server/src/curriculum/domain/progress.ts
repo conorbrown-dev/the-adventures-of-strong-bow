@@ -2,7 +2,7 @@ import type { QuestionResponseType } from "./question-template";
 
 export const MASTERY_STATES = ["notStarted", "learning", "practicing", "mastered", "reviewDue"] as const;
 export type MasteryState = (typeof MASTERY_STATES)[number];
-export type AttemptPurpose = "learning" | "practice" | "review" | "diagnostic" | "proctored";
+export type AttemptPurpose = "learning" | "practice" | "review" | "diagnostic" | "placement" | "proctored" | "adultScored";
 export type PrerequisiteSource = "explicitlyAuthored" | "inferred" | "imported";
 
 export interface Clock { now(): Date; }

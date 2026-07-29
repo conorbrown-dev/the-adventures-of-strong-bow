@@ -6,7 +6,7 @@ export const defaultMasteryPolicy: MasteryPolicySettings = { minimumScoredAttemp
 function masteryEvidence(attempts: AttemptEvent[], settings: MasteryPolicySettings): AttemptEvent[] {
   const seen = new Set<string>();
   return [...attempts].sort((a, b) => a.attemptedAt.getTime() - b.attemptedAt.getTime()).filter((attempt) => {
-    if (attempt.purpose === "proctored" || (attempt.purpose === "diagnostic" && !settings.diagnosticCountsTowardMastery)) return false;
+    if (attempt.purpose === "proctored" || attempt.purpose === "adultScored" || attempt.purpose === "placement" || (attempt.purpose === "diagnostic" && !settings.diagnosticCountsTowardMastery)) return false;
     const key = `${attempt.primaryStandardId}:${attempt.questionInstanceId}`; if (seen.has(key)) return false; seen.add(key); return true;
   });
 }

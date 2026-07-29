@@ -37,6 +37,7 @@ export class StudentsService {
         pin: await argon2.hash(dto.pin),
         grade: dto.grade,
         assignedSubjects: dto.subjects
+        , curriculumLevels: Object.fromEntries(dto.subjects.map((subject) => [subject, dto.grade]))
       }
     });
     return this.toSession(student);
@@ -59,6 +60,15 @@ export class StudentsService {
       data: { grade: dto.grade, assignedSubjects: dto.subjects }
     });
     return this.toPublicStudent(student);
+  }
+
+  async updateSubjectLevel(studentId: string, dto: { subject: "ELA" | "MATH"; grade: string; verificationCode: string }) {
+    await this.findStudent(studentId);
+    if (!process.env.CURRICULUM_PROCTOR_CODE || dto.verificationCode !== process.env.CURRICULUM_PROCTOR_CODE) throw new UnauthorizedException("A parent or teacher verification code is required.");
+    const student = await this.prisma.student.findUnique({ where: { id: studentId } });
+    const levels = { ...((student?.curriculumLevels as Record<string, string> | null) ?? {}), [dto.subject]: dto.grade };
+    const updated = await this.prisma.student.update({ where: { id: studentId }, data: { curriculumLevels: levels } });
+    return this.toPublicStudent(updated);
   }
 
   async recordQuizAttempt(studentId: string, dto: RecordQuizAttemptDto) {
@@ -97,19 +107,20 @@ export class StudentsService {
     return student;
   }
 
-  private toSession(student: { id: string; username: string; grade: unknown; assignedSubjects: unknown }) {
+  private toSession(student: { id: string; username: string; grade: unknown; assignedSubjects: unknown; curriculumLevels?: unknown }) {
     return {
       token: this.jwt.sign({ sub: student.id, username: student.username }),
       student: this.toPublicStudent(student)
     };
   }
 
-  private toPublicStudent(student: { id: string; username: string; grade: unknown; assignedSubjects: unknown }) {
+  private toPublicStudent(student: { id: string; username: string; grade: unknown; assignedSubjects: unknown; curriculumLevels?: unknown }) {
     return {
       id: student.id,
       username: student.username,
       grade: student.grade,
       subjects: student.assignedSubjects
+      , curriculumLevels: student.curriculumLevels ?? { ELA: student.grade, MATH: student.grade }
     };
   }
 }

@@ -3,7 +3,7 @@ import type { CurriculumGrade, CurriculumSubject } from "../data/commonCoreQuizz
 export interface StudentSession {
   token: string;
   demo?: boolean;
-  student: { id: string; username: string; grade: CurriculumGrade; subjects: CurriculumSubject[] };
+  student: { id: string; username: string; grade: CurriculumGrade; subjects: CurriculumSubject[]; curriculumLevels?: Partial<Record<CurriculumSubject, CurriculumGrade>> };
 }
 
 const SESSION_KEY = "mollys-learning-academy.student-session";

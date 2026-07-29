@@ -5,6 +5,7 @@ import { getCurriculumPaths, loadAndValidateVendoredStandards } from "./vendored
 import { writeReviewPacket } from "./k2-review-packet";
 import { gradeOneMathTemplates } from "../data/grade-one-math-templates";
 import { gradeOneElaTemplates } from "../data/grade-one-ela-templates";
+import { gradeOneElaAdultTemplates } from "../data/grade-one-ela-adult-templates";
 
 export type CatalogReviewStatus = "draft" | "validated" | "reviewed" | "retired";
 export type CatalogTemplate = {
@@ -25,7 +26,7 @@ export function contentHash(template: CatalogTemplate): string {
 export async function loadK2ContentCatalog(): Promise<K2Catalog> {
   const catalog = JSON.parse(await readFile(catalogPath(), "utf8")) as K2Catalog;
   const existingIds = new Set(catalog.templates.map((template) => template.id));
-  return { ...catalog, templates: [...catalog.templates, ...[...gradeOneMathTemplates, ...gradeOneElaTemplates].filter((template) => !existingIds.has(template.id))] };
+  return { ...catalog, templates: [...catalog.templates, ...[...gradeOneMathTemplates, ...gradeOneElaTemplates, ...gradeOneElaAdultTemplates].filter((template) => !existingIds.has(template.id))] };
 }
 
 export async function validateK2ContentCatalog(): Promise<{ templates: number; passages: number; unsupported: number }> {

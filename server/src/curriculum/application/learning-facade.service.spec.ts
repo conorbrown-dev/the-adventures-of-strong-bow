@@ -42,4 +42,14 @@ describe("LearningFacadeService", () => {
     const started = await service.start("grade-one", "practice", 42, undefined, "1");
     expect(started.question.templateId).toMatch(/^1\./);
   });
+
+  it("records an adult-scored Grade 1 ELA observation before confirming mastery", async () => {
+    const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
+    const started = await service.start("grade-one", "adultScored", 42, "adult-code", "1");
+    expect(started.question.responseType).toBe("constructedResponse");
+    const result = await service.scoreAdult(started.sessionId, true);
+    expect(result).toMatchObject({ correct: true, masteryState: "mastered", complete: true });
+    expect(repository.attempts).toHaveLength(1);
+    expect(repository.attempts[0]).toMatchObject({ independent: false, purpose: "adultScored", correct: true });
+  });
 });

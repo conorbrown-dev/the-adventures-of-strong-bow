@@ -40,6 +40,7 @@ model Student {
   pin              String
   grade            GradeLevel @default(K)
   assignedSubjects CurriculumSubject[] @default([])
+  curriculumLevels Json              @default("{}")
   createdAt        DateTime @default(now())
 
   wordAttempts WordAttempt[]

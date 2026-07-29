@@ -48,6 +48,18 @@ export class UpdateAssignmentsDto {
   subjects!: CurriculumSubject[]
 }
 
+export class UpdateSubjectLevelDto {
+  @IsEnum(CurriculumSubject)
+  subject!: CurriculumSubject
+
+  @IsEnum(GradeLevel)
+  grade!: GradeLevel
+
+  @IsString()
+  @IsNotEmpty()
+  verificationCode!: string
+}
+
 export class RecordQuizAttemptDto {
   @IsEnum(CurriculumSubject)
   subject!: CurriculumSubject
