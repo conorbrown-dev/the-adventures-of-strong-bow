@@ -6,7 +6,7 @@ export const defaultMasteryPolicy: MasteryPolicySettings = { minimumScoredAttemp
 function masteryEvidence(attempts: AttemptEvent[], settings: MasteryPolicySettings): AttemptEvent[] {
   const seen = new Set<string>();
   return [...attempts].sort((a, b) => a.attemptedAt.getTime() - b.attemptedAt.getTime()).filter((attempt) => {
-    if (attempt.purpose === "diagnostic" && !settings.diagnosticCountsTowardMastery) return false;
+    if (attempt.purpose === "proctored" || (attempt.purpose === "diagnostic" && !settings.diagnosticCountsTowardMastery)) return false;
     const key = `${attempt.primaryStandardId}:${attempt.questionInstanceId}`; if (seen.has(key)) return false; seen.add(key); return true;
   });
 }
@@ -18,7 +18,7 @@ export function recalculateMastery(learnerId: string, standardId: string, attemp
   const latestReview = [...attempts].filter((attempt) => attempt.purpose === "review").at(-1);
   const failedReview = latestReview?.correct === false;
   if (failedReview && wasMastered) return { learnerId, standardId, state: "practicing", scoredAttemptCount: evidence.length, masteryAchievedAt: previous?.masteryAchievedAt ?? null, reviewStage: previous?.reviewStage ?? null, nextReviewAt: null, updatedAt: clock.now() };
-  if (meets) { const stage = wasMastered ? Math.max(previous?.reviewStage ?? 0, settings.remasteryReviewStage) : 0; return { learnerId, standardId, state: "mastered", scoredAttemptCount: evidence.length, masteryAchievedAt: previous?.masteryAchievedAt ?? clock.now(), reviewStage: stage, nextReviewAt: addDays(clock.now(), settings.reviewIntervalsDays[stage] ?? settings.reviewIntervalsDays.at(-1)!), updatedAt: clock.now() }; }
+  if (meets) return { learnerId, standardId, state: "practicing", scoredAttemptCount: evidence.length, masteryAchievedAt: previous?.masteryAchievedAt ?? null, reviewStage: previous?.reviewStage ?? null, nextReviewAt: previous?.nextReviewAt ?? null, updatedAt: clock.now() };
   return { learnerId, standardId, state: evidence.length === 0 ? "notStarted" : evidence.length < settings.minimumScoredAttempts ? "learning" : "practicing", scoredAttemptCount: evidence.length, masteryAchievedAt: previous?.masteryAchievedAt ?? null, reviewStage: previous?.reviewStage ?? null, nextReviewAt: previous?.nextReviewAt ?? null, updatedAt: clock.now() };
 }
 

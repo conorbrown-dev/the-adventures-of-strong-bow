@@ -8,4 +8,14 @@ describe("evaluateAnswer", () => {
     expect(evaluateAnswer(sequence, ["1", "2", "3"]).correct).toBe(true);
     expect(evaluateAnswer(sequence, ["3", "2", "1"]).correct).toBe(false);
   });
+
+  it("accepts spoken phonemes for their letter representations", () => {
+    const phoneme: QuestionInstance = { ...sequence, responseType: "singleChoice", canonicalAnswer: "u" };
+    expect(evaluateAnswer(phoneme, "uh").correct).toBe(true);
+  });
+
+  it("accepts spoken two-digit numbers", () => {
+    const placeValue: QuestionInstance = { ...sequence, responseType: "singleChoice", canonicalAnswer: 42 };
+    expect(evaluateAnswer(placeValue, "forty two").correct).toBe(true);
+  });
 });

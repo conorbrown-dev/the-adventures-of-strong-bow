@@ -9,10 +9,13 @@ const kindergartenMathStudent: StudentSession = {
 };
 
 describe("quiz answer evaluation", () => {
-  it("accepts spoken number words, punctuation, and phonetic letter names", () => {
+  it("accepts spoken number words, phonemes, punctuation, and letter names", () => {
     expect(normalizeAnswer("Seven!")).toBe("7");
     expect(isCorrectAnswer("seven", ["7"])).toBe(true);
     expect(isCorrectAnswer("ess", ["s"])).toBe(true);
+    expect(isCorrectAnswer("uh", ["u"])).toBe(true);
+    expect(isCorrectAnswer("mmm", ["/m/"])).toBe(true);
+    expect(isCorrectAnswer("forty two", ["42"])).toBe(true);
   });
 
   it("does not accept a wrong spoken answer", () => {

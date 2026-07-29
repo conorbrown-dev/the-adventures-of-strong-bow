@@ -10,6 +10,7 @@ class Random {
 
 const wordFamilies: Record<string, string[]> = { "-at": ["cat", "bat", "hat"], "-an": ["can", "fan", "man"], "-ig": ["pig", "dig", "wig"], "-op": ["hop", "mop", "top"], "-ug": ["bug", "hug", "rug"] };
 const cvcWords = [{ word: "cat", vowel: "a" }, { word: "bed", vowel: "e" }, { word: "pig", vowel: "i" }, { word: "hop", vowel: "o" }, { word: "sun", vowel: "u" }];
+const silentEPairs = [{ short: "cap", long: "cape" }, { short: "kit", long: "kite" }, { short: "hop", long: "hope" }, { short: "tub", long: "tube" }];
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const params = (template: QuestionTemplate) => template.generator.parameters as Record<string, unknown>;
 const numberParam = (values: Record<string, unknown>, key: string) => Number(values[key]);
@@ -38,6 +39,13 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
   } else if (template.generator.kind === "cvcMedialVowel") {
     const allowed = configuration.vowels as string[]; const candidates = cvcWords.filter((candidate) => allowed.includes(candidate.vowel)); const picked = candidates[random.integer(0, candidates.length - 1)]; const count = numberParam(configuration, "choiceCount");
     interaction = choiceInteraction(random.shuffle([picked.vowel, ...random.shuffle(allowed.filter((vowel) => vowel !== picked.vowel)).slice(0, count - 1)])); canonicalAnswer = picked.vowel; values = { word: picked.word }; explanation = `The middle vowel in ${picked.word} is ${picked.vowel}.`;
+  } else if (template.generator.kind === "silentEDecode") {
+    const picked = silentEPairs[random.integer(0, silentEPairs.length - 1)]; const distractors = random.shuffle(silentEPairs.filter((pair) => pair.long !== picked.long).map((pair) => pair.short)).slice(0, 2);
+    interaction = choiceInteraction(random.shuffle([picked.long, ...distractors])); canonicalAnswer = picked.long; values = { shortWord: picked.short }; explanation = `${picked.long} ends with a silent e, which makes the vowel say its name.`;
+  } else if (template.generator.kind === "placeValueConstruction") {
+    const tens = random.integer(1, 9); const ones = random.integer(0, 9); const answer = tens * 10 + ones;
+    const choices = [answer, answer + 10 <= 99 ? answer + 10 : answer - 10, tens * 10 + ((ones + 1) % 10)];
+    interaction = choiceInteraction(random.shuffle(choices)); canonicalAnswer = answer; values = { tens, ones }; explanation = `${tens} tens and ${ones} ones make ${answer}.`;
   } else if (template.generator.kind === "letterIdentification") {
     const letter = letters[random.integer(0, letters.length - 1)]; const requested = String(configuration.case ?? "lower"); const answer = requested === "upper" ? letter : letter.toLowerCase();
     const pool = letters.map((item) => requested === "upper" ? item : item.toLowerCase()).filter((item) => item !== answer);

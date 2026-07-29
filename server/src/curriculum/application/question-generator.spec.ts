@@ -49,6 +49,7 @@ describe("reviewed deterministic question engine", () => {
   it("evaluates deterministic answers without AI authority", () => {
     const instance = generateQuestion(validateQuestionTemplate(templates[0], standards), 42);
     expect(evaluateAnswer(instance, instance.canonicalAnswer)).toEqual({ correct: true, requiresHumanReview: false });
+    if (typeof instance.canonicalAnswer === "number") expect(evaluateAnswer(instance, String(instance.canonicalAnswer))).toEqual({ correct: true, requiresHumanReview: false });
     expect(evaluateAnswer({ ...instance, responseType: "constructedResponse" }, "anything")).toEqual({ correct: false, requiresHumanReview: true });
   });
 

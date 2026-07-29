@@ -48,3 +48,7 @@ See:
 
 - `docs/curriculum/DATA_SOURCE_RECOVERY.md`
 - `data/curriculum/generated/common-core-k5-manifest.json`
+
+## Proctored mastery checks
+
+Set `CURRICULUM_PROCTOR_CODE` in the server environment to an adult-only code. A parent or teacher enters it before a five-question proctored check. A score of at least 4 out of 5 verifies mastery for that standard; verified standards rotate out of everyday practice until a scheduled review is due.

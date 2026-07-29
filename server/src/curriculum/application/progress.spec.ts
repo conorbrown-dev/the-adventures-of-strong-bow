@@ -16,7 +16,7 @@ describe("curriculum progress", () => {
   it("calculates mastery at the threshold and rejects duplicate, hint, session, and template-only evidence", async () => {
     const clock = new FakeClock(new Date("2026-01-10T00:00:00Z")); const repo = new InMemoryProgressRepository(); const service = new ProgressService(repo, clock);
     for (let index = 0; index < 8; index += 1) await service.recordAttempt(attempt(index));
-    expect((await repo.getMastery("learner", "K.CC.A.1"))?.state).toBe("mastered");
+    expect((await repo.getMastery("learner", "K.CC.A.1"))?.state).toBe("practicing");
     await service.recordAttempt(attempt(9, { questionInstanceId: "question-0", correct: false }));
     expect((await repo.getMastery("learner", "K.CC.A.1"))?.scoredAttemptCount).toBe(8);
     const onlyHints = new InMemoryProgressRepository(); const hintService = new ProgressService(onlyHints, clock); for (let index = 0; index < 8; index += 1) await hintService.recordAttempt(attempt(index, { usedHint: true }));
@@ -24,13 +24,13 @@ describe("curriculum progress", () => {
   });
 
   it("schedules due reviews and preserves mastery history after a failed review", async () => {
-    const clock = new FakeClock(new Date("2026-01-10T00:00:00Z")); const repo = new InMemoryProgressRepository(); const service = new ProgressService(repo, clock); for (let index = 0; index < 8; index += 1) await service.recordAttempt(attempt(index));
+    const clock = new FakeClock(new Date("2026-01-10T00:00:00Z")); const repo = new InMemoryProgressRepository(); const service = new ProgressService(repo, clock); await service.verifyProctoredMastery("learner", "K.CC.A.1");
     clock.advance(1); expect((await service.markDue("learner")).length).toBe(1);
     await service.recordAttempt(attempt(9, { purpose: "review", correct: false })); const record = await repo.getMastery("learner", "K.CC.A.1"); expect(record?.state).toBe("practicing"); expect(record?.masteryAchievedAt).not.toBeNull();
   });
 
   it("advances the configured review interval after a successful review", async () => {
-    const clock = new FakeClock(new Date("2026-01-10T00:00:00Z")); const repo = new InMemoryProgressRepository(); const service = new ProgressService(repo, clock); for (let index = 0; index < 8; index += 1) await service.recordAttempt(attempt(index));
+    const clock = new FakeClock(new Date("2026-01-10T00:00:00Z")); const repo = new InMemoryProgressRepository(); const service = new ProgressService(repo, clock); await service.verifyProctoredMastery("learner", "K.CC.A.1");
     clock.advance(1); await service.markDue("learner"); const reviewed = await service.recordAttempt(attempt(10, { purpose: "review" }));
     expect(reviewed.reviewStage).toBe(1); expect(reviewed.nextReviewAt?.getTime()).toBe(clock.now().getTime() + 3 * 86_400_000);
   });

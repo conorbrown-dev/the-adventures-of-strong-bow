@@ -11,6 +11,8 @@ const generators: Record<string, { responseType: string; required: string[] }> =
   matchUpperLowerLetters: { responseType: "classification", required: ["pairCount"] },
   rhymeChoice: { responseType: "singleChoice", required: ["wordFamilies", "choiceCount"] },
   cvcMedialVowel: { responseType: "singleChoice", required: ["vowels", "choiceCount"] }
+  , silentEDecode: { responseType: "singleChoice", required: [] }
+  , placeValueConstruction: { responseType: "singleChoice", required: [] }
   , additionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , subtractionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , compareNumbers: { responseType: "singleChoice", required: ["minimum", "maximum"] }

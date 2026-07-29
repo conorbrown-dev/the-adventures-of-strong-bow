@@ -106,7 +106,7 @@ export function QuizApp(): JSX.Element | null {
     if (!current) return;
     setActiveSubject(subject); setQuiz(chooseQuiz(current, subject)); setQuestionIndex(0); setCorrect(0); setResponse(""); setFeedback(""); setStartedAt(Date.now()); setMessage(""); setScreen("lesson");
   }
-  function close(): void { stopSpeaking(); navigate("/"); }
+  function close(): void { stopSpeaking(); setScreen("home"); navigate("/"); }
   function openLessons(): void {
     stopSpeaking();
     setScreen("library");
