@@ -14,12 +14,13 @@ import { diagnosticPlacement, evaluateDiagnostic, type DiagnosticProbe } from ".
 
 type SessionPurpose = "practice" | "review" | "diagnostic" | "proctored";
 type StoredSession = { id: string; learnerId: string; purpose: SessionPurpose; seed: number; position: number; length: number; templates: QuestionTemplate[]; instance: QuestionInstance; submittedInstanceIds: Set<string>; diagnosticProbes: DiagnosticProbe[]; proctoredCorrect: number };
+export const CURRICULUM_PROCTOR_CODE = Symbol("CURRICULUM_PROCTOR_CODE");
 const seedAt = (seed: number, position: number) => Math.abs(Math.imul(seed ^ (position + 1), 2654435761)) >>> 0;
 @Injectable()
 export class LearningFacadeService {
   private readonly sessions = new Map<string, StoredSession>();
   private readonly progress: ProgressService;
-  constructor(@Inject(PrismaProgressRepository) private readonly repository: ProgressRepository, private readonly proctorCode = process.env.CURRICULUM_PROCTOR_CODE) { this.progress = new ProgressService(repository, { now: () => new Date() }); }
+  constructor(@Inject(PrismaProgressRepository) private readonly repository: ProgressRepository, @Inject(CURRICULUM_PROCTOR_CODE) private readonly proctorCode: string | undefined = process.env.CURRICULUM_PROCTOR_CODE) { this.progress = new ProgressService(repository, { now: () => new Date() }); }
   async start(learnerId: string, purpose: SessionPurpose, seed = Math.floor(Math.random() * 2_147_483_647), submittedProctorCode?: string, grade = "K") {
     if (purpose === "proctored" && (!this.proctorCode || submittedProctorCode !== this.proctorCode)) throw new ForbiddenException("A parent or teacher verification code is required to start a proctored assessment.");
     await validateK2ContentCatalog(); const catalog = await loadK2ContentCatalog(); const templates = catalog.templates.filter((template) => template.grade === grade && template.review.status === "reviewed").map(catalogTemplateToQuestionTemplate);
