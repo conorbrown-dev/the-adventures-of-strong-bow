@@ -6,6 +6,7 @@ import { getCurriculumPaths, loadAndValidateVendoredStandards } from "../infrast
 import { QuestionValidationError, validateQuestionInstance, validateQuestionTemplate, validateQuestionTemplateBundle } from "../infrastructure/question-template.validator";
 import type { QuestionTemplate } from "../domain/question-template";
 import { gradeOneMathTemplates } from "../data/grade-one-math-templates";
+import { gradeOneElaTemplates } from "../data/grade-one-ela-templates";
 import { catalogTemplateToQuestionTemplate } from "../infrastructure/k2-review-packet";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
@@ -38,6 +39,19 @@ describe("reviewed deterministic question engine", () => {
 
   it("generates valid questions for every Grade 1 mathematics template", () => {
     for (const catalogTemplate of gradeOneMathTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      for (let seed = 0; seed < 100; seed += 1) {
+        try {
+          validateQuestionInstance(generateQuestion(template, seed));
+        } catch (error) {
+          throw new Error(`${template.id} failed with seed ${seed}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+    }
+  });
+
+  it("generates valid questions for every Grade 1 independently assessable ELA template", () => {
+    for (const catalogTemplate of gradeOneElaTemplates) {
       const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
       for (let seed = 0; seed < 100; seed += 1) {
         try {
