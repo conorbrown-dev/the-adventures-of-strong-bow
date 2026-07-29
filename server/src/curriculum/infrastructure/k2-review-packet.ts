@@ -14,6 +14,7 @@ const childSkill: Record<string, string> = {
 };
 
 function parameters(template: CatalogTemplate): Record<string, unknown> {
+  if (template.generatorKind === "gradeOneMath") return { skill: template.standardId };
   if (template.generatorKind === "matchUpperLowerLetters") return { pairCount: 3 };
   if (template.generatorKind === "rhymeChoice") return { wordFamilies: ["-at", "-an", "-ig", "-op", "-ug"], choiceCount: 3 };
   if (template.generatorKind === "cvcMedialVowel") return { vowels: ["a", "e", "i", "o", "u"], choiceCount: 3 };
@@ -24,6 +25,7 @@ function parameters(template: CatalogTemplate): Record<string, unknown> {
 }
 
 function prompt(template: CatalogTemplate): { text: string; audioText: string; instructions: string } {
+  if (template.generatorKind === "gradeOneMath") return { text: "{{question}}", audioText: "{{question}}", instructions: "Say one answer." };
   if (template.generatorKind === "letterIdentification") return { text: template.id.includes("uppercase") ? "Which uppercase letter matches {{letter}}?" : "Which lowercase letter matches {{letter}}?", audioText: template.id.includes("uppercase") ? "Which uppercase letter matches {{letter}}?" : "Which lowercase letter matches {{letter}}?", instructions: "Choose one answer." };
   if (template.generatorKind === "matchUpperLowerLetters") return { text: "Sort the letters into uppercase and lowercase.", audioText: "Sort the letters into uppercase and lowercase.", instructions: "Put each letter in the right group." };
   if (template.generatorKind === "rhymeOddOne") return { text: "Which word does not rhyme?", audioText: "Which word does not rhyme?", instructions: "Choose one answer." };
@@ -39,7 +41,7 @@ function prompt(template: CatalogTemplate): { text: string; audioText: string; i
 
 export function catalogTemplateToQuestionTemplate(template: CatalogTemplate): QuestionTemplate {
   const words = prompt(template);
-  return { schemaVersion: 1, id: template.id, version: 1, primaryStandardId: template.standardId, supportingStandardIds: [], subject: template.subject as QuestionTemplate["subject"], grade: template.grade as QuestionTemplate["grade"], responseType: template.responseType as QuestionTemplate["responseType"], prompt: words, generator: { kind: template.generatorKind, parameters: parameters(template) }, difficulty: { band: 1, dimensions: { seedVariation: true } }, gameModes: [], modalities: { requiresReading: false, audioSupported: template.audioSupported, visualSupported: true }, diagnosticEligible: template.diagnosticEligible, provenance: { origin: "original", license: template.provenance }, review: { status: template.review.status, reviewer: template.review.reviewer ?? null, reviewedAt: template.review.reviewedAt ?? null, notes: template.review.note ?? null } };
+  return { schemaVersion: 1, id: template.id, version: 1, primaryStandardId: template.standardId, supportingStandardIds: [], subject: template.subject as QuestionTemplate["subject"], grade: template.grade as QuestionTemplate["grade"], responseType: template.responseType as QuestionTemplate["responseType"], prompt: words, generator: { kind: template.generatorKind, parameters: parameters(template) }, difficulty: { band: 1, dimensions: { seedVariation: true } }, gameModes: ["standaloneLearning"], modalities: { requiresReading: false, audioSupported: template.audioSupported, visualSupported: true }, diagnosticEligible: template.diagnosticEligible, provenance: { origin: "original", license: template.provenance }, review: { status: template.review.status, reviewer: template.review.reviewer ?? null, reviewedAt: template.review.reviewedAt ?? null, notes: template.review.note ?? null } };
 }
 
 function rendered(instance: QuestionInstance): string {

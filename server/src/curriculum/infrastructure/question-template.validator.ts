@@ -13,6 +13,7 @@ const generators: Record<string, { responseType: string; required: string[] }> =
   cvcMedialVowel: { responseType: "singleChoice", required: ["vowels", "choiceCount"] }
   , silentEDecode: { responseType: "singleChoice", required: [] }
   , placeValueConstruction: { responseType: "singleChoice", required: [] }
+  , gradeOneMath: { responseType: "singleChoice", required: ["skill"] }
   , additionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , subtractionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , compareNumbers: { responseType: "singleChoice", required: ["minimum", "maximum"] }
