@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 import { type SightWord } from "../data/sightWords";
-import { loadSightWordSettings, loadSightWordStats, recordSightWordAttempt, RESPONSE_THRESHOLD_MS } from "../settings/sightWordSettings";
+import { loadSightWordSettings, recordSightWordAttempt, RESPONSE_THRESHOLD_MS } from "../settings/sightWordSettings";
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { addGameNavigation, returnToLearningLibrary } from "../utils/gameNavigation";
@@ -35,8 +35,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
 
   create(): void {
     const settings = loadSightWordSettings();
-    const stats = loadSightWordStats();
-    this.words = Phaser.Utils.Array.Shuffle([...settings.selectedWords.filter((word) => !stats[word]?.mastered)]);
+    this.words = Phaser.Utils.Array.Shuffle([...settings.selectedWords]);
     this.audio = new AudioFeedbackSystem(this);
     this.cameras.main.setBackgroundColor(0x0a0714);
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0a0714);
@@ -50,7 +49,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
     this.createFallbackUi();
     addGameNavigation(this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.recognition?.abort());
-    if (!this.words.length) this.showFinished(); else void this.presentNextWord();
+    void this.presentNextWord();
   }
 
   update(): void {
@@ -67,8 +66,9 @@ export class SightWordsQuizScene extends Phaser.Scene {
   }
 
   private async presentNextWord(): Promise<void> {
+    if (!this.words.length) this.words = Phaser.Utils.Array.Shuffle([...loadSightWordSettings().selectedWords]);
     this.currentWord = this.words.shift();
-    if (!this.currentWord) { this.showFinished(); return; }
+    if (!this.currentWord) { this.setStatus("Choose at least one word in Word Pool & Progress to begin.", "#ffb86b"); return; }
     this.wordText?.setText(this.currentWord).setAlpha(0).setScale(0.8);
     this.setFallbackWord(this.currentWord, "#ffe45c");
     this.tweens.add({ targets: this.wordText, alpha: 1, scale: 1, duration: 240, ease: "Back.Out" });
@@ -116,26 +116,13 @@ export class SightWordsQuizScene extends Phaser.Scene {
     const stats = recordSightWordAttempt(word, responseMs, correct);
     const seconds = (responseMs / 1000).toFixed(1);
     if (correct) {
-      this.setStatus(stats.mastered ? `Mastered! ${seconds}s — this word will now rotate out.` : `Correct! ${seconds}s`, "#45f6e5");
+      this.setStatus(stats.mastered ? `Mastered! ${seconds}s — keep practicing!` : `Correct! ${seconds}s`, "#45f6e5");
       this.audio.playCorrectChime();
     } else {
       this.setStatus(`Try again next time. Response: ${seconds}s`, "#ff70b8");
       this.audio.playIncorrectFeedback();
     }
     this.time.delayedCall(1200, () => void this.presentNextWord());
-  }
-
-  private showFinished(): void {
-    this.finished = true; this.listening = false;
-    this.wordText?.setText("Great work!").setFontSize(78).setColor("#45f6e5");
-    this.setFallbackWord("Great work!", "#45f6e5");
-    this.setStatus("This practice pool is complete. Return to the game menu to choose another activity.", "#ffffff");
-    this.timerFill?.setDisplaySize(0, 16); this.timerText?.setText("");
-    if (this.fallbackUi) { this.fallbackUi.timer.textContent = ""; this.fallbackUi.timerFill.style.width = "0"; }
-    const button = this.add.rectangle(GAME_WIDTH / 2, 650, 250, 56, 0xc681ff).setStrokeStyle(2, 0xffffff, 0.8);
-    const label = this.add.text(GAME_WIDTH / 2, 650, "GAME MENU", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "19px", color: "#ffffff" }).setOrigin(0.5);
-    this.add.zone(GAME_WIDTH / 2, 650, 250, 56).setInteractive({ useHandCursor: true }).on("pointerdown", () => returnToLearningLibrary(this));
-    void button; void label;
   }
 
   private setFallbackWord(word: string, color: string): void {
