@@ -26,3 +26,22 @@ test("oral practice does not reveal multiple-choice answers", async ({ page }) =
   await expect(page.getByLabel("Type your answer")).toBeVisible();
   await expect(page.locator(".quiz-panel button")).toHaveCount(5);
 });
+
+for (const [gameName, sceneKey] of [
+  ["Sight Word Studio", "SightWordsTitleScene"],
+  ["Addition Lab", "AdditionTitleScene"]
+] as const) {
+  test(`${gameName} launches from the learning library`, async ({ page }) => {
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error));
+
+    await openStudentAccess(page);
+    await page.getByRole("button", { name: "DEMO MODE" }).click();
+    await page.getByRole("button", { name: gameName }).click();
+
+    const canvas = page.locator("canvas");
+    await expect(canvas).toBeVisible();
+    await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", sceneKey);
+    expect(pageErrors).toEqual([]);
+  });
+}
