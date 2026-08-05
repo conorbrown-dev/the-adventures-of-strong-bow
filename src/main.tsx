@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./style.css";
 import { QuizApp } from "./quiz/QuizApp";
+import { SCENE_KEYS } from "./game/utils/sceneKeys";
 
 const app = document.getElementById("app");
 if (!app) throw new Error("Missing #app container");
@@ -14,6 +15,18 @@ app.append(phaserRoot, quizRoot);
 
 let phaserReady = false;
 let game: import("phaser").Game | undefined;
+const launchableGameScenes = new Set<string>([
+  SCENE_KEYS.SIGHT_WORDS_TITLE,
+  SCENE_KEYS.SIGHT_WORDS_QUIZ,
+  SCENE_KEYS.BARN_DOOR_VOWELS_TITLE,
+  SCENE_KEYS.BARN_DOOR_VOWELS,
+  SCENE_KEYS.ADDITION_TITLE,
+  SCENE_KEYS.ADDITION_GAME,
+  SCENE_KEYS.FOSSIL_DIG_TITLE,
+  SCENE_KEYS.FOSSIL_DIG,
+  SCENE_KEYS.CAT_CATCH_TITLE,
+  SCENE_KEYS.LETTER_CATCH
+]);
 
 async function ensureGame(): Promise<import("phaser").Game> {
   if (game) return game;
@@ -23,7 +36,15 @@ async function ensureGame(): Promise<import("phaser").Game> {
 }
 
 function startGameScene(activeGame: import("phaser").Game, { scene, sceneData }: { scene: string; sceneData?: object }): void {
-  activeGame.scene.stop("TitleScene");
+  if (!launchableGameScenes.has(scene)) return;
+
+  const targetScene = activeGame.scene.getScene(scene);
+  // Keep the title scene visible until Phaser has created the requested
+  // activity, so a failed initialization cannot leave a black canvas.
+  targetScene.events.once("create", () => {
+    phaserRoot.dataset.activeScene = scene;
+    if (activeGame.scene.isActive(SCENE_KEYS.TITLE)) activeGame.scene.stop(SCENE_KEYS.TITLE);
+  });
   activeGame.scene.start(scene, sceneData);
 }
 

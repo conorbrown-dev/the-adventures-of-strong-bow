@@ -39,3 +39,23 @@ test("unauthenticated deep links redirect to lessons login and authenticated use
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: "Choose an adventure" })).toBeVisible();
 });
+
+for (const [gameName, sceneKey] of [
+  ["Sight Word Studio", "SightWordsQuizScene"],
+  ["Addition Lab", "AdditionGameScene"]
+] as const) {
+  test(`${gameName} launches from the learning library`, async ({ page }) => {
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error));
+
+    await openStudentAccess(page);
+    await page.getByRole("button", { name: "DEMO MODE" }).click();
+    await page.getByRole("button", { name: "Games" }).click();
+    await page.getByRole("button", { name: gameName }).click();
+
+    const canvas = page.locator("canvas");
+    await expect(canvas).toBeVisible();
+    await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", sceneKey);
+    expect(pageErrors).toEqual([]);
+  });
+}
