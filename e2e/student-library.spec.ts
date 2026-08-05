@@ -59,3 +59,19 @@ for (const [gameName, sceneKey] of [
     expect(pageErrors).toEqual([]);
   });
 }
+
+test("Sight Word Studio recovers after a direct-route refresh", async ({ page }) => {
+  const pageErrors: Error[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error));
+
+  await openStudentAccess(page);
+  await page.getByRole("button", { name: "DEMO MODE" }).click();
+  await page.getByRole("button", { name: "Games" }).click();
+  await page.getByRole("button", { name: "Sight Word Studio" }).click();
+  await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", "SightWordsQuizScene");
+
+  await page.reload();
+  await expect(page.locator("canvas")).toBeVisible();
+  await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", "SightWordsQuizScene");
+  expect(pageErrors).toEqual([]);
+});

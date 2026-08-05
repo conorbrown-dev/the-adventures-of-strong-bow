@@ -23,7 +23,9 @@ export function createGameConfig(
   parent?: string
 ): Phaser.Types.Core.GameConfig {
   return {
-    type: Phaser.AUTO,
+    // These activities are entirely 2D. Using Canvas avoids a lost WebGL
+    // context leaving an otherwise-running activity as a black screen.
+    type: Phaser.CANVAS,
     parent,
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
