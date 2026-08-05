@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
-import { type SightWord } from "../data/sightWords";
-import { loadSightWordSettings, recordSightWordAttempt, RESPONSE_THRESHOLD_MS } from "../settings/sightWordSettings";
+import { sightWords, type SightWord } from "../data/sightWords";
+import { recordSightWordAttempt, RESPONSE_THRESHOLD_MS } from "../settings/sightWordSettings";
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { addGameNavigation, returnToLearningLibrary } from "../utils/gameNavigation";
@@ -34,8 +34,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
   constructor() { super(SCENE_KEYS.SIGHT_WORDS_QUIZ); }
 
   create(): void {
-    const settings = loadSightWordSettings();
-    this.words = Phaser.Utils.Array.Shuffle([...settings.selectedWords]);
+    this.words = Phaser.Utils.Array.Shuffle([...sightWords]);
     this.audio = new AudioFeedbackSystem(this);
     this.cameras.main.setBackgroundColor(0x0a0714);
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0a0714);
@@ -66,9 +65,9 @@ export class SightWordsQuizScene extends Phaser.Scene {
   }
 
   private async presentNextWord(): Promise<void> {
-    if (!this.words.length) this.words = Phaser.Utils.Array.Shuffle([...loadSightWordSettings().selectedWords]);
+    if (!this.words.length) this.words = Phaser.Utils.Array.Shuffle([...sightWords]);
     this.currentWord = this.words.shift();
-    if (!this.currentWord) { this.setStatus("Choose at least one word in Word Pool & Progress to begin.", "#ffb86b"); return; }
+    if (!this.currentWord) return;
     this.wordText?.setText(this.currentWord).setAlpha(0).setScale(0.8);
     this.setFallbackWord(this.currentWord, "#ffe45c");
     this.tweens.add({ targets: this.wordText, alpha: 1, scale: 1, duration: 240, ease: "Back.Out" });
