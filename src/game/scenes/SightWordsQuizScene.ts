@@ -29,6 +29,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
   private recognition?: BrowserRecognition;
   private finished = false;
   private attemptId = 0;
+  private fallbackUi?: { root: HTMLDivElement; word: HTMLHeadingElement; status: HTMLParagraphElement; timer: HTMLDivElement; timerFill: HTMLDivElement };
 
   constructor() { super(SCENE_KEYS.SIGHT_WORDS_QUIZ); }
 
@@ -46,6 +47,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
     this.add.rectangle(GAME_WIDTH / 2, 590, 560, 22, 0x251a3e).setStrokeStyle(2, 0xc681ff);
     this.timerFill = this.add.rectangle(GAME_WIDTH / 2 - 278, 590, 0, 16, 0x45f6e5).setOrigin(0, 0.5);
     this.timerText = this.add.text(GAME_WIDTH / 2, 635, "", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "23px", color: "#ffffff" }).setOrigin(0.5);
+    this.createFallbackUi();
     addGameNavigation(this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.recognition?.abort());
     if (!this.words.length) this.showFinished(); else void this.presentNextWord();
@@ -57,17 +59,23 @@ export class SightWordsQuizScene extends Phaser.Scene {
     const remaining = Math.max(0, 7000 - elapsed);
     this.timerFill?.setDisplaySize(560 * remaining / 7000, 16).setFillStyle(remaining <= RESPONSE_THRESHOLD_MS ? 0xff70b8 : 0x45f6e5);
     this.timerText?.setText(`${(remaining / 1000).toFixed(1)} seconds`);
+    if (this.fallbackUi) {
+      this.fallbackUi.timer.textContent = `${(remaining / 1000).toFixed(1)} seconds`;
+      this.fallbackUi.timerFill.style.width = `${remaining / 70}%`;
+      this.fallbackUi.timerFill.style.background = remaining <= RESPONSE_THRESHOLD_MS ? "#ff70b8" : "#45f6e5";
+    }
   }
 
   private async presentNextWord(): Promise<void> {
     this.currentWord = this.words.shift();
     if (!this.currentWord) { this.showFinished(); return; }
     this.wordText?.setText(this.currentWord).setAlpha(0).setScale(0.8);
+    this.setFallbackWord(this.currentWord, "#ffe45c");
     this.tweens.add({ targets: this.wordText, alpha: 1, scale: 1, duration: 240, ease: "Back.Out" });
-    this.statusText?.setText("Read the word aloud when you hear the prompt.").setColor("#c5b5df");
+    this.setStatus("Read the word aloud when you hear the prompt.", "#c5b5df");
     await this.audio.speakPhrase("Read the word aloud.");
     if (this.finished || !this.currentWord) return;
-    if (!await this.requestMicrophone()) { this.statusText?.setText("Please allow microphone access to practice sight words.").setColor("#ffb86b"); return; }
+    if (!await this.requestMicrophone()) { this.setStatus("Please allow microphone access to practice sight words.", "#ffb86b"); return; }
     this.startListening(this.currentWord);
   }
 
@@ -85,7 +93,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
   private startListening(word: SightWord): void {
     const recognitionWindow = window as typeof window & { SpeechRecognition?: BrowserRecognitionConstructor; webkitSpeechRecognition?: BrowserRecognitionConstructor; };
     const Recognition = recognitionWindow.SpeechRecognition ?? recognitionWindow.webkitSpeechRecognition;
-    if (!Recognition) { this.statusText?.setText("Speech recognition is not available in this browser.").setColor("#ffb86b"); return; }
+    if (!Recognition) { this.setStatus("Speech recognition is not available in this browser.", "#ffb86b"); return; }
     const recognition = new Recognition(); this.recognition = recognition;
     recognition.lang = "en-US"; recognition.interimResults = false; recognition.continuous = false; recognition.maxAlternatives = 3;
     const attemptId = ++this.attemptId;
@@ -108,10 +116,10 @@ export class SightWordsQuizScene extends Phaser.Scene {
     const stats = recordSightWordAttempt(word, responseMs, correct);
     const seconds = (responseMs / 1000).toFixed(1);
     if (correct) {
-      this.statusText?.setText(stats.mastered ? `Mastered! ${seconds}s — this word will now rotate out.` : `Correct! ${seconds}s`).setColor("#45f6e5");
+      this.setStatus(stats.mastered ? `Mastered! ${seconds}s — this word will now rotate out.` : `Correct! ${seconds}s`, "#45f6e5");
       this.audio.playCorrectChime();
     } else {
-      this.statusText?.setText(`Try again next time. Response: ${seconds}s`).setColor("#ff70b8");
+      this.setStatus(`Try again next time. Response: ${seconds}s`, "#ff70b8");
       this.audio.playIncorrectFeedback();
     }
     this.time.delayedCall(1200, () => void this.presentNextWord());
@@ -120,11 +128,44 @@ export class SightWordsQuizScene extends Phaser.Scene {
   private showFinished(): void {
     this.finished = true; this.listening = false;
     this.wordText?.setText("Great work!").setFontSize(78).setColor("#45f6e5");
-    this.statusText?.setText("This practice pool is complete. Return to the game menu to choose another activity.").setColor("#ffffff");
+    this.setFallbackWord("Great work!", "#45f6e5");
+    this.setStatus("This practice pool is complete. Return to the game menu to choose another activity.", "#ffffff");
     this.timerFill?.setDisplaySize(0, 16); this.timerText?.setText("");
+    if (this.fallbackUi) { this.fallbackUi.timer.textContent = ""; this.fallbackUi.timerFill.style.width = "0"; }
     const button = this.add.rectangle(GAME_WIDTH / 2, 650, 250, 56, 0xc681ff).setStrokeStyle(2, 0xffffff, 0.8);
     const label = this.add.text(GAME_WIDTH / 2, 650, "GAME MENU", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "19px", color: "#ffffff" }).setOrigin(0.5);
     this.add.zone(GAME_WIDTH / 2, 650, 250, 56).setInteractive({ useHandCursor: true }).on("pointerdown", () => returnToLearningLibrary(this));
     void button; void label;
+  }
+
+  private setFallbackWord(word: string, color: string): void {
+    if (!this.fallbackUi) return;
+    this.fallbackUi.word.textContent = word;
+    this.fallbackUi.word.style.color = color;
+  }
+
+  private setStatus(text: string, color: string): void {
+    this.statusText?.setText(text).setColor(color);
+    if (!this.fallbackUi) return;
+    this.fallbackUi.status.textContent = text;
+    this.fallbackUi.status.style.color = color;
+  }
+
+  private createFallbackUi(): void {
+    document.querySelector("#sight-word-studio-fallback")?.remove();
+    const root = document.createElement("div");
+    root.id = "sight-word-studio-fallback";
+    root.style.cssText = "position:fixed;inset:0;z-index:5;display:grid;place-content:center;justify-items:center;gap:28px;padding:48px;background:radial-gradient(circle at 50% 20%,#211735,#0a0714 58%);color:#fff;text-align:center;font-family:Arial Black,Trebuchet MS,sans-serif";
+    const title = document.createElement("p"); title.textContent = "SIGHT WORD QUIZ"; title.style.cssText = "margin:0;font-size:clamp(28px,4vw,48px);letter-spacing:.12em";
+    const word = document.createElement("h1"); word.style.cssText = "margin:32px 0 0;font-size:clamp(76px,15vw,160px);line-height:1";
+    const status = document.createElement("p"); status.style.cssText = "max-width:700px;margin:0;font:500 clamp(20px,2.5vw,30px)/1.4 Trebuchet MS,sans-serif;color:#c5b5df";
+    const meter = document.createElement("div"); meter.style.cssText = "width:min(560px,80vw);height:22px;border:2px solid #c681ff;background:#251a3e";
+    const timerFill = document.createElement("div"); timerFill.style.cssText = "height:100%;width:0;background:#45f6e5;transition:width .1s linear"; meter.append(timerFill);
+    const timer = document.createElement("div"); timer.style.cssText = "min-height:28px;font-size:22px";
+    const back = document.createElement("button"); back.textContent = "BACK TO GAMES"; back.style.cssText = "margin-top:12px;padding:14px 22px;border:2px solid #ff70b8;border-radius:6px;background:#1b1430;color:#fff;font:800 16px Arial Black,Trebuchet MS,sans-serif;cursor:pointer";
+    back.addEventListener("click", () => returnToLearningLibrary(this));
+    root.append(title, word, status, meter, timer, back); document.body.append(root);
+    this.fallbackUi = { root, word, status, timer, timerFill };
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { root.remove(); this.fallbackUi = undefined; });
   }
 }

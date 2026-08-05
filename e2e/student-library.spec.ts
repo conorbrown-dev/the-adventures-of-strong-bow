@@ -69,9 +69,11 @@ test("Sight Word Studio recovers after a direct-route refresh", async ({ page })
   await page.getByRole("button", { name: "Games" }).click();
   await page.getByRole("button", { name: "Sight Word Studio" }).click();
   await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", "SightWordsQuizScene");
+  await expect(page.locator("#sight-word-studio-fallback")).toBeVisible();
 
   await page.reload();
   await expect(page.locator("canvas")).toBeVisible();
   await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", "SightWordsQuizScene");
+  await expect(page.locator("#sight-word-studio-fallback")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
