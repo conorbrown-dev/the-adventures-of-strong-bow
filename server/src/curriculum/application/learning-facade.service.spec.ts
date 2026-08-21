@@ -52,4 +52,17 @@ describe("LearningFacadeService", () => {
     expect(repository.attempts).toHaveLength(1);
     expect(repository.attempts[0]).toMatchObject({ independent: false, purpose: "adultScored", correct: true });
   });
+
+  it("filters templates by subject (ELA) for Kindergarten", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository());
+    const started = await service.start("learner", "practice", 42, undefined, "K", "ELA");
+    expect(started.question.templateId).toMatch(/^k\.rf\./);
+    expect((started.question.interaction as any).visual).toBeUndefined();
+  });
+
+  it("filters templates by subject (MATH) for Kindergarten", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository());
+    const started = await service.start("learner", "practice", 42, undefined, "K", "MATH");
+    expect(started.question.templateId).toMatch(/^k\.cc\./);
+  });
 });
