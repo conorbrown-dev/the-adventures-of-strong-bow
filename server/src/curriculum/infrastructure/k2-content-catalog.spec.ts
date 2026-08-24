@@ -103,8 +103,10 @@ describe("Kindergarten production content catalog", () => {
     expect(oklahomaMathTemplates.map((template) => template.standardId).sort()).toEqual(oklahomaMathStandards.map((standard) => standard.officialId).sort());
   });
 
-  it("includes every Oklahoma 2021 Kindergarten ELA objective as an adult-observed activity", () => {
-    expect(oklahomaElaStandards).toHaveLength(60);
+  it("includes every added Oklahoma 2021 ELA objective as an adult-observed activity", () => {
+    expect(oklahomaElaStandards).toHaveLength(122);
+    expect(oklahomaElaStandards.filter((standard) => standard.grade === "K")).toHaveLength(60);
+    expect(oklahomaElaStandards.filter((standard) => standard.grade === "1")).toHaveLength(62);
     expect(oklahomaElaTemplates.map((template) => template.standardId).sort()).toEqual(oklahomaElaStandards.map((standard) => standard.officialId).sort());
   });
 

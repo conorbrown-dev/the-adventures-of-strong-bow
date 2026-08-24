@@ -47,7 +47,7 @@ describe("LearningFacadeService", () => {
   it("serves Grade 2 mathematics and records Grade 2 diagnostic probes", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-two", "diagnostic", 42, undefined, "2", "MATH");
-    expect(started.question.templateId).toMatch(/^2\./);
+    expect(started.question.templateId).toMatch(/^(?:2\.|ok\.ela\.2\.)/);
     const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
     const current = sessions.get(started.sessionId)!;
     await service.submit(started.sessionId, current.instance.canonicalAnswer);

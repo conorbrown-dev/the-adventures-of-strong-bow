@@ -217,9 +217,10 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     const skill = String(configuration.skill);
     const standard = oklahomaElaStandards.find((item) => item.officialId === skill);
     if (!standard) throw new Error(`Unsupported Oklahoma ELA skill: ${skill}`);
+    const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
     interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for English Language Arts 2021" } };
-    values = { question: `Kindergarten literacy activity: With an adult, ${standard.statement}. Use an age-appropriate book, shared conversation, drawing, writing materials, or word and sound cards. Explain, show, read, write, or create what you know.` };
+    values = { question: `${gradeLabel} literacy activity: With an adult, ${standard.statement}. Use an age-appropriate book, shared conversation, drawing, writing materials, or word and sound cards. Explain, show, read, write, or create what you know.` };
     explanation = "An adult will observe the listening, speaking, reading, writing, or language skill named in this activity.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);

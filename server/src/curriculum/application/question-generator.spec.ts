@@ -209,12 +209,12 @@ describe("reviewed deterministic question engine", () => {
     }
   });
 
-  it("generates complete adult-observed activities for every Oklahoma Kindergarten ELA objective", () => {
+  it("generates complete adult-observed activities for every added Oklahoma ELA objective", () => {
     for (const catalogTemplate of oklahomaElaTemplates) {
       const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
       const instance = generateQuestion(template, "oklahoma-kindergarten-ela");
       expect(instance.responseType).toBe("constructedResponse");
-      expect(instance.prompt.text).toContain("Kindergarten literacy activity");
+      expect(instance.prompt.text).toContain("literacy activity");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Academic Standards for English Language Arts 2021" }) }));
     }
   });
