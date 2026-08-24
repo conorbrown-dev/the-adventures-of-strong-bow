@@ -96,7 +96,7 @@ describe("Kindergarten production content catalog", () => {
   });
 
   it("includes every added Oklahoma 2022 mathematics objective as an adult-observed activity", () => {
-    expect(oklahomaMathStandards).toHaveLength(59);
+    expect(oklahomaMathStandards).toHaveLength(95);
     expect(oklahomaMathTemplates.map((template) => template.standardId).sort()).toEqual(oklahomaMathStandards.map((standard) => standard.officialId).sort());
   });
 
