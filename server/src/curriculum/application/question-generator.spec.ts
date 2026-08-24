@@ -19,6 +19,7 @@ import { oklahomaHealthTemplates } from "../data/oklahoma-health-templates";
 import { oklahomaPhysicalEducationTemplates } from "../data/oklahoma-physical-education-templates";
 import { oklahomaFineArtsTemplates } from "../data/oklahoma-fine-arts-templates";
 import { oklahomaComputerScienceTemplates } from "../data/oklahoma-computer-science-templates";
+import { oklahomaEducationTechnologyTemplates } from "../data/oklahoma-education-technology-templates";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
 
@@ -183,6 +184,16 @@ describe("reviewed deterministic question engine", () => {
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("computer science activity");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
+    }
+  });
+
+  it("generates complete adult-guided activities for every Oklahoma K–2 educational technology target", () => {
+    for (const catalogTemplate of oklahomaEducationTechnologyTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "oklahoma-education-technology");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.prompt.text).toContain("supplemental digital learning activity");
+      expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Educational Technology Standards (ISTE 2016)" }) }));
     }
   });
 

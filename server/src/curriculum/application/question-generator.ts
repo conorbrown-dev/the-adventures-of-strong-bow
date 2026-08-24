@@ -7,6 +7,7 @@ import { oklahomaFineArtsStandards } from "../data/oklahoma-fine-arts-standards"
 import { oklahomaComputerScienceStandards } from "../data/oklahoma-computer-science-standards";
 import { oklahomaInformationLiteracyStandards } from "../data/oklahoma-information-literacy-standards";
 import { oklahomaAiCompetencies } from "../data/oklahoma-ai-competencies";
+import { oklahomaEducationTechnologyStandards } from "../data/oklahoma-education-technology-standards";
 
 class Random {
   private state: number;
@@ -183,13 +184,15 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     explanation = "An adult will observe the artistic process, care for people and materials, and the skill named in this activity.";
   } else if (template.generator.kind === "oklahomaComputerScienceAdult") {
     const skill = String(configuration.skill);
-    const standard = [...oklahomaComputerScienceStandards, ...oklahomaAiCompetencies].find((item) => item.officialId === skill);
+    const standard = [...oklahomaComputerScienceStandards, ...oklahomaAiCompetencies, ...oklahomaEducationTechnologyStandards].find((item) => item.officialId === skill);
     if (!standard) throw new Error(`Unsupported Oklahoma computer science skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Computer Science 2023" } };
-    values = { question: `${gradeLabel} ${standard.strand === "Supplemental AI" ? "supplemental AI" : "computer science"} activity: With an adult, ${standard.statement}. Use a safe unplugged model, hands-on materials, robot, or appropriate device. Explain the steps, pattern, data, or safe choice you used.` };
-    explanation = "An adult will observe the computer science thinking and safe, responsible use named in this activity.";
+    const isEducationalTechnology = standard.strand === "Supplemental Digital Learning";
+    interaction = { kind: "adultScored", target: { standardId: skill, framework: isEducationalTechnology ? "Oklahoma Educational Technology Standards (ISTE 2016)" : "Oklahoma Academic Standards for Computer Science 2023" } };
+    const activityLabel = isEducationalTechnology ? "supplemental digital learning" : standard.strand === "Supplemental AI" ? "supplemental AI" : "computer science";
+    values = { question: `${gradeLabel} ${activityLabel} activity: With an adult, ${standard.statement}. Use a safe unplugged model, hands-on materials, robot, or appropriate device as appropriate. Explain the steps, pattern, information, or safe choice you used.` };
+    explanation = "An adult will observe the computational thinking, communication, collaboration, and safe, responsible use named in this activity.";
   } else if (template.generator.kind === "oklahomaInformationLiteracyAdult") {
     const skill = String(configuration.skill);
     const standard = oklahomaInformationLiteracyStandards.find((item) => item.officialId === skill);

@@ -16,6 +16,8 @@ import { oklahomaFineArtsStandards } from "../data/oklahoma-fine-arts-standards"
 import { oklahomaFineArtsTemplates } from "../data/oklahoma-fine-arts-templates";
 import { oklahomaComputerScienceStandards } from "../data/oklahoma-computer-science-standards";
 import { oklahomaComputerScienceTemplates } from "../data/oklahoma-computer-science-templates";
+import { oklahomaEducationTechnologyStandards } from "../data/oklahoma-education-technology-standards";
+import { oklahomaEducationTechnologyTemplates } from "../data/oklahoma-education-technology-templates";
 import { loadLearningStandards } from "./learning-standards";
 
 describe("Kindergarten production content catalog", () => {
@@ -26,7 +28,7 @@ describe("Kindergarten production content catalog", () => {
     const originalReviewed = kindergarten.filter((template) => template.review.reviewer === "Conor Brown");
     expect(originalReviewed).toHaveLength(27);
     expect(originalReviewed.every((template) => template.review.contentHash)).toBe(true);
-    expect(kindergarten).toHaveLength(305);
+    expect(kindergarten).toHaveLength(312);
     expect(kindergarten.every((template) => template.review.status === "reviewed")).toBe(true);
   });
 
@@ -82,6 +84,12 @@ describe("Kindergarten production content catalog", () => {
     expect(oklahomaComputerScienceTemplates).toHaveLength(oklahomaComputerScienceStandards.length);
     expect(oklahomaComputerScienceTemplates).toHaveLength(57);
     expect(oklahomaComputerScienceTemplates.every((template) => template.subject === "computerScience" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
+  });
+
+  it("includes a supplemental educational-technology activity for every adopted ISTE learner area at each grade", () => {
+    expect(oklahomaEducationTechnologyStandards).toHaveLength(21);
+    expect(oklahomaEducationTechnologyTemplates).toHaveLength(oklahomaEducationTechnologyStandards.length);
+    expect(oklahomaEducationTechnologyTemplates.every((template) => template.subject === "computerScience" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
   });
 
   it("includes every independently assessable Grade 2 mathematics target", async () => {
