@@ -3,7 +3,7 @@ type GradeOneLanguageVariant = { question: string; answer: string; choices: stri
 /** Additional original prompts for Grade 1 language, phonics, and word-reading practice. */
 export const gradeOneLanguageVariants: Record<string, GradeOneLanguageVariant[]> = {
   "1.L.1.b": [{ question: "Which word names a place?", answer: "school", choices: ["school", "jump", "yellow"], explanation: "School names a place, so it is a noun." }],
-  "1.L.1.c": [{ question: "Which sentence has a noun and verb that agree?", answer: "The cats play.", choices: ["The cats play.", "The cats plays.", "The cats playing."], explanation: "Cats is plural, so it uses the verb play." }],
+  "1.L.1.c": [{ question: "Choose the sentence whose subject and action word match.", answer: "The cats play.", choices: ["The cats play.", "The cats plays.", "The cats playing."], explanation: "Cats is plural, so it uses the verb play." }],
   "1.L.1.d": [{ question: "Which word can take the place of Mia and I?", answer: "we", choices: ["we", "blue", "run"], explanation: "We is a pronoun that can take the place of Mia and I." }],
   "1.L.1.e": [{ question: "Which sentence tells about tomorrow?", answer: "Tomorrow I will visit Grandma.", choices: ["Tomorrow I will visit Grandma.", "Tomorrow I visited Grandma.", "Tomorrow I visit yesterday."], explanation: "Will visit tells about something that will happen." }],
   "1.L.1.f": [{ question: "Which word describes the kite?", answer: "red", choices: ["red", "fly", "kite"], explanation: "Red is an adjective because it tells about the kite." }],
@@ -30,7 +30,7 @@ export const gradeOneLanguageVariants: Record<string, GradeOneLanguageVariant[]>
   "1.RF.3.b": [{ question: "Which word says /f/ /r/ /o/ /g/?", answer: "frog", choices: ["frog", "fog", "flag"], explanation: "The sounds blend to make frog." }],
   "1.RF.3.c": [{ question: "Which word has a vowel team that makes the long e sound?", answer: "seed", choices: ["seed", "said", "sad"], explanation: "The letters ee in seed make the long e sound." }],
   "1.RF.3.d": [{ question: "How many syllables are in tiger?", answer: "2", choices: ["2", "1", "3"], explanation: "Ti-ger has two syllables." }],
-  "1.RF.3.e": [{ question: "Which word has two syllables?", answer: "rabbit", choices: ["rabbit", "cat", "jump"], explanation: "Rab-bit has two syllables." }],
+  "1.RF.3.e": [{ question: "Which word can you clap into two parts?", answer: "rabbit", choices: ["rabbit", "cat", "jump"], explanation: "Rab-bit has two syllables." }],
   "1.RF.3.f": [{ question: "Which word tells that something happened in the past?", answer: "played", choices: ["played", "play", "player"], explanation: "The ending ed tells that it happened in the past." }],
   "1.RF.3.g": [{ question: "Which word is an irregular word to remember?", answer: "were", choices: ["were", "sun", "map"], explanation: "Were is a common irregular word that readers learn by memory." }]
 };

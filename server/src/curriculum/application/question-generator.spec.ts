@@ -143,6 +143,20 @@ describe("reviewed deterministic question engine", () => {
     }
   });
 
+  it("varies every auto-scored Kindergarten through Grade 2 ELA practice prompt", () => {
+    const elaTemplates = [...kindergartenElaTemplates, ...gradeOneElaTemplates, ...gradeTwoElaTemplates];
+    for (const catalogTemplate of elaTemplates) {
+      const template = catalogTemplateToQuestionTemplate(catalogTemplate);
+      const questions = Array.from({ length: 30 }, (_, seed) => generateQuestion(template, seed));
+      const prompts = new Set(questions.map((question) => question.prompt.text));
+      if (prompts.size <= 1) throw new Error(`${catalogTemplate.id} does not vary across practice seeds.`);
+      for (const question of questions) {
+        const labels = (question.interaction.choices as Array<{ label: string }>).map((choice) => choice.label);
+        expect(labels).toContain(String(question.canonicalAnswer));
+      }
+    }
+  });
+
   it("generates complete adult-observed tasks for every Oklahoma K–2 science standard", () => {
     for (const catalogTemplate of oklahomaScienceTemplates) {
       const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);

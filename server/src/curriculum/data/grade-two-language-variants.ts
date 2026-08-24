@@ -22,7 +22,7 @@ export const gradeTwoLanguageVariants: Record<string, GradeTwoLanguageVariant[]>
   "2.L.6": [{ question: "Which sentence uses a precise word for moving quickly?", answer: "The rabbit sprinted home.", choices: ["The rabbit sprinted home.", "The rabbit did a thing.", "Rabbit home very."], explanation: "Sprinted is a precise word for moving quickly." }],
   "2.RF.3.a": [{ question: "Which word has the short a sound?", answer: "crab", choices: ["crab", "cake", "rain"], explanation: "Crab has the short a sound." }],
   "2.RF.3.b": [{ question: "Which word has the vowel team oa?", answer: "float", choices: ["float", "flat", "flit"], explanation: "Float has the vowel team oa." }],
-  "2.RF.3.c": [{ question: "Which two-syllable word has a long vowel sound?", answer: "robot", choices: ["robot", "basket", "kitten"], explanation: "Robot has a long o sound in its first syllable." }],
+  "2.RF.3.c": [{ question: "Which two-syllable word has a long o sound in its first part?", answer: "robot", choices: ["robot", "basket", "kitten"], explanation: "Robot has a long o sound in its first syllable." }],
   "2.RF.3.d": [{ question: "What does the word careless mean?", answer: "not careful", choices: ["not careful", "careful again", "full of care"], explanation: "The suffix -less means without or not having." }],
   "2.RF.3.e": [{ question: "Which word has an irregular spelling to remember?", answer: "does", choices: ["does", "dog", "map"], explanation: "Does does not sound exactly the way its letters usually spell." }],
   "2.RF.3.f": [{ question: "Which is a Grade 2 word that readers often learn by memory?", answer: "beautiful", choices: ["beautiful", "sun", "cat"], explanation: "Beautiful has a spelling that readers learn to recognize and remember." }]
