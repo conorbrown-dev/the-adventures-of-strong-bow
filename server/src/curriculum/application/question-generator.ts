@@ -15,6 +15,7 @@ import { gradeOneReadingVariants } from "../data/grade-one-reading-variants";
 import { kindergartenReadingVariants } from "../data/kindergarten-reading-variants";
 import { gradeTwoLanguageVariants } from "../data/grade-two-language-variants";
 import { gradeOneLanguageVariants } from "../data/grade-one-language-variants";
+import { kindergartenLanguageVariants } from "../data/kindergarten-language-variants";
 
 class Random {
   private state: number;
@@ -289,7 +290,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     };
     const baseItem = items[skill];
     if (!baseItem) throw new Error(`Unsupported Kindergarten ELA skill: ${skill}`);
-    const variants = kindergartenReadingVariants[skill] ?? [];
+    const variants = [...(kindergartenReadingVariants[skill] ?? []), ...(kindergartenLanguageVariants[skill] ?? [])];
     const item = [baseItem, ...variants][random.integer(0, variants.length)];
     interaction = choiceInteraction(random.shuffle(item.choices)); canonicalAnswer = item.answer; values = { question: item.question }; explanation = item.explanation;
   } else if (template.generator.kind === "gradeTwoMath") {
