@@ -221,10 +221,16 @@ export function LearningApp(): JSX.Element {
   };
   const advance = async () => {
     if (!session) return;
-    const next = await learningApplication.next(session.sessionId);
-    if (!next) { navigate("/learning/progress"); return; }
-    setSession(next);
-    resetQuestionState();
+    try {
+      setError(null);
+      stopSpeaking();
+      const next = await learningApplication.next(session.sessionId);
+      if (!next) { navigate("/learning/progress"); return; }
+      setSession(next);
+      resetQuestionState();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to continue your learning session.");
+    }
   };
   const choosePhoneme = (choice: string) => { stopSpeaking(); void submit(choice); };
   const scoreAdult = async (demonstrated: boolean) => {

@@ -124,14 +124,23 @@ export function QuizApp(): JSX.Element | null {
     const result: StudentSession = { demo: true, token: "demo-mode", student: { id: "demo-player", username: "Demo Player", grade: "K", subjects: ["ELA", "MATH"] } };
     saveStudentSession(result); setSession(result); navigate("/");
   }
+  async function saveQuizAttempt(completedQuiz: CurriculumQuiz, correctAnswers: number): Promise<void> {
+    if (!session || session.demo) return;
+    try {
+      await studentApi(`/students/${session.student.id}/quiz-attempts`, "POST", { subject: completedQuiz.subject, grade: completedQuiz.grade, quizId: completedQuiz.id, standardCode: completedQuiz.questions.map((item) => item.standardCode).join(", "), correctAnswers, questionCount: completedQuiz.questions.length, durationMs: Date.now() - startedAt });
+      setMessage("Your progress has been saved.");
+    } catch {
+      setMessage("Your quiz is complete, but your progress could not be saved. Please try again later.");
+    }
+  }
   function answer(transcript: string): void {
     if (!quiz || !question) return;
     stopSpeaking();
     if (!isCorrectAnswer(transcript, question.acceptedAnswers)) { setFeedback("Try again. Listen to the question and say your answer."); speak("Try again. Listen to the question and say your answer."); return; }
     const nextCorrect = correct + 1;
     if (questionIndex + 1 < quiz.questions.length) { setCorrect(nextCorrect); setQuestionIndex((index) => index + 1); setResponse(""); setFeedback(""); return; }
-    setCorrect(nextCorrect); setScreen("complete");
-    if (session && !session.demo) void studentApi(`/students/${session.student.id}/quiz-attempts`, "POST", { subject: quiz.subject, grade: quiz.grade, quizId: quiz.id, standardCode: quiz.questions.map((item) => item.standardCode).join(", "), correctAnswers: nextCorrect, questionCount: quiz.questions.length, durationMs: Date.now() - startedAt });
+    setCorrect(nextCorrect); setMessage(session?.demo ? "Demo activity is not saved." : "Saving your progress…"); setScreen("complete");
+    void saveQuizAttempt(quiz, nextCorrect);
   }
   function listen(): void {
     const recognitionWindow = window as typeof window & { SpeechRecognition?: BrowserRecognitionConstructor; webkitSpeechRecognition?: BrowserRecognitionConstructor };
@@ -163,7 +172,7 @@ export function QuizApp(): JSX.Element | null {
     {screen === "library" && session && <div className="library-panel"><p className="eyebrow">LESSONS & QUIZZES</p><h1>What would you like to learn?</h1><p>Pick a subject for a guided lesson and oral practice.</p><div className="library-grid">{(session.demo || session.student.subjects.includes("MATH")) && <MenuCard title="Math Lessons" description={`${session.demo ? "All grades" : gradeLabel(session.student.grade)} · guided lesson and oral practice`} color="cyan" onClick={() => startQuiz(session, "MATH")} />}{(session.demo || session.student.subjects.includes("ELA")) && <MenuCard title="Reading & Language" description={`${session.demo ? "All grades" : gradeLabel(session.student.grade)} · guided lesson and oral practice`} color="purple" onClick={() => startQuiz(session, "ELA")} />}</div><div className="actions"><button className="secondary" onClick={() => void viewProgress()}>MY PROGRESS</button><button className="secondary" onClick={signOut}>SIGN OUT</button></div></div>}
     {screen === "lesson" && quiz && <div className="lesson-panel"><p className="eyebrow">MINI LESSON · {quiz.title.toUpperCase()}</p><div className="prompt"><h1>{quiz.lesson.title}</h1><SpeakerButton text={`${quiz.lesson.title}. ${quiz.lesson.explanation} Key idea: ${quiz.lesson.keyIdea}`} label="Read lesson aloud" /></div><p className="lesson-explanation">{quiz.lesson.explanation}</p><aside><strong>KEY IDEA</strong><span>{quiz.lesson.keyIdea}</span></aside><div className="actions"><button onClick={() => { stopSpeaking(); setScreen("quiz"); }}>START PRACTICE</button></div></div>}
     {screen === "quiz" && quiz && question && <div className="quiz-panel"><p className="eyebrow">{quiz.title.toUpperCase()} · {questionIndex + 1} OF {quiz.questions.length}</p><div className="prompt"><h1>{question.prompt}</h1><SpeakerButton text={question.prompt} label="Read question aloud" /></div><section className="oral-answer"><p>Say your answer out loud.</p><button className="microphone-button" onClick={listen}>{listening ? "LISTENING…" : "🎙️ SAY ANSWER"}</button><p className="or">or type an answer</p><form onSubmit={(event) => { event.preventDefault(); answer(response); }}><input aria-label="Type your answer" value={response} onChange={(event) => setResponse(event.target.value)} /><button type="submit">CHECK</button></form>{feedback && <p className="feedback">{feedback}</p>}</section><footer><button className="text-button" onClick={() => void viewProgress()}>MY PROGRESS</button><button className="text-button pink" onClick={signOut}>SIGN OUT</button></footer></div>}
-    {screen === "complete" && quiz && <div className="result-panel"><p className="eyebrow">QUIZ COMPLETE</p><h1>Great learning!</h1><p>You scored <strong>{correct} / {quiz.questions.length}</strong>.</p><p>{session?.demo ? "Demo activity is not saved." : "Your progress has been saved."}</p><div className="actions"><button onClick={() => startQuiz()}>NEXT QUIZ</button><button className="secondary" onClick={() => setScreen("library")}>CHOOSE PRACTICE</button><button className="secondary" onClick={() => void viewProgress()}>MY PROGRESS</button></div></div>}
+    {screen === "complete" && quiz && <div className="result-panel"><p className="eyebrow">QUIZ COMPLETE</p><h1>Great learning!</h1><p>You scored <strong>{correct} / {quiz.questions.length}</strong>.</p><p>{message}</p><div className="actions"><button onClick={() => startQuiz()}>NEXT QUIZ</button><button className="secondary" onClick={() => setScreen("library")}>CHOOSE PRACTICE</button><button className="secondary" onClick={() => void viewProgress()}>MY PROGRESS</button></div></div>}
     {screen === "progress" && <div className="result-panel"><p className="eyebrow">MY PROGRESS</p><h1>{session?.demo ? "Demo Mode" : "Learning progress"}</h1>{session?.demo ? <p>All grades and subjects are unlocked. Demo activity is not saved.</p> : progress ? <p>Quizzes completed: <strong>{progress.completedQuizzes}</strong><br />Quiz accuracy: <strong>{progress.accuracy === null ? "Not scored yet" : `${progress.accuracy}%`}</strong><br />Mastered sight words: <strong>{progress.masteredSightWords}</strong></p> : <p>{message || "Loading progress…"}</p>}<div className="actions"><button onClick={() => startQuiz()}>BACK TO QUIZ</button></div></div>}
   </section></main>;
 }

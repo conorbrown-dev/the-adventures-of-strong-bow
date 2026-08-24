@@ -35,21 +35,28 @@ export function clearStudentSession(): void { localStorage.removeItem(SESSION_KE
 
 export async function studentApi<T>(path: string, method = "GET", body?: object): Promise<T> {
   const session = loadStudentSession();
-  const response = await fetch(`${API_ROOT}${path}`, {
-    method,
-    headers: { "Content-Type": "application/json", ...(session ? { Authorization: `Bearer ${session.token}` } : {}) },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
+  let response: Response;
+  try {
+    response = await fetch(`${API_ROOT}${path}`, {
+      method,
+      headers: { "Content-Type": "application/json", ...(session ? { Authorization: `Bearer ${session.token}` } : {}) },
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch {
     throw new Error("The learning server is unavailable. Start the student API and try again.");
   }
-  const payload = await response.json().catch(() => ({}));
+  const contentType = response.headers.get("content-type") ?? "";
+  const isJson = contentType.includes("application/json");
+  const payload = isJson ? await response.json().catch(() => ({})) : {};
   if (!response.ok) {
     if (response.status >= 500) {
       throw new Error("The learning service is temporarily unavailable. Please try again soon.");
     }
-    throw new Error(Array.isArray(payload.message) ? payload.message.join(" ") : payload.message ?? "Unable to reach the learning server.");
+    const message = (payload as { message?: unknown }).message;
+    throw new Error(Array.isArray(message) ? message.join(" ") : typeof message === "string" ? message : "Unable to reach the learning server.");
+  }
+  if (!isJson) {
+    throw new Error("The learning server is unavailable. Start the student API and try again.");
   }
   return payload as T;
 }

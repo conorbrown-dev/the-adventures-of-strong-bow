@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { mockModelTts } from "./testSupport";
+
+test.beforeEach(async ({ page }) => mockModelTts(page));
 
 async function openStudentAccess(page: import("@playwright/test").Page): Promise<void> {
   await page.goto("/");
@@ -6,13 +9,16 @@ async function openStudentAccess(page: import("@playwright/test").Page): Promise
   await expect(page.getByRole("heading", { name: "STUDENT QUIZZES" })).toBeVisible();
 }
 
-test("demo mode opens the full learning library", async ({ page }) => {
+test("demo mode exposes lessons and games in their own libraries", async ({ page }) => {
   await openStudentAccess(page);
   await page.getByRole("button", { name: "DEMO MODE" }).click();
   await page.getByRole("button", { name: "Lessons & Quizzes" }).click();
   await expect(page.getByRole("heading", { name: "What would you like to learn?" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Math Lessons" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reading & Language" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sight Word Studio" })).toHaveCount(0);
+  await page.getByRole("button", { name: "MAIN MENU" }).click();
+  await page.getByRole("button", { name: "Games" }).click();
   await expect(page.getByRole("button", { name: "Sight Word Studio" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Vowel Sounds" })).toBeVisible();
 });
@@ -68,12 +74,32 @@ test("Sight Word Studio recovers after a direct-route refresh", async ({ page })
   await page.getByRole("button", { name: "DEMO MODE" }).click();
   await page.getByRole("button", { name: "Games" }).click();
   await page.getByRole("button", { name: "Sight Word Studio" }).click();
-  await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", "SightWordsQuizScene");
-  await expect(page.locator("#sight-word-studio-fallback")).toBeVisible();
+  await expect(page).toHaveURL(/\/games\/sight-words$/);
+  await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", "SightWordsQuizScene", { timeout: 15_000 });
 
   await page.reload();
   await expect(page.locator("canvas")).toBeVisible();
-  await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", "SightWordsQuizScene");
-  await expect(page.locator("#sight-word-studio-fallback")).toBeVisible();
+  await expect(page).toHaveURL(/\/games\/sight-words$/);
+  await expect(page.locator("#phaser-root")).toHaveAttribute("data-active-scene", "SightWordsQuizScene", { timeout: 15_000 });
+  expect(pageErrors).toEqual([]);
+});
+
+test("a failed quiz save is explained without an unhandled error", async ({ page }) => {
+  const pageErrors: Error[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error));
+  await page.addInitScript(() => localStorage.setItem("mollys-learning-academy.student-session", JSON.stringify({ token: "test-token", student: { id: "test-student", username: "Test Student", grade: "K", subjects: ["MATH"] } })));
+  await page.route("**/api/students/test-student/quiz-attempts", (route) => route.fulfill({ status: 500, json: { message: "Save failed" } }));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Lessons & Quizzes" }).click();
+  await page.getByRole("button", { name: "Math Lessons" }).click();
+  await page.getByRole("button", { name: "START PRACTICE" }).click();
+  for (const answer of ["7", "five", "3"]) {
+    await page.getByLabel("Type your answer").fill(answer);
+    await page.getByRole("button", { name: "CHECK", exact: true }).click();
+  }
+
+  await expect(page.getByRole("heading", { name: "Great learning!" })).toBeVisible();
+  await expect(page.getByText("Your quiz is complete, but your progress could not be saved. Please try again later.")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });

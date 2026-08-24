@@ -69,11 +69,17 @@ export class CurriculumQuizScene extends Phaser.Scene {
     const session = loadStudentSession();
     this.content?.destroy(true);
     const score = `${this.correctAnswers} / ${quiz.questions.length}`;
-    this.showMessage(`Great learning!\nYou scored ${score}.\n\nYour progress has been saved.`, () => this.scene.restart());
-    if (!session || session.demo) return;
+    if (!session || session.demo) {
+      this.showMessage(`Great learning!\nYou scored ${score}.\n\nDemo activity is not saved.`, () => this.scene.restart());
+      return;
+    }
+    this.showMessage(`Great learning!\nYou scored ${score}.\n\nSaving your progress…`);
     try {
       await studentApi(`/students/${session.student.id}/quiz-attempts`, "POST", { subject: quiz.subject, grade: quiz.grade, quizId: quiz.id, standardCode: quiz.questions.map((question) => question.standardCode).join(", "), correctAnswers: this.correctAnswers, questionCount: quiz.questions.length, durationMs: Date.now() - this.startedAt });
-    } catch { /* The player can keep learning if the server temporarily disconnects. */ }
+      this.showMessage(`Great learning!\nYou scored ${score}.\n\nYour progress has been saved.`, () => this.scene.restart());
+    } catch {
+      this.showMessage(`Great learning!\nYou scored ${score}.\n\nYour progress could not be saved. Please try again later.`, () => this.scene.restart());
+    }
   }
 
   private showMessage(message: string, action?: () => void): void {

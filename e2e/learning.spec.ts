@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { mockModelTts } from "./testSupport";
 
 test("Learning is interactive without launching Phaser", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  await mockModelTts(page);
 
   const question = {
     schemaVersion: 1,
@@ -21,6 +23,14 @@ test("Learning is interactive without launching Phaser", async ({ page }) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith("/answers")) {
       await route.fulfill({ json: { correct: true, explanation: question.explanation, masteryState: "learning", complete: true } });
+      return;
+    }
+    if (url.pathname.endsWith("/next")) {
+      await route.fulfill({ json: { session: null } });
+      return;
+    }
+    if (url.pathname.includes("/progress/")) {
+      await route.fulfill({ json: { attempts: [], mastery: [], latestDiagnosticPlacement: null } });
       return;
     }
     await route.fulfill({ json: session });
@@ -42,6 +52,8 @@ test("Learning is interactive without launching Phaser", async ({ page }) => {
   await page.getByRole("button", { name: "CHECK ANSWER" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator(".learning-question .feedback")).toHaveText(question.explanation);
+  await page.getByRole("button", { name: "FINISH SESSION" }).click();
+  await expect(page.getByRole("heading", { name: "Your skills" })).toBeVisible();
   await expect(page.locator("#phaser-root canvas")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
