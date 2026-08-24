@@ -148,6 +148,7 @@ export function LearningApp(): JSX.Element {
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [classification, setClassification] = useState<Classification>({});
   const [sequenceAnswer, setSequenceAnswer] = useState<string[]>([]);
+  const [adultChecks, setAdultChecks] = useState<string[]>([]);
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
@@ -160,6 +161,7 @@ export function LearningApp(): JSX.Element {
   const sequence = sequenceData(session);
   const choices = session?.question.interaction.choices ?? [];
   const hasPhonemeChoices = isPhonemeChoiceQuestion(session, choices);
+  const adultChecklist = session?.question.interaction.adultChecklist ?? [];
   const canSubmit = sorting
     ? sorting.items.every((item) => Boolean(classification[item]))
     : sequence
@@ -183,7 +185,7 @@ export function LearningApp(): JSX.Element {
     }
   }, [learnerId, location.pathname]);
 
-  const resetQuestionState = () => { setSelectedAnswer(""); setClassification({}); setSequenceAnswer([]); setResult(null); setIsListening(false); };
+  const resetQuestionState = () => { setSelectedAnswer(""); setClassification({}); setSequenceAnswer([]); setAdultChecks([]); setResult(null); setIsListening(false); };
   const start = async (purpose: "practice" | "diagnostic" | "placement" | "proctored" | "adultScored") => {
     try {
       setIsLoadingSession(true);
@@ -270,7 +272,8 @@ export function LearningApp(): JSX.Element {
       {session.question.prompt.instructions && <p className="question-instructions">{session.question.prompt.instructions}</p>}
       {location.pathname === "/learning/adult-scored" && !result ? <section className="adult-score">
         <p>Adult: observe the student complete this activity, then record the result.</p>
-        <div className="actions"><button onClick={() => void scoreAdult(true)}>SKILL DEMONSTRATED</button><button className="secondary" onClick={() => void scoreAdult(false)}>KEEP PRACTICING</button></div>
+        {adultChecklist.length > 0 && <fieldset className="adult-checklist"><legend>Before recording a result, check each item.</legend>{adultChecklist.map((item, index) => <label className="check" key={item}><input type="checkbox" checked={adultChecks.includes(String(index))} onChange={() => setAdultChecks((current) => current.includes(String(index)) ? current.filter((value) => value !== String(index)) : [...current, String(index)])} /> {item}</label>)}</fieldset>}
+        <div className="actions"><button disabled={adultChecklist.length > 0 && adultChecks.length !== adultChecklist.length} onClick={() => void scoreAdult(true)}>SKILL DEMONSTRATED</button><button className="secondary" onClick={() => void scoreAdult(false)}>KEEP PRACTICING</button></div>
       </section> : sorting ? <section className="classification-answer" aria-label="Letter sorting activity">
         {sorting.items.map((item) => <div className="classification-item" key={item}><strong>{item}</strong><div>{sorting.categories.map((category) => <button aria-pressed={classification[item] === category} className={classification[item] === category ? "selected" : "secondary"} disabled={Boolean(result)} key={category} onClick={() => setClassification((current) => ({ ...current, [item]: category }))}>{category}</button>)}</div></div>)}
       </section> : sequence ? <section className="sequence-answer" aria-label="Number ordering activity">

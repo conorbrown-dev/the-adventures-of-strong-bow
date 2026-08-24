@@ -28,6 +28,15 @@ const numberParam = (values: Record<string, unknown>, key: string) => Number(val
 const text = (template: QuestionTemplate, values: Record<string, string | number>) => template.prompt.text.replace(/{{(.*?)}}/g, (_, key: string) => String(values[key] ?? ""));
 const audioText = (template: QuestionTemplate, values: Record<string, string | number>) => template.prompt.audioText?.replace(/{{(.*?)}}/g, (_, key: string) => String(values[key] ?? "")) ?? null;
 const choiceInteraction = (choices: Array<string | number>) => ({ kind: "choices", choices: choices.map((value) => ({ id: String(value), label: String(value) })) });
+const adultScoredInteraction = (standardId: string, statement: string, framework?: string) => ({
+  kind: "adultScored",
+  target: { standardId, ...(framework ? { framework } : {}) },
+  adultChecklist: [
+    "The student had the materials, time, and support needed for this activity.",
+    `The student demonstrated this skill: ${statement}`,
+    "I saw or heard enough evidence to make a fair decision about the skill."
+  ]
+});
 
 export function generateQuestion(template: QuestionTemplate, seed: string | number): QuestionInstance {
   const random = new Random(seed); const configuration = params(template);
@@ -145,7 +154,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     if (!standard) throw new Error(`Unsupported Oklahoma science skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Science 2026" } };
+    interaction = adultScoredInteraction(skill, standard.statement, "Oklahoma Academic Standards for Science 2026");
     values = { question: `${gradeLabel} science investigation: Work with an adult to ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Talk about what you notice, draw or build when it helps, and explain your evidence.` };
     explanation = "An adult will check the investigation, evidence, and explanation together with you.";
   } else if (template.generator.kind === "oklahomaSocialStudiesAdult") {
@@ -154,7 +163,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     if (!standard) throw new Error(`Unsupported Oklahoma social studies skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Social Studies 2026" } };
+    interaction = adultScoredInteraction(skill, standard.statement, "Oklahoma Academic Standards for Social Studies 2026");
     values = { question: `${gradeLabel} social studies inquiry: Work with an adult to ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Use a map, book, picture, object, or conversation when it helps. Explain your thinking and what evidence supports it.` };
     explanation = "An adult will check your evidence, explanation, and social studies thinking together with you.";
   } else if (template.generator.kind === "oklahomaHealthAdult") {
@@ -163,7 +172,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     if (!standard) throw new Error(`Unsupported Oklahoma health skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Health Education 2026" } };
+    interaction = adultScoredInteraction(skill, standard.statement, "Oklahoma Academic Standards for Health Education 2026");
     values = { question: `${gradeLabel} health activity: Work with an adult to ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Talk about safe choices and show what you know using a drawing, role-play, or daily routine when it helps.` };
     explanation = "An adult will check your health understanding and safe choices together with you.";
   } else if (template.generator.kind === "oklahomaPhysicalEducationAdult") {
@@ -172,7 +181,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     if (!standard) throw new Error(`Unsupported Oklahoma physical education skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Physical Education 2026" } };
+    interaction = adultScoredInteraction(skill, standard.statement, "Oklahoma Academic Standards for Physical Education 2026");
     values = { question: `${gradeLabel} movement activity: With an adult, safely ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Use a clear open space and stop if something feels unsafe or uncomfortable.` };
     explanation = "An adult will observe safe movement, effort, and the skill named in this activity.";
   } else if (template.generator.kind === "oklahomaFineArtsAdult") {
@@ -181,7 +190,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     if (!standard) throw new Error(`Unsupported Oklahoma fine arts skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Fine Arts 2023" } };
+    interaction = adultScoredInteraction(skill, standard.statement, "Oklahoma Academic Standards for Fine Arts 2023");
     values = { question: `${gradeLabel} ${standard.strand ?? "fine arts"} activity: With an adult, ${standard.statement}. Create or perform when it fits, then explain one choice, observation, feeling, or idea.` };
     explanation = "An adult will observe the artistic process, care for people and materials, and the skill named in this activity.";
   } else if (template.generator.kind === "oklahomaComputerScienceAdult") {
@@ -191,7 +200,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
     const isEducationalTechnology = standard.strand === "Supplemental Digital Learning";
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: isEducationalTechnology ? "Oklahoma Educational Technology Standards (ISTE 2016)" : "Oklahoma Academic Standards for Computer Science 2023" } };
+    interaction = adultScoredInteraction(skill, standard.statement, isEducationalTechnology ? "Oklahoma Educational Technology Standards (ISTE 2016)" : "Oklahoma Academic Standards for Computer Science 2023");
     const activityLabel = isEducationalTechnology ? "supplemental digital learning" : standard.strand === "Supplemental AI" ? "supplemental AI" : "computer science";
     values = { question: `${gradeLabel} ${activityLabel} activity: With an adult, ${standard.statement}. Use a safe unplugged model, hands-on materials, robot, or appropriate device as appropriate. Explain the steps, pattern, information, or safe choice you used.` };
     explanation = "An adult will observe the computational thinking, communication, collaboration, and safe, responsible use named in this activity.";
@@ -201,7 +210,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     if (!standard) throw new Error(`Unsupported Oklahoma information literacy skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Information Literacy 2024" } };
+    interaction = adultScoredInteraction(skill, standard.statement, "Oklahoma Academic Standards for Information Literacy 2024");
     values = { question: `${gradeLabel} information literacy inquiry: With an adult, ${standard.statement}. Use books, people, library resources, or safe supervised digital tools as appropriate, and explain how you know.` };
     explanation = "An adult will observe your safe research, information choices, communication, and reflection.";
   } else if (template.generator.kind === "oklahomaMathAdult") {
@@ -210,7 +219,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     if (!standard) throw new Error(`Unsupported Oklahoma math skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Mathematics 2022" } };
+    interaction = adultScoredInteraction(skill, standard.statement, "Oklahoma Academic Standards for Mathematics 2022");
     values = { question: `${gradeLabel} math exploration: With an adult, ${standard.statement}. Use objects, drawings, number cards, a clock, coins, shapes, or other safe hands-on materials. Explain what you noticed and how you know.` };
     explanation = "An adult will observe the mathematical reasoning, representations, and vocabulary named in this activity.";
   } else if (template.generator.kind === "oklahomaElaAdult") {
@@ -219,7 +228,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     if (!standard) throw new Error(`Unsupported Oklahoma ELA skill: ${skill}`);
     const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
-    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for English Language Arts 2021" } };
+    interaction = adultScoredInteraction(skill, standard.statement, "Oklahoma Academic Standards for English Language Arts 2021");
     values = { question: `${gradeLabel} literacy activity: With an adult, ${standard.statement}. Use an age-appropriate book, shared conversation, drawing, writing materials, or word and sound cards. Explain, show, read, write, or create what you know.` };
     explanation = "An adult will observe the listening, speaking, reading, writing, or language skill named in this activity.";
   } else if (template.generator.kind === "kindergartenEla") {

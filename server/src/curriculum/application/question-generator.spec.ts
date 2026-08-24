@@ -206,6 +206,9 @@ describe("reviewed deterministic question engine", () => {
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("math exploration");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Academic Standards for Mathematics 2022" }) }));
+      const adultChecklist = instance.interaction.adultChecklist as string[];
+      expect(adultChecklist).toHaveLength(3);
+      expect(adultChecklist).toEqual(expect.arrayContaining([expect.stringContaining("materials, time, and support"), expect.stringContaining("fair decision")]));
     }
   });
 

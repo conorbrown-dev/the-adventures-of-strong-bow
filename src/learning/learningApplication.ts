@@ -2,7 +2,7 @@ import { studentApi } from "../game/utils/studentSession";
 import type { CurriculumGrade, CurriculumSubject } from "../game/data/commonCoreQuizzes";
 
 export type LearningMode = "practice" | "diagnostic" | "placement" | "proctored" | "adultScored";
-export type QuestionView = { schemaVersion: number; id: string; templateId: string; templateVersion: number; standardIds: string[]; responseType: string; prompt: { text: string; audioText: string | null; instructions: string | null }; interaction: { choices?: Array<{ id: string; label: string }>; visual?: { count: number; objectKey: string }; items?: string[]; categories?: string[] }; explanation: string; accessibility: { spokenPrompt: string | null; textAlternative: string } };
+export type QuestionView = { schemaVersion: number; id: string; templateId: string; templateVersion: number; standardIds: string[]; responseType: string; prompt: { text: string; audioText: string | null; instructions: string | null }; interaction: { choices?: Array<{ id: string; label: string }>; visual?: { count: number; objectKey: string }; items?: string[]; categories?: string[]; adultChecklist?: string[] }; explanation: string; accessibility: { spokenPrompt: string | null; textAlternative: string } };
 export type SessionView = { sessionId: string; position: number; length: number; question: QuestionView };
 export type AnswerResult = { correct: boolean; explanation: string; masteryState: string; complete: boolean };
 export type StudentPlacement = { id: string; username: string; grade: CurriculumGrade; subjects: CurriculumSubject[]; curriculumLevels: Partial<Record<CurriculumSubject, CurriculumGrade>> };
