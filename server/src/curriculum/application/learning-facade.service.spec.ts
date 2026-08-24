@@ -8,7 +8,8 @@ describe("LearningFacadeService", () => {
     expect(started.question.templateId).toMatch(/^k\./);
     expect(started.question).not.toHaveProperty("canonicalAnswer");
     expect(service.get(started.sessionId)).toEqual(started);
-    const choices = (started.question.interaction.choices as Array<{ label: string }> | undefined) ?? []; const answer = choices[0].label;
+    const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
+    const answer = sessions.get(started.sessionId)!.instance.canonicalAnswer;
     await service.submit(started.sessionId, answer);
     await service.submit(started.sessionId, answer);
     expect(repository.attempts).toHaveLength(1);
@@ -61,6 +62,14 @@ describe("LearningFacadeService", () => {
     expect(started.question.responseType).toBe("constructedResponse");
   });
 
+  it("starts Kindergarten adult-scored ELA activities only with an adult code", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository(), "adult-code");
+    await expect(service.start("kindergarten", "adultScored", 42, "wrong-code", "K", "ELA")).rejects.toThrow("verification code");
+    const started = await service.start("kindergarten", "adultScored", 42, "adult-code", "K", "ELA");
+    expect(started.question.templateId).toMatch(/^k\./);
+    expect(started.question.responseType).toBe("constructedResponse");
+  });
+
   it("records an adult-scored Grade 1 ELA observation before confirming mastery", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-one", "adultScored", 42, "adult-code", "1");
@@ -74,7 +83,7 @@ describe("LearningFacadeService", () => {
   it("filters templates by subject (ELA) for Kindergarten", async () => {
     const service = new LearningFacadeService(new InMemoryProgressRepository());
     const started = await service.start("learner", "practice", 42, undefined, "K", "ELA");
-    expect(started.question.templateId).toMatch(/^k\.rf\./);
+    expect(started.question.templateId).toMatch(/^k\./);
     expect((started.question.interaction as any).visual).toBeUndefined();
   });
 

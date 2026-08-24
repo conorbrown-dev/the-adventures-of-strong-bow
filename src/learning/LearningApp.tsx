@@ -61,11 +61,10 @@ function learningGrade(grade: string | undefined): "K" | "1" | "2" {
   return grade === "GRADE_1" ? "1" : "K";
 }
 
-function LearningDashboard({ student, selectedSubject, setSelectedSubject, curriculumGrade, isLoading, proctorCode, setProctorCode, placementGrade, setPlacementGrade, start, updatePlacement, error }: {
+function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoading, proctorCode, setProctorCode, placementGrade, setPlacementGrade, start, updatePlacement, error }: {
   student: StudentSession["student"] | undefined;
   selectedSubject: LearningSubject;
   setSelectedSubject: (subject: LearningSubject) => void;
-  curriculumGrade: string;
   isLoading: boolean;
   proctorCode: string;
   setProctorCode: (code: string) => void;
@@ -118,7 +117,7 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, curri
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("placement")}>NEW-STUDENT PLACEMENT</button>
           <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("proctored")}>PROCTORED CHECK</button>
-          {curriculumGrade !== "K" && selectedSubject === "ELA" && <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("adultScored")}>ADULT-SCORED ELA</button>}
+          {selectedSubject === "ELA" && <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("adultScored")}>ADULT-SCORED ELA</button>}
         </div>
         <div className="level-panel mt-7 rounded-2xl p-5">
           <h3 className="mb-3 text-lg font-black">Set subject level</h3>
@@ -257,7 +256,7 @@ export function LearningApp(): JSX.Element {
 
   return <main className="learning-app"><section className="learning-shell">
     <header><button className="learning-home-button" onClick={() => navigate("/")}>MOLLY'S LEARNING</button><nav aria-label="Learning navigation"><button className="learning-nav-button" onClick={() => navigate("/learning")}>LEARNING</button><button className="learning-nav-button" onClick={() => navigate("/learning/progress")}>PROGRESS</button></nav></header>
-    {location.pathname === "/learning" && <LearningDashboard student={student} selectedSubject={selectedSubject} setSelectedSubject={setSelectedSubject} curriculumGrade={curriculumGrade} isLoading={isLoadingSession} proctorCode={proctorCode} setProctorCode={setProctorCode} placementGrade={placementGrade} setPlacementGrade={setPlacementGrade} start={start} updatePlacement={updatePlacement} error={error} />}
+    {location.pathname === "/learning" && <LearningDashboard student={student} selectedSubject={selectedSubject} setSelectedSubject={setSelectedSubject} isLoading={isLoadingSession} proctorCode={proctorCode} setProctorCode={setProctorCode} placementGrade={placementGrade} setPlacementGrade={setPlacementGrade} start={start} updatePlacement={updatePlacement} error={error} />}
     {isQuestion && isLoadingSession && !session && <p className="feedback">Loading your learning session…</p>}
     {isQuestion && !isLoadingSession && !session && <section className="learning-empty-state"><h1>Choose a learning activity</h1><p className="feedback">{error ?? "This session is no longer available. Start a new one to continue."}</p><div className="actions"><button onClick={() => void start(location.pathname.endsWith("diagnostic") ? "diagnostic" : "practice")}>START NEW SESSION</button><Link className="secondary" to="/learning">BACK TO LEARNING</Link></div></section>}
     {isQuestion && session && <section className="learning-question">

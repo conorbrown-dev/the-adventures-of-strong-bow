@@ -499,8 +499,9 @@
       "audioSupported": true,
       "provenance": "Project original",
       "review": {
-        "status": "reviewed",
-        "reviewer": "Project content review"
+        "status": "retired",
+        "reviewer": "Project content review",
+        "note": "Replaced by focused 1.RF.3.c content so only assessable standards are delivered."
       }
     },
     {
@@ -514,8 +515,9 @@
       "audioSupported": true,
       "provenance": "Project original",
       "review": {
-        "status": "reviewed",
-        "reviewer": "Project content review"
+        "status": "retired",
+        "reviewer": "Project content review",
+        "note": "Replaced by focused 1.NBT.B.2.a through 1.NBT.B.2.c content."
       }
     },
     {

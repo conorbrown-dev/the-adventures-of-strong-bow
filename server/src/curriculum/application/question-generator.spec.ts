@@ -9,6 +9,8 @@ import { gradeOneMathTemplates } from "../data/grade-one-math-templates";
 import { gradeOneElaTemplates } from "../data/grade-one-ela-templates";
 import { gradeTwoMathTemplates } from "../data/grade-two-math-templates";
 import { gradeTwoElaTemplates } from "../data/grade-two-ela-templates";
+import { kindergartenMathTemplates } from "../data/kindergarten-math-templates";
+import { kindergartenElaTemplates } from "../data/kindergarten-ela-templates";
 import { catalogTemplateToQuestionTemplate } from "../infrastructure/k2-review-packet";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
@@ -80,6 +82,32 @@ describe("reviewed deterministic question engine", () => {
 
   it("generates valid questions for every Grade 2 independently assessable ELA template", () => {
     for (const catalogTemplate of gradeTwoElaTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      for (let seed = 0; seed < 100; seed += 1) {
+        try {
+          validateQuestionInstance(generateQuestion(template, seed));
+        } catch (error) {
+          throw new Error(`${template.id} failed with seed ${seed}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+    }
+  });
+
+  it("generates valid questions for every added Kindergarten mathematics template", () => {
+    for (const catalogTemplate of kindergartenMathTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      for (let seed = 0; seed < 100; seed += 1) {
+        try {
+          validateQuestionInstance(generateQuestion(template, seed));
+        } catch (error) {
+          throw new Error(`${template.id} failed with seed ${seed}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+    }
+  });
+
+  it("generates valid questions for every Kindergarten independently assessable ELA template", () => {
+    for (const catalogTemplate of kindergartenElaTemplates) {
       const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
       for (let seed = 0; seed < 100; seed += 1) {
         try {

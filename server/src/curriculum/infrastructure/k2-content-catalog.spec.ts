@@ -4,16 +4,20 @@ import { loadAndValidateVendoredStandards } from "./vendored-standards.validator
 import { gradeTwoMathTemplates } from "../data/grade-two-math-templates";
 import { gradeTwoElaTemplates } from "../data/grade-two-ela-templates";
 import { gradeTwoElaAdultTemplates } from "../data/grade-two-ela-adult-templates";
+import { kindergartenMathTemplates } from "../data/kindergarten-math-templates";
+import { kindergartenElaTemplates } from "../data/kindergarten-ela-templates";
+import { kindergartenElaAdultTemplates } from "../data/kindergarten-ela-adult-templates";
 
 describe("Kindergarten production content catalog", () => {
   it("validates the catalog and preserves human review boundaries", async () => {
     const catalog = await loadK2ContentCatalog();
     await expect(validateK2ContentCatalog()).resolves.toMatchObject({ templates: expect.any(Number) });
     const kindergarten = catalog.templates.filter((template) => template.grade === "K");
-    expect(kindergarten).toHaveLength(27);
-    expect(kindergarten.filter((template) => template.review.status === "validated")).toHaveLength(0);
-    expect(kindergarten.filter((template) => template.review.status === "reviewed")).toHaveLength(27);
-    expect(kindergarten.every((template) => template.review.reviewer === "Conor Brown" && template.review.contentHash)).toBe(true);
+    const originalReviewed = kindergarten.filter((template) => template.review.reviewer === "Conor Brown");
+    expect(originalReviewed).toHaveLength(27);
+    expect(originalReviewed.every((template) => template.review.contentHash)).toBe(true);
+    expect(kindergarten).toHaveLength(109);
+    expect(kindergarten.every((template) => template.review.status === "reviewed")).toBe(true);
   });
 
   it("does not claim diagnostic readiness until four probes receive human approval", async () => {
@@ -23,6 +27,23 @@ describe("Kindergarten production content catalog", () => {
       expect(item.total).toBeGreaterThanOrEqual(4);
       expect(item.status).toBe("assessment-ready");
     }
+  });
+
+  it("covers every Kindergarten mathematics target", async () => {
+    const standards = (await loadAndValidateVendoredStandards()).records.filter((standard) => standard.grade === "K" && standard.subject === "math" && standard.active && standard.instructionalStatus === "assessable").map((standard) => standard.officialId).sort();
+    const catalog = await loadK2ContentCatalog();
+    const covered = [...new Set(catalog.templates.filter((template) => template.grade === "K" && template.subject === "math" && template.review.status === "reviewed").map((template) => template.standardId))].sort();
+    expect(covered).toEqual(standards);
+    expect(kindergartenMathTemplates).toHaveLength(21);
+  });
+
+  it("maps every Kindergarten ELA target to either an independent or adult-scored activity", async () => {
+    const standards = (await loadAndValidateVendoredStandards()).records.filter((standard) => standard.grade === "K" && standard.subject === "ela" && standard.active && standard.instructionalStatus === "assessable").map((standard) => standard.officialId).sort();
+    const catalog = await loadK2ContentCatalog();
+    const covered = [...new Set(catalog.templates.filter((template) => template.grade === "K" && template.subject === "ela" && template.review.status === "reviewed").map((template) => template.standardId))].sort();
+    expect(covered).toEqual(standards);
+    expect(kindergartenElaTemplates.every((template) => template.diagnosticEligible && template.responseType === "singleChoice")).toBe(true);
+    expect(kindergartenElaAdultTemplates.every((template) => !template.diagnosticEligible && template.responseType === "constructedResponse")).toBe(true);
   });
 
   it("includes every independently assessable Grade 2 mathematics target", async () => {

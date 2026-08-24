@@ -19,6 +19,9 @@ const generators: Record<string, { responseType: string; required: string[] }> =
   , gradeTwoMath: { responseType: "singleChoice", required: ["skill"] }
   , gradeTwoEla: { responseType: "singleChoice", required: ["skill"] }
   , gradeTwoElaAdult: { responseType: "constructedResponse", required: ["skill"] }
+  , kindergartenMath: { responseType: "singleChoice", required: ["skill"] }
+  , kindergartenEla: { responseType: "singleChoice", required: ["skill"] }
+  , kindergartenElaAdult: { responseType: "constructedResponse", required: ["skill"] }
   , additionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , subtractionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , compareNumbers: { responseType: "singleChoice", required: ["minimum", "maximum"] }

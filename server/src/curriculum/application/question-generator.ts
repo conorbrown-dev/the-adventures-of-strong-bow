@@ -71,6 +71,112 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     else if (skill === "1.G.A.2") { answer = "a rectangle"; choices = ["a rectangle", "a circle", "a cone"]; values = { question: `Two same-size squares are put side by side. What shape can they make?` }; explanation = `Two same-size squares can make a rectangle.`; }
     else { answer = "fourths"; choices = ["halves", "fourths", "thirds"]; values = { question: `A rectangle is split into 4 equal parts. What are the parts called?` }; explanation = `Four equal parts are fourths, also called quarters.`; }
     interaction = choiceInteraction(random.shuffle(choices)); canonicalAnswer = answer;
+  } else if (template.generator.kind === "kindergartenMath") {
+    const skill = String(configuration.skill);
+    let answer: string | number;
+    let choices: Array<string | number>;
+    if (skill === "K.CC.B.4.a") {
+      answer = "one number for each object"; choices = [answer, "two numbers for each object", "no numbers"]; values = { question: "When you count 5 bears, how should you say the number names?" }; explanation = "Point to one object and say one number each time.";
+    } else if (skill === "K.CC.B.4.b") {
+      const count = random.integer(3, 10); answer = count; choices = [count, count - 1, count + 1]; values = { question: `You count ${count} shells. What does the last number you say tell you?` }; explanation = `The last number tells how many shells there are: ${count}.`;
+    } else if (skill === "K.CC.B.4.c") {
+      const count = random.integer(2, 9); answer = count + 1; choices = [answer, count - 1, count]; values = { question: `What number is one more than ${count}?` }; explanation = `${answer} is one more than ${count}.`;
+    } else if (skill === "K.CC.B.5") {
+      const count = random.integer(4, 10); answer = count; choices = [count, count - 1, count + 1]; values = { question: `How many apples are in a row if you count ${count} apples?` }; explanation = `Counting tells us there are ${count} apples.`;
+    } else if (skill === "K.CC.C.6") {
+      const larger = random.integer(5, 10); const smaller = random.integer(1, larger - 1); answer = "the first group"; choices = [answer, "the second group", "both groups"]; values = { question: `One group has ${larger} blocks. Another group has ${smaller} blocks. Which group has more blocks?` }; explanation = `${larger} is more than ${smaller}, so the first group has more.`;
+    } else if (skill === "K.CC.C.7") {
+      const smaller = random.integer(1, 8); const larger = smaller + random.integer(1, 10 - smaller); answer = "<"; choices = ["<", ">", "="]; values = { question: `Which symbol makes this true: ${smaller} __ ${larger}?` }; explanation = `${smaller} is less than ${larger}.`;
+    } else if (skill === "K.G.A.1") {
+      answer = "above"; choices = [answer, "below", "behind"]; values = { question: "A bird is in the sky and a tree is on the ground. The bird is ___ the tree." }; explanation = "The bird is above the tree.";
+    } else if (skill === "K.G.A.2") {
+      answer = "triangle"; choices = ["triangle", "circle", "rectangle"]; values = { question: "What shape has 3 straight sides and 3 corners?" }; explanation = "A triangle has three sides and three corners.";
+    } else if (skill === "K.G.A.3") {
+      answer = "a cube"; choices = [answer, "a circle", "a triangle"]; values = { question: "Which shape is solid, not flat?" }; explanation = "A cube is a solid three-dimensional shape.";
+    } else if (skill === "K.G.B.4") {
+      answer = "A square has 4 sides and a triangle has 3 sides."; choices = [answer, "They both have 3 sides.", "They both have no sides."]; values = { question: "Which statement compares a square and a triangle?" }; explanation = "A square has four sides. A triangle has three sides.";
+    } else if (skill === "K.G.B.5") {
+      answer = "sticks and clay balls"; choices = [answer, "water and soap", "a pillow and blanket"]; values = { question: "What could you use to build a triangle model?" }; explanation = "Sticks can make sides and clay balls can join the corners.";
+    } else if (skill === "K.G.B.6") {
+      answer = "a rectangle"; choices = [answer, "a circle", "a sphere"]; values = { question: "Two triangles can be put together to make which larger flat shape?" }; explanation = "Two matching triangles can make a rectangle.";
+    } else if (skill === "K.MD.A.1") {
+      answer = "length"; choices = ["length", "color", "name"]; values = { question: "Which word tells something you can measure about a crayon?" }; explanation = "You can measure how long a crayon is.";
+    } else if (skill === "K.MD.A.2") {
+      answer = "the taller child"; choices = [answer, "the shorter child", "they are both a color"]; values = { question: "Ava is taller than Ben. Who is taller?" }; explanation = "Ava is the taller child.";
+    } else if (skill === "K.MD.B.3") {
+      answer = "3 red buttons"; choices = [answer, "2 red buttons", "4 red buttons"]; values = { question: "You sort buttons and count 3 red buttons. How many red buttons are there?" }; explanation = "The red category has 3 buttons.";
+    } else if (skill === "K.NBT.A.1") {
+      const ones = random.integer(1, 9); answer = 10 + ones; choices = [answer, ones, 20 + ones]; values = { question: `What number is one ten and ${ones} more ones?` }; explanation = `One ten and ${ones} ones makes ${answer}.`;
+    } else if (skill === "K.OA.A.1") {
+      const left = random.integer(1, 4); const right = random.integer(1, 4); answer = left + right; choices = [answer, answer - 1, answer + 1]; values = { question: `You have ${left} red cubes and ${right} blue cubes. How many cubes do you have?` }; explanation = `${left} cubes plus ${right} cubes equals ${answer} cubes.`;
+    } else if (skill === "K.OA.A.2") {
+      const total = random.integer(4, 9); const taken = random.integer(1, total - 1); answer = total - taken; choices = [answer, answer + 1, total + 1]; values = { question: `You have ${total} crackers and eat ${taken}. How many crackers are left?` }; explanation = `${total} minus ${taken} equals ${answer}.`;
+    } else if (skill === "K.OA.A.3") {
+      const total = random.integer(4, 8); const first = random.integer(1, total - 1); answer = `${first} + ${total - first}`; choices = [answer, `${first} + ${total - first - 1}`, `${total} + 1`]; values = { question: `Which pair of numbers makes ${total}?` }; explanation = `${first} plus ${total - first} equals ${total}.`;
+    } else if (skill === "K.OA.A.4") {
+      const number = random.integer(1, 9); answer = 10 - number; choices = [answer, answer - 1, answer + 1]; values = { question: `What number goes with ${number} to make 10?` }; explanation = `${number} plus ${answer} equals 10.`;
+    } else {
+      const left = random.integer(1, 4); const right = random.integer(1, 5 - left); answer = left + right; choices = [answer, answer - 1, answer + 1]; values = { question: `What is ${left} plus ${right}?` }; explanation = `${left} plus ${right} equals ${answer}.`;
+    }
+    interaction = choiceInteraction(random.shuffle(choices)); canonicalAnswer = answer;
+  } else if (template.generator.kind === "kindergartenElaAdult") {
+    const skill = String(configuration.skill);
+    const prompts: Record<string, string> = {
+      "K.L.1.a": "Print the uppercase and lowercase letters A through F.", "K.L.1.f": "Tell the adult a complete sentence about a favorite animal.", "K.RF.4": "Read this sentence aloud slowly and carefully: The cat sat on the soft mat.", "K.RI.10": "Listen to or read a Kindergarten informational book chosen by the adult. Tell one fact you learned.", "K.RL.10": "Listen to or read a Kindergarten story chosen by the adult. Tell what happened first and next.",
+      "K.SL.1.a": "Have a short conversation with the adult. Take turns speaking and listening.", "K.SL.1.b": "Listen to the adult share an idea about a pet. Add a connected idea of your own.", "K.SL.2": "After the adult reads a short passage, answer a question about a detail.", "K.SL.3": "Listen to the adult describe an object. Ask or answer a question about it.", "K.SL.4": "Describe a favorite place using clear details.", "K.SL.5": "Draw a picture to help explain something you are describing.", "K.SL.6": "Speak clearly so the adult can understand your words.",
+      "K.W.1": "Draw and write about your favorite snack. Tell what you like and why.", "K.W.2": "Draw and write facts about an animal. Name the animal and tell facts about it.", "K.W.3": "Draw and write about something that happened to you. Tell the events in order.", "K.W.5": "Tell the adult one change you can make to improve your drawing or writing.", "K.W.6": "Use a digital tool with the adult to share a drawing or short piece of writing.", "K.W.7": "Help the adult find facts in books about an animal, then help make a shared page.", "K.W.8": "Answer this question by remembering something you did: What did you do outside today?"
+    };
+    if (!prompts[skill]) throw new Error(`Unsupported Kindergarten adult ELA skill: ${skill}`);
+    canonicalAnswer = null; interaction = { kind: "adultScored", target: { standardId: skill } }; values = { question: prompts[skill] }; explanation = "Your adult will decide whether this skill was demonstrated.";
+  } else if (template.generator.kind === "kindergartenEla") {
+    const skill = String(configuration.skill);
+    const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {
+      "K.L.1.b": { question: "Which word names an animal?", answer: "dog", choices: ["dog", "run", "happy"], explanation: "Dog is the name of an animal, so it is a noun." },
+      "K.L.1.c": { question: "Which word means more than one cat?", answer: "cats", choices: ["cats", "cat", "catted"], explanation: "Adding s can mean more than one." },
+      "K.L.1.d": { question: "The ball is ___ the table. Which word tells where?", answer: "under", choices: ["under", "blue", "jump"], explanation: "Under tells where the ball is." },
+      "K.L.1.e": { question: "Which question word asks about a place?", answer: "Where", choices: ["Where", "Who", "When"], explanation: "Where asks about a place." },
+      "K.L.2.a": { question: "Which sentence starts with a capital letter?", answer: "Molly runs.", choices: ["Molly runs.", "molly plays.", "molly jumps."], explanation: "A sentence begins with a capital letter." },
+      "K.L.2.b": { question: "Which mark belongs at the end? I like to hop___", answer: ".", choices: [".", "?", ","], explanation: "A telling sentence ends with a period." },
+      "K.L.2.c": { question: "Which letters spell the word you hear: sun?", answer: "sun", choices: ["sun", "son", "snu"], explanation: "The sounds /s/ /u/ /n/ spell sun." },
+      "K.L.2.d": { question: "Which word is spelled correctly?", answer: "hop", choices: ["hop", "hopp", "hup"], explanation: "Hop uses the letters h, o, and p in that order." },
+      "K.L.4.a": { question: "Maya wore boots because puddles were wet. What does wet mean?", answer: "covered with water", choices: ["covered with water", "full of sand", "very loud"], explanation: "Puddles have water, so wet means covered with water." },
+      "K.L.4.b": { question: "What does the beginning un- mean in unhappy?", answer: "not", choices: ["not", "again", "very"], explanation: "Un- can mean not." },
+      "K.L.5.a": { question: "Which two things belong in the same group?", answer: "apple and banana", choices: ["apple and banana", "apple and shoe", "banana and kite"], explanation: "An apple and banana are both fruits." },
+      "K.L.5.b": { question: "Which word tells about a bear?", answer: "furry", choices: ["furry", "because", "under"], explanation: "Furry is an attribute that can describe a bear." },
+      "K.L.5.c": { question: "What is the opposite of big?", answer: "small", choices: ["small", "tall", "fast"], explanation: "Small means the opposite of big." },
+      "K.L.5.d": { question: "Which item would you use to write a note?", answer: "a pencil", choices: ["a pencil", "a mitten", "a spoon"], explanation: "A pencil is used for writing." },
+      "K.L.6": { question: "Which word is a color word?", answer: "purple", choices: ["purple", "jump", "under"], explanation: "Purple names a color." },
+      "K.RF.1.a": { question: "Where is the title of a book usually found?", answer: "on the cover", choices: ["on the cover", "under the bed", "inside a shoe"], explanation: "The cover tells the book's title." },
+      "K.RF.1.b": { question: "When we read English, where do we start on a line?", answer: "at the left", choices: ["at the left", "at the right", "in the middle"], explanation: "English print goes from left to right." },
+      "K.RF.1.c": { question: "Which is a complete sentence?", answer: "The dog runs.", choices: ["The dog runs.", "dog the", "runs dog"], explanation: "A sentence tells a complete thought." },
+      "K.RF.2.b": { question: "Which word starts with the same sound as sun?", answer: "sock", choices: ["sock", "map", "top"], explanation: "Sun and sock both begin with /s/." },
+      "K.RF.2.c": { question: "Blend these sounds: /m/ /a/ /p/. What word do they make?", answer: "map", choices: ["map", "mop", "tap"], explanation: "The sounds blend to make map." },
+      "K.RF.2.e": { question: "Change the first sound in cat from /c/ to /h/. What word do you make?", answer: "hat", choices: ["hat", "hot", "cat"], explanation: "Changing /c/ to /h/ makes hat." },
+      "K.RF.3.a": { question: "What sound does the letter m make?", answer: "/m/", choices: ["/m/", "/s/", "/t/"], explanation: "The letter m usually spells the /m/ sound." },
+      "K.RF.3.b": { question: "Which letter makes the first sound in fish?", answer: "f", choices: ["f", "m", "t"], explanation: "Fish begins with /f/." },
+      "K.RF.3.c": { question: "Which word can you sound out: /s/ /a/ /t/?", answer: "sat", choices: ["sat", "set", "sit"], explanation: "The sounds /s/ /a/ /t/ make sat." },
+      "K.RF.3.d": { question: "Which word is a common word to know by heart?", answer: "the", choices: ["the", "xylophone", "pterodactyl"], explanation: "The is a very common word readers learn to recognize." },
+      "K.RI.1": { question: "Read: Birds build nests. What do birds build?", answer: "nests", choices: ["nests", "cars", "sandcastles"], explanation: "The text says birds build nests." },
+      "K.RI.2": { question: "Read: Seeds need water and sun to grow. What is this mostly about?", answer: "what seeds need", choices: ["what seeds need", "how to ride a bike", "where fish sleep"], explanation: "The sentence tells what seeds need." },
+      "K.RI.3": { question: "Read: First, wash your hands. Next, dry them. What happens after washing?", answer: "Dry your hands.", choices: ["Dry your hands.", "Eat dinner.", "Put on boots."], explanation: "The text says dry them next." },
+      "K.RI.4": { question: "Read: A cub is a baby bear. What is a cub?", answer: "a baby bear", choices: ["a baby bear", "a tall tree", "a kind of car"], explanation: "The text explains that a cub is a baby bear." },
+      "K.RI.5": { question: "Which part of an information book can name the picture?", answer: "a caption", choices: ["a caption", "a character", "an ending"], explanation: "A caption gives words about a picture." },
+      "K.RI.6": { question: "Who writes the words in a book?", answer: "the author", choices: ["the author", "the illustrator", "the reader"], explanation: "The author writes the words." },
+      "K.RI.7": { question: "A picture shows a frog in a pond. What does the picture help show?", answer: "where the frog is", choices: ["where the frog is", "how to spell frog", "the book's price"], explanation: "The picture gives information about the frog's home." },
+      "K.RI.8": { question: "We should wear a coat because it keeps us warm. Why wear a coat?", answer: "It keeps us warm.", choices: ["It keeps us warm.", "It makes rain.", "It turns into a toy."], explanation: "Keeping warm is the reason." },
+      "K.RI.9": { question: "One book is about dogs. Another book is about dogs too. What is the same?", answer: "Both books are about dogs.", choices: ["Both books are about dogs.", "Both books are about rockets.", "Neither book has words."], explanation: "The topic of both books is dogs." },
+      "K.RL.1": { question: "Read: Sam found his hat under the chair. Where was Sam's hat?", answer: "under the chair", choices: ["under the chair", "in the tree", "at the park"], explanation: "The story says the hat was under the chair." },
+      "K.RL.2": { question: "Read: Jo planted a seed. It grew into a flower. What happened first?", answer: "Jo planted a seed.", choices: ["Jo planted a seed.", "It grew into a flower.", "Jo picked an apple."], explanation: "Planting happened before the flower grew." },
+      "K.RL.3": { question: "Read: Nia went to the beach and built a sandcastle. Where does the story happen?", answer: "at the beach", choices: ["at the beach", "on the moon", "in a library"], explanation: "The beach and sandcastle tell the setting." },
+      "K.RL.4": { question: "Read: “Hooray!” said Jay. How does Jay feel?", answer: "happy", choices: ["happy", "sleepy", "scared"], explanation: "Hooray is something people say when they feel happy." },
+      "K.RL.5": { question: "Which book tells a make-believe story?", answer: "a storybook", choices: ["a storybook", "an animal facts book", "a weather chart"], explanation: "A storybook has made-up characters and events." },
+      "K.RL.6": { question: "Who draws the pictures in a book?", answer: "the illustrator", choices: ["the illustrator", "the author", "the reader"], explanation: "The illustrator creates the pictures." },
+      "K.RL.7": { question: "A story says Ava carries an umbrella. The picture shows rain. What does the picture help show?", answer: "It is raining.", choices: ["It is raining.", "It is bedtime.", "It is snowing."], explanation: "The picture gives a clue that it is raining." },
+      "K.RL.9": { question: "In one story, a rabbit hops. In another, a frog hops. How are they alike?", answer: "Both animals hop.", choices: ["Both animals hop.", "Both animals fly.", "Both animals are fish."], explanation: "Each animal hops in its story." }
+    };
+    const item = items[skill];
+    if (!item) throw new Error(`Unsupported Kindergarten ELA skill: ${skill}`);
+    interaction = choiceInteraction(random.shuffle(item.choices)); canonicalAnswer = item.answer; values = { question: item.question }; explanation = item.explanation;
   } else if (template.generator.kind === "gradeTwoMath") {
     const skill = String(configuration.skill);
     let answer: string | number;
