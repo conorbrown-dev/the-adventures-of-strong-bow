@@ -221,6 +221,52 @@ canvas { display: block; touch-action: none; user-select: none; max-width: 100vw
   background: rgb(255 255 252 / 82%);
   box-shadow: 0 14px 38px rgb(46 79 72 / 9%);
 }
+
+.adult-evidence-label {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  color: var(--learning-ink);
+  font-weight: 700;
+}
+
+.adult-evidence-label span {
+  color: var(--learning-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.adult-evidence-label textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+
+.adult-observation-notes {
+  margin-top: 28px;
+  border-top: 1px solid var(--learning-line);
+  padding-top: 22px;
+}
+
+.adult-observation-notes h2 {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+}
+
+.adult-observation-notes ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.adult-observation-notes li {
+  display: grid;
+  gap: 4px;
+  border-radius: 14px;
+  background: #fffefa;
+  padding: 12px 14px;
+}
 .learning-question .prompt { align-items: center; margin-top: 12px; }
 .learning-question .prompt h1 {
   margin: 0;

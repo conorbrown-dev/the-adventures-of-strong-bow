@@ -6,7 +6,7 @@ import { loadStudentSession, saveStudentSession, type StudentSession } from "../
 import { learningApplication, type AnswerResult, type SessionView } from "./learningApplication";
 import { coreCourseRoadmap } from "./coreCourseRoadmaps";
 
-type Progress = { attempts: Array<{ primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean }>; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: { grouping: string; grade: string } | null };
+type Progress = { attempts: Array<{ primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean; purpose: string; submittedAnswer: unknown }>; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: { grouping: string; grade: string } | null };
 type Classification = Record<string, string>;
 type BrowserRecognition = {
   lang: string;
@@ -46,6 +46,12 @@ function phonemeChoiceAudio(label: string): string {
 
 function isPhonemeChoiceQuestion(session: SessionView | null, choices: Array<{ id: string; label: string }>): boolean {
   return Boolean(session && choices.length > 1 && /\b(sound|phoneme)\b/i.test(session.question.prompt.text) && choices.every((choice) => choice.label.split(",").every((sound) => sound.trim().length <= 2)));
+}
+
+function adultEvidenceNote(answer: unknown): string | null {
+  if (typeof answer !== "object" || answer === null || !("adultEvidence" in answer)) return null;
+  const evidence = (answer as { adultEvidence?: unknown }).adultEvidence;
+  return typeof evidence === "string" && evidence.trim() ? evidence : null;
 }
 
 type LearningSubject = "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY";
@@ -158,6 +164,7 @@ export function LearningApp(): JSX.Element {
   const [classification, setClassification] = useState<Classification>({});
   const [sequenceAnswer, setSequenceAnswer] = useState<string[]>([]);
   const [adultChecks, setAdultChecks] = useState<string[]>([]);
+  const [adultEvidence, setAdultEvidence] = useState("");
   const [usedHint, setUsedHint] = useState(false);
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -172,6 +179,10 @@ export function LearningApp(): JSX.Element {
   const choices = session?.question.interaction.choices ?? [];
   const hasPhonemeChoices = isPhonemeChoiceQuestion(session, choices);
   const adultChecklist = session?.question.interaction.adultChecklist ?? [];
+  const adultObservationNotes = progress.attempts.flatMap((attempt) => {
+    const note = attempt.purpose === "adultScored" ? adultEvidenceNote(attempt.submittedAnswer) : null;
+    return note ? [{ standardId: attempt.primaryStandardId, note }] : [];
+  });
   const canSubmit = sorting
     ? sorting.items.every((item) => Boolean(classification[item]))
     : sequence
@@ -195,7 +206,7 @@ export function LearningApp(): JSX.Element {
     }
   }, [learnerId, location.pathname]);
 
-  const resetQuestionState = () => { setSelectedAnswer(""); setClassification({}); setSequenceAnswer([]); setAdultChecks([]); setUsedHint(false); setResult(null); setIsListening(false); };
+  const resetQuestionState = () => { setSelectedAnswer(""); setClassification({}); setSequenceAnswer([]); setAdultChecks([]); setAdultEvidence(""); setUsedHint(false); setResult(null); setIsListening(false); };
   const start = async (purpose: "practice" | "diagnostic" | "placement" | "proctored" | "adultScored") => {
     try {
       setIsLoadingSession(true);
@@ -255,7 +266,7 @@ export function LearningApp(): JSX.Element {
   const choosePhoneme = (choice: string) => { stopSpeaking(); void submit(choice); };
   const scoreAdult = async (demonstrated: boolean) => {
     if (!session) return;
-    try { setError(null); setResult(await learningApplication.scoreAdult(session.sessionId, demonstrated)); } catch (reason) { setError(reason instanceof Error ? reason.message : "Unable to save the adult score."); }
+    try { setError(null); setResult(await learningApplication.scoreAdult(session.sessionId, demonstrated, adultEvidence)); } catch (reason) { setError(reason instanceof Error ? reason.message : "Unable to save the adult score."); }
   };
   const updatePlacement = async () => {
     if (!studentSession) return;
@@ -284,6 +295,7 @@ export function LearningApp(): JSX.Element {
       {location.pathname === "/learning/adult-scored" && !result ? <section className="adult-score">
         <p>Adult: observe the student complete this activity, then record the result.</p>
         {adultChecklist.length > 0 && <fieldset className="adult-checklist"><legend>Before recording a result, check each item.</legend>{adultChecklist.map((item, index) => <label className="check" key={item}><input type="checkbox" checked={adultChecks.includes(String(index))} onChange={() => setAdultChecks((current) => current.includes(String(index)) ? current.filter((value) => value !== String(index)) : [...current, String(index)])} /> {item}</label>)}</fieldset>}
+        <label className="adult-evidence-label">Observation note <span>(optional)</span><textarea value={adultEvidence} onChange={(event) => setAdultEvidence(event.target.value)} maxLength={1000} placeholder="What did the student show, say, make, read, or write?" /></label>
         <div className="actions"><button disabled={adultChecklist.length > 0 && adultChecks.length !== adultChecklist.length} onClick={() => void scoreAdult(true)}>SKILL DEMONSTRATED</button><button className="secondary" onClick={() => void scoreAdult(false)}>KEEP PRACTICING</button></div>
       </section> : sorting ? <section className="classification-answer" aria-label="Letter sorting activity">
         {sorting.items.map((item) => <div className="classification-item" key={item}><strong>{item}</strong><div>{sorting.categories.map((category) => <button aria-pressed={classification[item] === category} className={classification[item] === category ? "selected" : "secondary"} disabled={Boolean(result)} key={category} onClick={() => setClassification((current) => ({ ...current, [item]: category }))}>{category}</button>)}</div></div>)}
@@ -302,6 +314,6 @@ export function LearningApp(): JSX.Element {
       {result && <><p className={result.correct ? "feedback correct" : "feedback"}>{result.explanation}</p><button onClick={() => void advance()}>{result.complete ? "FINISH SESSION" : "CONTINUE"}</button></>}
       {error && <p className="feedback">{error}</p>}
     </section>}
-    {location.pathname === "/learning/progress" && <section className="learning-progress"><p className="eyebrow">LEARNING PROGRESS</p><h1>Your skills</h1><p className="learning-card-note">Independent answers and supported work are listed separately so you and your adult can decide what to practice next.</p><div className="progress-grid">{Object.entries(progress.attempts.reduce<Record<string, { total: number; correct: number; independent: number; supported: number }>>((all, attempt) => { const row = all[attempt.primaryStandardId] ?? { total: 0, correct: 0, independent: 0, supported: 0 }; row.total += 1; row.correct += Number(attempt.correct); if (attempt.independent && !attempt.usedHint) row.independent += 1; else row.supported += 1; all[attempt.primaryStandardId] = row; return all; }, {})).map(([standardId, value]) => <article key={standardId}><strong>{standardId}</strong><span>{value.total} attempts · {Math.round(value.correct / value.total * 100)}% correct</span><span>{value.independent} independent · {value.supported} supported</span><b>{progress.mastery.find((item) => item.standardId === standardId)?.state ?? "Learning"}</b></article>)}{progress.latestDiagnosticPlacement && <p>Latest check-in: {progress.latestDiagnosticPlacement.grouping} · {progress.latestDiagnosticPlacement.grade}</p>}{!progress.attempts.length && <p>Start a practice session to see your learning activity here.</p>}</div></section>}
+    {location.pathname === "/learning/progress" && <section className="learning-progress"><p className="eyebrow">LEARNING PROGRESS</p><h1>Your skills</h1><p className="learning-card-note">Independent answers and supported work are listed separately so you and your adult can decide what to practice next.</p><div className="progress-grid">{Object.entries(progress.attempts.reduce<Record<string, { total: number; correct: number; independent: number; supported: number }>>((all, attempt) => { const row = all[attempt.primaryStandardId] ?? { total: 0, correct: 0, independent: 0, supported: 0 }; row.total += 1; row.correct += Number(attempt.correct); if (attempt.independent && !attempt.usedHint) row.independent += 1; else row.supported += 1; all[attempt.primaryStandardId] = row; return all; }, {})).map(([standardId, value]) => <article key={standardId}><strong>{standardId}</strong><span>{value.total} attempts · {Math.round(value.correct / value.total * 100)}% correct</span><span>{value.independent} independent · {value.supported} supported</span><b>{progress.mastery.find((item) => item.standardId === standardId)?.state ?? "Learning"}</b></article>)}{progress.latestDiagnosticPlacement && <p>Latest check-in: {progress.latestDiagnosticPlacement.grouping} · {progress.latestDiagnosticPlacement.grade}</p>}{!progress.attempts.length && <p>Start a practice session to see your learning activity here.</p>}</div>{adultObservationNotes.length > 0 && <section className="adult-observation-notes"><h2>Adult observation notes</h2><ul>{adultObservationNotes.map((observation, index) => <li key={`${observation.standardId}-${index}`}><strong>{observation.standardId}</strong><span>{observation.note}</span></li>)}</ul></section>}</section>}
   </section></main>;
 }

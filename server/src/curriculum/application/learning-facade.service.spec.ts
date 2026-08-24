@@ -130,13 +130,14 @@ describe("LearningFacadeService", () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-one", "adultScored", 42, "adult-code", "1");
     expect(started.question.responseType).toBe("constructedResponse");
-    const first = await service.scoreAdult(started.sessionId, true);
+    const first = await service.scoreAdult(started.sessionId, true, "Counted the shells independently and explained the total.");
     expect(first).toMatchObject({ correct: true, masteryState: "observedOnce", complete: true });
     const followUp = await service.start("grade-one", "adultScored", 43, "adult-code", "1");
     expect(followUp.question.standardIds[0]).toBe(started.question.standardIds[0]);
     const second = await service.scoreAdult(followUp.sessionId, true);
     expect(second).toMatchObject({ correct: true, masteryState: "mastered", complete: true });
     expect(repository.attempts).toHaveLength(2);
+    expect(repository.attempts[0]?.submittedAnswer).toEqual({ adultScore: "demonstrated", adultEvidence: "Counted the shells independently and explained the total." });
     expect(repository.attempts.every((attempt) => attempt.independent === false && attempt.purpose === "adultScored" && attempt.correct)).toBe(true);
   });
 

@@ -17,4 +17,12 @@ describe("LearningController", () => {
     controller.submit("session", { answer: "A", usedHint: true });
     expect(learning.submit).toHaveBeenCalledWith("session", "A", true);
   });
+
+  it("forwards an optional adult observation note", () => {
+    const learning = { scoreAdult: jest.fn().mockReturnValue({ correct: true }) } as unknown as LearningFacadeService;
+    const controller = new LearningController(learning);
+
+    controller.scoreAdult("session", { demonstrated: true, evidenceNote: "Explained the answer using counters." });
+    expect(learning.scoreAdult).toHaveBeenCalledWith("session", true, "Explained the answer using counters.");
+  });
 });
