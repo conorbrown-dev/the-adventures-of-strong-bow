@@ -16,6 +16,7 @@ import { kindergartenReadingVariants } from "../data/kindergarten-reading-varian
 import { gradeTwoLanguageVariants } from "../data/grade-two-language-variants";
 import { gradeOneLanguageVariants } from "../data/grade-one-language-variants";
 import { kindergartenLanguageVariants } from "../data/kindergarten-language-variants";
+import { mathPracticeVariants } from "../data/math-practice-variants";
 
 class Random {
   private state: number;
@@ -79,7 +80,10 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = choiceInteraction(random.shuffle(choices)); canonicalAnswer = answer; values = { tens, ones }; explanation = `${tens} tens and ${ones} ones make ${answer}.`;
   } else if (template.generator.kind === "gradeOneMath") {
     const skill = String(configuration.skill); let answer: string | number; let choices: Array<string | number>;
-    if (skill === "1.OA.A.1") { const left = random.integer(3, 10); const right = random.integer(2, 9); answer = left + right; choices = [answer, answer - 1, answer + 1]; values = { question: `Molly has ${left} shells and finds ${right} more. How many shells does she have?` }; explanation = `${left} plus ${right} equals ${answer}.`; }
+    const variants = mathPracticeVariants[skill] ?? [];
+    const alternate = variants.length > 0 && random.integer(0, 1) === 1 ? variants[random.integer(0, variants.length - 1)] : null;
+    if (alternate) { answer = alternate.answer; choices = alternate.choices; values = { question: alternate.question }; explanation = alternate.explanation; }
+    else if (skill === "1.OA.A.1") { const left = random.integer(3, 10); const right = random.integer(2, 9); answer = left + right; choices = [answer, answer - 1, answer + 1]; values = { question: `Molly has ${left} shells and finds ${right} more. How many shells does she have?` }; explanation = `${left} plus ${right} equals ${answer}.`; }
     else if (skill === "1.OA.A.2") { const first = random.integer(1, 6); const second = random.integer(1, 6); const third = random.integer(1, 6); answer = first + second + third; choices = [answer, answer - 1, answer + 1]; values = { question: `What is ${first} plus ${second} plus ${third}?` }; explanation = `${first} + ${second} + ${third} = ${answer}.`; }
     else if (skill === "1.OA.B.3") { const left = random.integer(2, 8); const candidate = random.integer(2, 7); const right = candidate >= left ? candidate + 1 : candidate; answer = `${right} + ${left} = ${left + right}`; choices = [answer, `${left} + ${right} = ${left + right + 1}`, `${right} + ${left} = ${left + right - 1}`]; values = { question: `If ${left} plus ${right} equals ${left + right}, which fact is also true?` }; explanation = `Changing the order of addends keeps the sum the same.`; }
     else if (skill === "1.OA.B.4" || skill === "1.OA.D.8") { const total = random.integer(10, 18); const known = random.integer(2, total - 2); answer = total - known; choices = [answer, answer - 1, answer + 1]; values = { question: `What number makes ${known} plus blank equal ${total}?` }; explanation = `${known} plus ${answer} equals ${total}.`; }
@@ -106,7 +110,10 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     const skill = String(configuration.skill);
     let answer: string | number;
     let choices: Array<string | number>;
-    if (skill === "K.CC.B.4.a") {
+    const variants = mathPracticeVariants[skill] ?? [];
+    const alternate = variants.length > 0 && random.integer(0, 1) === 1 ? variants[random.integer(0, variants.length - 1)] : null;
+    if (alternate) { answer = alternate.answer; choices = alternate.choices; values = { question: alternate.question }; explanation = alternate.explanation; }
+    else if (skill === "K.CC.B.4.a") {
       answer = "one number for each object"; choices = [answer, "two numbers for each object", "no numbers"]; values = { question: "When you count 5 bears, how should you say the number names?" }; explanation = "Point to one object and say one number each time.";
     } else if (skill === "K.CC.B.4.b") {
       const count = random.integer(3, 10); answer = count; choices = [count, count - 1, count + 1]; values = { question: `You count ${count} shells. What does the last number you say tell you?` }; explanation = `The last number tells how many shells there are: ${count}.`;
@@ -297,7 +304,10 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     const skill = String(configuration.skill);
     let answer: string | number;
     let choices: Array<string | number>;
-    if (skill === "2.OA.A.1") {
+    const variants = mathPracticeVariants[skill] ?? [];
+    const alternate = variants.length > 0 && random.integer(0, 1) === 1 ? variants[random.integer(0, variants.length - 1)] : null;
+    if (alternate) { answer = alternate.answer; choices = alternate.choices; values = { question: alternate.question }; explanation = alternate.explanation; }
+    else if (skill === "2.OA.A.1") {
       const first = random.integer(18, 45); const second = random.integer(12, 30); const givenAway = random.integer(5, 15); answer = first + second - givenAway; choices = [answer, answer + givenAway, answer - 2]; values = { question: `Molly has ${first} stickers. She gets ${second} more and gives ${givenAway} away. How many stickers does she have now?` }; explanation = `${first} plus ${second} minus ${givenAway} equals ${answer}.`;
     } else if (skill === "2.OA.B.2") {
       const left = random.integer(4, 9); const right = random.integer(4, 9); answer = left + right; choices = [answer, answer - 1, answer + 1]; values = { question: `What is ${left} plus ${right}?` }; explanation = `${left} plus ${right} equals ${answer}.`;

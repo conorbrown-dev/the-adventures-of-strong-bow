@@ -116,6 +116,20 @@ describe("reviewed deterministic question engine", () => {
     }
   });
 
+  it("varies every auto-scored Kindergarten through Grade 2 mathematics practice prompt", () => {
+    const mathTemplates = [...kindergartenMathTemplates, ...gradeOneMathTemplates, ...gradeTwoMathTemplates];
+    for (const catalogTemplate of mathTemplates) {
+      const template = catalogTemplateToQuestionTemplate(catalogTemplate);
+      const questions = Array.from({ length: 30 }, (_, seed) => generateQuestion(template, seed));
+      const prompts = new Set(questions.map((question) => question.prompt.text));
+      if (prompts.size <= 1) throw new Error(`${catalogTemplate.id} does not vary across practice seeds.`);
+      for (const question of questions) {
+        const labels = (question.interaction.choices as Array<{ label: string }>).map((choice) => choice.label);
+        expect(labels).toContain(String(question.canonicalAnswer));
+      }
+    }
+  });
+
   it("generates valid questions for every Kindergarten independently assessable ELA template", () => {
     for (const catalogTemplate of kindergartenElaTemplates) {
       const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
@@ -227,9 +241,9 @@ describe("reviewed deterministic question engine", () => {
     const generate = (templateId: string, seed: number) => generateQuestion(catalogTemplateToQuestionTemplate(byId.get(templateId)!), seed);
 
     const lengthQuestion = generate("1.md.a.1.compare-length", 1);
-    expect(lengthQuestion.prompt.text).toBe("A ribbon is 8 cubes long. A pencil is 5 cubes long. Which is longer?");
-    expect(lengthQuestion.canonicalAnswer).toBe("the ribbon");
-    expect(lengthQuestion.interaction.choices).toEqual(expect.arrayContaining([expect.objectContaining({ label: "the ribbon" }), expect.objectContaining({ label: "the pencil" })]));
+    expect(lengthQuestion.prompt.text).toBe("A crayon is 6 cubes long. A marker is 9 cubes long. Which is longer?");
+    expect(lengthQuestion.canonicalAnswer).toBe("the marker");
+    expect(lengthQuestion.interaction.choices).toEqual(expect.arrayContaining([expect.objectContaining({ label: "the marker" }), expect.objectContaining({ label: "the crayon" })]));
 
     const turnAroundFacts = Array.from({ length: 20 }, (_, seed) => generate("1.oa.b.3.properties", seed));
     for (const question of turnAroundFacts) {
