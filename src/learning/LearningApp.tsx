@@ -4,6 +4,7 @@ import { speak, stopSpeaking } from "../quiz/speech";
 import { normalizeAnswer } from "../quiz/quizLogic";
 import { loadStudentSession, saveStudentSession, type StudentSession } from "../game/utils/studentSession";
 import { learningApplication, type AnswerResult, type SessionView } from "./learningApplication";
+import { coreCourseRoadmap } from "./coreCourseRoadmaps";
 
 type Progress = { attempts: Array<{ primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean }>; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: { grouping: string; grade: string } | null };
 type Classification = Record<string, string>;
@@ -76,6 +77,7 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
 }): JSX.Element {
   const isAdultObservedOnly = ["SCIENCE", "SOCIAL_STUDIES", "HEALTH", "PHYSICAL_EDUCATION", "FINE_ARTS", "COMPUTER_SCIENCE", "INFORMATION_LITERACY"].includes(selectedSubject);
   const adultActivityLabel = selectedSubject === "MATH" ? "HANDS-ON MATH ACTIVITY" : selectedSubject === "SCIENCE" ? "SCIENCE INVESTIGATION" : selectedSubject === "SOCIAL_STUDIES" ? "SOCIAL STUDIES INQUIRY" : selectedSubject === "HEALTH" ? "HEALTH ACTIVITY" : selectedSubject === "PHYSICAL_EDUCATION" ? "MOVEMENT ACTIVITY" : selectedSubject === "FINE_ARTS" ? "FINE ARTS ACTIVITY" : selectedSubject === "COMPUTER_SCIENCE" ? "COMPUTER SCIENCE ACTIVITY" : selectedSubject === "INFORMATION_LITERACY" ? "INFORMATION LITERACY INQUIRY" : "ADULT-SCORED ELA";
+  const roadmap = coreCourseRoadmap(selectedSubject, learningGrade(student?.curriculumLevels?.[selectedSubject] ?? student?.grade));
   return <section className="learning-dashboard mx-auto max-w-4xl">
     <div className="learning-hero mb-8">
       <p className="learning-kicker mb-3 inline-flex rounded-full px-4 py-2 text-xs font-black tracking-[.18em]">OKLAHOMA-ALIGNED LEARNING</p>
@@ -108,6 +110,13 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
         <button className="activity-button secondary !min-h-16 !rounded-2xl" disabled={isLoading} onClick={() => void start("diagnostic")}>START DIAGNOSTIC</button>
       </div>}
     </section>
+
+    {roadmap && <section aria-labelledby="roadmap-heading" className="learning-card mb-7 rounded-3xl p-5 sm:p-7">
+      <p className="learning-step text-xs font-black tracking-[.16em]">YOUR ROADMAP</p>
+      <h2 id="roadmap-heading" className="!mb-2 !mt-1 !text-2xl">{roadmap.title}</h2>
+      <p className="learning-card-note mb-5">{roadmap.introduction}</p>
+      <ol className="grid gap-3 sm:grid-cols-2">{roadmap.units.map((unit, index) => <li className="level-panel rounded-2xl p-4" key={unit.title}><strong className="learning-step block text-xs">UNIT {index + 1}</strong><span className="mt-1 block text-lg font-black">{unit.title}</span><span className="mt-1 block text-sm">{unit.focus}</span></li>)}</ol>
+    </section>}
 
     <details className="adult-tools group rounded-3xl p-5 sm:p-7">
       <summary className="cursor-pointer list-none text-xl font-black marker:hidden">
