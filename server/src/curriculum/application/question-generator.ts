@@ -9,6 +9,7 @@ import { oklahomaInformationLiteracyStandards } from "../data/oklahoma-informati
 import { oklahomaAiCompetencies } from "../data/oklahoma-ai-competencies";
 import { oklahomaEducationTechnologyStandards } from "../data/oklahoma-education-technology-standards";
 import { oklahomaMathStandards } from "../data/oklahoma-math-standards";
+import { oklahomaElaStandards } from "../data/oklahoma-ela-standards";
 
 class Random {
   private state: number;
@@ -212,6 +213,14 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Mathematics 2022" } };
     values = { question: `${gradeLabel} math exploration: With an adult, ${standard.statement}. Use objects, drawings, number cards, a clock, coins, shapes, or other safe hands-on materials. Explain what you noticed and how you know.` };
     explanation = "An adult will observe the mathematical reasoning, representations, and vocabulary named in this activity.";
+  } else if (template.generator.kind === "oklahomaElaAdult") {
+    const skill = String(configuration.skill);
+    const standard = oklahomaElaStandards.find((item) => item.officialId === skill);
+    if (!standard) throw new Error(`Unsupported Oklahoma ELA skill: ${skill}`);
+    canonicalAnswer = null;
+    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for English Language Arts 2021" } };
+    values = { question: `Kindergarten literacy activity: With an adult, ${standard.statement}. Use an age-appropriate book, shared conversation, drawing, writing materials, or word and sound cards. Explain, show, read, write, or create what you know.` };
+    explanation = "An adult will observe the listening, speaking, reading, writing, or language skill named in this activity.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);
     const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {

@@ -30,6 +30,7 @@ const generators: Record<string, { responseType: string; required: string[] }> =
   , oklahomaComputerScienceAdult: { responseType: "constructedResponse", required: ["skill"] }
   , oklahomaInformationLiteracyAdult: { responseType: "constructedResponse", required: ["skill"] }
   , oklahomaMathAdult: { responseType: "constructedResponse", required: ["skill"] }
+  , oklahomaElaAdult: { responseType: "constructedResponse", required: ["skill"] }
   , additionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , subtractionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , compareNumbers: { responseType: "singleChoice", required: ["minimum", "maximum"] }

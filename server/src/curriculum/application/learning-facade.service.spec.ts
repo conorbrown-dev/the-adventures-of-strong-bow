@@ -66,7 +66,7 @@ describe("LearningFacadeService", () => {
     const service = new LearningFacadeService(new InMemoryProgressRepository(), "adult-code");
     await expect(service.start("kindergarten", "adultScored", 42, "wrong-code", "K", "ELA")).rejects.toThrow("verification code");
     const started = await service.start("kindergarten", "adultScored", 42, "adult-code", "K", "ELA");
-    expect(started.question.templateId).toMatch(/^k\./);
+    expect(started.question.templateId).toMatch(/^(?:k\.|ok\.ela\.k\.)/);
     expect(started.question.responseType).toBe("constructedResponse");
   });
 

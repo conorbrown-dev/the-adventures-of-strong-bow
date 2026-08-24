@@ -21,6 +21,7 @@ import { oklahomaFineArtsTemplates } from "../data/oklahoma-fine-arts-templates"
 import { oklahomaComputerScienceTemplates } from "../data/oklahoma-computer-science-templates";
 import { oklahomaEducationTechnologyTemplates } from "../data/oklahoma-education-technology-templates";
 import { oklahomaMathTemplates } from "../data/oklahoma-math-templates";
+import { oklahomaElaTemplates } from "../data/oklahoma-ela-templates";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
 
@@ -205,6 +206,16 @@ describe("reviewed deterministic question engine", () => {
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("math exploration");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Academic Standards for Mathematics 2022" }) }));
+    }
+  });
+
+  it("generates complete adult-observed activities for every Oklahoma Kindergarten ELA objective", () => {
+    for (const catalogTemplate of oklahomaElaTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "oklahoma-kindergarten-ela");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.prompt.text).toContain("Kindergarten literacy activity");
+      expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Academic Standards for English Language Arts 2021" }) }));
     }
   });
 
