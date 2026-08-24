@@ -13,6 +13,7 @@ import { oklahomaElaStandards } from "../data/oklahoma-ela-standards";
 import { gradeTwoReadingVariants } from "../data/grade-two-reading-variants";
 import { gradeOneReadingVariants } from "../data/grade-one-reading-variants";
 import { kindergartenReadingVariants } from "../data/kindergarten-reading-variants";
+import { gradeTwoLanguageVariants } from "../data/grade-two-language-variants";
 
 class Random {
   private state: number;
@@ -406,7 +407,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     };
     const baseItem = items[skill];
     if (!baseItem) throw new Error(`Unsupported Grade 2 ELA skill: ${skill}`);
-    const variants = gradeTwoReadingVariants[skill] ?? [];
+    const variants = [...(gradeTwoReadingVariants[skill] ?? []), ...(gradeTwoLanguageVariants[skill] ?? [])];
     const item = [baseItem, ...variants][random.integer(0, variants.length)];
     interaction = choiceInteraction(random.shuffle(item.choices)); canonicalAnswer = item.answer; values = { question: item.question }; explanation = item.explanation;
   } else if (template.generator.kind === "gradeOneElaAdult") {

@@ -257,6 +257,16 @@ describe("reviewed deterministic question engine", () => {
     }
   });
 
+  it("varies Grade 2 language and word-reading prompts while keeping an answer in every choice set", () => {
+    const byId = new Map(gradeTwoElaTemplates.map((template) => [template.id, template]));
+    for (const templateId of ["2.l.1.a.collective-nouns", "2.l.4.b.prefixes", "2.rf.3.b.vowel-teams"]) {
+      const template = catalogTemplateToQuestionTemplate(byId.get(templateId)!);
+      const questions = Array.from({ length: 30 }, (_, seed) => generateQuestion(template, seed));
+      expect(new Set(questions.map((question) => question.prompt.text)).size).toBeGreaterThan(1);
+      for (const question of questions) expect((question.interaction.choices as Array<{ label: string }>).map((choice) => choice.label)).toContain(question.canonicalAnswer);
+    }
+  });
+
   it("varies Grade 1 reading comprehension prompts while keeping an answer in every choice set", () => {
     const byId = new Map(gradeOneElaTemplates.map((template) => [template.id, template]));
     for (const templateId of ["1.ri.2.main-topic", "1.rl.2.lesson", "1.rl.7.story-illustrations"]) {
