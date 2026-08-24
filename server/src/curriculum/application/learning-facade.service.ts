@@ -32,7 +32,7 @@ export class LearningFacadeService {
     const availableTemplates = purpose === "placement" ? placementTemplatesByGrade[0] ?? [] : templates;
     if (!availableTemplates.length) throw new Error(`No approved ${subject ?? ""} Grade ${grade === "K" ? "Kindergarten" : grade} content is available.`);
     await this.progress.markDue(learnerId); const mastery = await this.repository.listMastery(learnerId);
-    const activeTemplates = purpose === "placement" ? availableTemplates : purpose === "practice" || purpose === "adultScored" ? selectNextLearningTemplates(templates, mastery) : templates;
+    const activeTemplates = purpose === "placement" ? availableTemplates : purpose === "practice" ? selectNextLearningTemplates(templates, mastery) : purpose === "adultScored" ? selectNextLearningTemplates(templates, mastery, 1) : templates;
     if (!activeTemplates.length) throw new Error("All skills are mastered for now. Return when a scheduled review is due.");
     const selected = activeTemplates[seedAt(seed, 0) % activeTemplates.length]; const sessionTemplates = purpose === "proctored" ? templates.filter((template) => template.primaryStandardId === selected.primaryStandardId) : activeTemplates;
     const sessionPurpose: SessionPurpose = purpose === "practice" && mastery.some((record) => record.standardId === selected.primaryStandardId && record.state === "reviewDue") ? "review" : purpose;
@@ -45,7 +45,17 @@ export class LearningFacadeService {
   async scoreAdult(sessionId: string, demonstrated: boolean) {
     const session = this.requireSession(sessionId); if (session.purpose !== "adultScored") throw new ForbiddenException("This activity requires automatic scoring."); if (session.submittedInstanceIds.has(session.instance.id)) return { correct: demonstrated, explanation: session.instance.explanation, masteryState: "unchanged", complete: true };
     const attempt: AttemptEvent = { id: randomUUID(), learnerId: session.learnerId, sessionId, questionInstanceId: session.instance.id, templateId: session.instance.templateId, templateVersion: session.instance.templateVersion, primaryStandardId: session.instance.standardIds[0], supportingStandardIds: session.instance.standardIds.slice(1), submittedAnswer: { adultScore: demonstrated ? "demonstrated" : "notYet" }, correct: demonstrated, usedHint: false, independent: false, purpose: "adultScored", deliveryContext: "adultProctored", responseDurationMs: null, attemptedAt: new Date(), responseType: session.instance.responseType };
-    session.submittedInstanceIds.add(session.instance.id); const recorded = await this.progress.recordAttempt(attempt); const mastery = demonstrated ? await this.progress.verifyProctoredMastery(session.learnerId, attempt.primaryStandardId) : recorded; return { correct: demonstrated, explanation: demonstrated ? "The adult confirmed this skill." : "Keep practicing this skill with an adult.", masteryState: mastery.state, complete: true };
+    session.submittedInstanceIds.add(session.instance.id);
+    const recorded = await this.progress.recordAttempt(attempt);
+    const successfulObservations = (await this.repository.listAttempts(session.learnerId, attempt.primaryStandardId)).filter((item) => item.purpose === "adultScored" && item.correct).length;
+    const hasEnoughObservations = demonstrated && successfulObservations >= 2;
+    const mastery = hasEnoughObservations ? await this.progress.verifyProctoredMastery(session.learnerId, attempt.primaryStandardId) : recorded;
+    return {
+      correct: demonstrated,
+      explanation: !demonstrated ? "Keep practicing this skill with an adult." : hasEnoughObservations ? "The adult confirmed this skill twice. It is ready for review later." : "The adult recorded one successful observation. Complete it successfully with an adult once more to confirm the skill.",
+      masteryState: hasEnoughObservations ? mastery.state : demonstrated ? "observedOnce" : mastery.state,
+      complete: true
+    };
   }
   next(sessionId: string) { const session = this.requireSession(sessionId); if (session.position + 1 >= session.length) { if (!session.placement || session.placement.result) return null; session.placement.gradeIndex += 1; session.placement.correct = 0; session.templates = session.placement.templatesByGrade[session.placement.gradeIndex]; session.grade = session.templates[0].grade; session.position = 0; session.instance = generateQuestion(session.templates[seedAt(session.seed, 0) % session.templates.length], seedAt(session.seed, 0)); return this.view(session); } session.position += 1; const candidates = session.templates.filter((template) => template.id !== session.instance.templateId); const template = candidates[seedAt(session.seed, session.position) % candidates.length] ?? session.templates[0]; session.grade = template.grade; session.instance = generateQuestion(template, seedAt(session.seed, session.position)); return this.view(session); }
   async progressFor(learnerId: string) { const [attempts, mastery, placements] = await Promise.all([this.repository.listAttempts(learnerId), this.repository.listMastery(learnerId), this.repository.listDiagnosticPlacements(learnerId)]); return { attempts, mastery, latestDiagnosticPlacement: placements[0] ?? null }; }

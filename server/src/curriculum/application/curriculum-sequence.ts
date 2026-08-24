@@ -22,12 +22,12 @@ function courseOrder(template: QuestionTemplate): string {
  * take precedence; otherwise the next standards remain predictable while their
  * individual question instances can still vary by seed.
  */
-export function selectNextLearningTemplates(templates: QuestionTemplate[], mastery: MasteryRecord[]): QuestionTemplate[] {
+export function selectNextLearningTemplates(templates: QuestionTemplate[], mastery: MasteryRecord[], standardWindow = NEXT_STANDARD_WINDOW): QuestionTemplate[] {
   const mastered = new Set(mastery.filter((record) => record.state === "mastered").map((record) => record.standardId));
   const reviewDue = new Set(mastery.filter((record) => record.state === "reviewDue").map((record) => record.standardId));
   const unmastered = templates.filter((template) => !mastered.has(template.primaryStandardId));
   const candidates = reviewDue.size > 0 ? unmastered.filter((template) => reviewDue.has(template.primaryStandardId)) : unmastered;
-  const upcomingStandards = [...new Set(candidates.sort((left, right) => courseOrder(left).localeCompare(courseOrder(right))).map((template) => template.primaryStandardId))].slice(0, NEXT_STANDARD_WINDOW);
+  const upcomingStandards = [...new Set(candidates.sort((left, right) => courseOrder(left).localeCompare(courseOrder(right))).map((template) => template.primaryStandardId))].slice(0, standardWindow);
   const upcomingIds = new Set(upcomingStandards);
   return candidates.filter((template) => upcomingIds.has(template.primaryStandardId));
 }

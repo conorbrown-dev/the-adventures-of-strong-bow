@@ -126,14 +126,18 @@ describe("LearningFacadeService", () => {
     expect(started.question.responseType).toBe("constructedResponse");
   });
 
-  it("records an adult-scored Grade 1 ELA observation before confirming mastery", async () => {
+  it("requires two adult-scored Grade 1 ELA observations before confirming mastery", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-one", "adultScored", 42, "adult-code", "1");
     expect(started.question.responseType).toBe("constructedResponse");
-    const result = await service.scoreAdult(started.sessionId, true);
-    expect(result).toMatchObject({ correct: true, masteryState: "mastered", complete: true });
-    expect(repository.attempts).toHaveLength(1);
-    expect(repository.attempts[0]).toMatchObject({ independent: false, purpose: "adultScored", correct: true });
+    const first = await service.scoreAdult(started.sessionId, true);
+    expect(first).toMatchObject({ correct: true, masteryState: "observedOnce", complete: true });
+    const followUp = await service.start("grade-one", "adultScored", 43, "adult-code", "1");
+    expect(followUp.question.standardIds[0]).toBe(started.question.standardIds[0]);
+    const second = await service.scoreAdult(followUp.sessionId, true);
+    expect(second).toMatchObject({ correct: true, masteryState: "mastered", complete: true });
+    expect(repository.attempts).toHaveLength(2);
+    expect(repository.attempts.every((attempt) => attempt.independent === false && attempt.purpose === "adultScored" && attempt.correct)).toBe(true);
   });
 
   it("filters templates by subject (ELA) for Kindergarten", async () => {
