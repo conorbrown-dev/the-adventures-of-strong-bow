@@ -161,4 +161,15 @@ describe("LearningFacadeService", () => {
     await service.submit(started.sessionId, sessions.get(started.sessionId)!.instance.canonicalAnswer, true);
     expect(repository.attempts[0]?.usedHint).toBe(true);
   });
+
+  it("gives an incorrect practice response a fresh question for the same skill", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository());
+    const started = await service.start("retry-user", "practice", 42, undefined, "K", "MATH");
+    const result = await service.submit(started.sessionId, "not the answer");
+
+    expect(result).toMatchObject({ correct: false, retry: true, complete: false });
+    const retry = service.next(started.sessionId);
+    expect(retry?.question.standardIds[0]).toBe(started.question.standardIds[0]);
+    expect(retry?.question.id).not.toBe(started.question.id);
+  });
 });
