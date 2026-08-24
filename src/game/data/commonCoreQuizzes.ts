@@ -1,5 +1,5 @@
 export type CurriculumGrade = "K" | "GRADE_1" | "GRADE_2" | "GRADE_3" | "GRADE_4" | "GRADE_5";
-export type CurriculumSubject = "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS";
+export type CurriculumSubject = "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE";
 
 export interface CurriculumQuestion {
   prompt: string;

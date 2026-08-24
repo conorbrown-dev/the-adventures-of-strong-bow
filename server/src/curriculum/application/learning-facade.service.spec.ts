@@ -110,6 +110,14 @@ describe("LearningFacadeService", () => {
     expect(started.question.responseType).toBe("constructedResponse");
   });
 
+  it("starts an Oklahoma Grade 2 computer science activity only with an adult code", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository(), "adult-code");
+    await expect(service.start("computer-science", "adultScored", 42, "wrong-code", "2", "COMPUTER_SCIENCE")).rejects.toThrow("verification code");
+    const started = await service.start("computer-science", "adultScored", 42, "adult-code", "2", "COMPUTER_SCIENCE");
+    expect(started.question.standardIds[0]).toMatch(/^2\.(CS|NI|DA|AP|IC)\./);
+    expect(started.question.responseType).toBe("constructedResponse");
+  });
+
   it("records an adult-scored Grade 1 ELA observation before confirming mastery", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-one", "adultScored", 42, "adult-code", "1");
