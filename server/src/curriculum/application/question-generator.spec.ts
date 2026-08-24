@@ -11,6 +11,9 @@ import { gradeTwoMathTemplates } from "../data/grade-two-math-templates";
 import { gradeTwoElaTemplates } from "../data/grade-two-ela-templates";
 import { kindergartenMathTemplates } from "../data/kindergarten-math-templates";
 import { kindergartenElaTemplates } from "../data/kindergarten-ela-templates";
+import { kindergartenElaAdultTemplates } from "../data/kindergarten-ela-adult-templates";
+import { gradeOneElaAdultTemplates } from "../data/grade-one-ela-adult-templates";
+import { gradeTwoElaAdultTemplates } from "../data/grade-two-ela-adult-templates";
 import { catalogTemplateToQuestionTemplate } from "../infrastructure/k2-review-packet";
 import { loadLearningStandards } from "../infrastructure/learning-standards";
 import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
@@ -247,6 +250,24 @@ describe("reviewed deterministic question engine", () => {
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("literacy activity");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Academic Standards for English Language Arts 2021" }) }));
+    }
+  });
+
+  it("gives every Kindergarten through Grade 2 adult-scored ELA activity a complete observation checklist", () => {
+    const adultElaTemplates = [...kindergartenElaAdultTemplates, ...gradeOneElaAdultTemplates, ...gradeTwoElaAdultTemplates];
+    for (const catalogTemplate of adultElaTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "adult-ela-checklist");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.interaction).toEqual(expect.objectContaining({
+        kind: "adultScored",
+        target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Common Core State Standards for English Language Arts" })
+      }));
+      expect(instance.interaction.adultChecklist).toEqual(expect.arrayContaining([
+        expect.stringContaining("materials, time, and support"),
+        expect.stringContaining("fair decision")
+      ]));
+      expect(instance.interaction.adultChecklist).toHaveLength(3);
     }
   });
 
