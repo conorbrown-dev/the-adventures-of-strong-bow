@@ -71,6 +71,123 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     else if (skill === "1.G.A.2") { answer = "a rectangle"; choices = ["a rectangle", "a circle", "a cone"]; values = { question: `Two same-size squares are put side by side. What shape can they make?` }; explanation = `Two same-size squares can make a rectangle.`; }
     else { answer = "fourths"; choices = ["halves", "fourths", "thirds"]; values = { question: `A rectangle is split into 4 equal parts. What are the parts called?` }; explanation = `Four equal parts are fourths, also called quarters.`; }
     interaction = choiceInteraction(random.shuffle(choices)); canonicalAnswer = answer;
+  } else if (template.generator.kind === "gradeTwoMath") {
+    const skill = String(configuration.skill);
+    let answer: string | number;
+    let choices: Array<string | number>;
+    if (skill === "2.OA.A.1") {
+      const first = random.integer(18, 45); const second = random.integer(12, 30); const givenAway = random.integer(5, 15); answer = first + second - givenAway; choices = [answer, answer + givenAway, answer - 2]; values = { question: `Molly has ${first} stickers. She gets ${second} more and gives ${givenAway} away. How many stickers does she have now?` }; explanation = `${first} plus ${second} minus ${givenAway} equals ${answer}.`;
+    } else if (skill === "2.OA.B.2") {
+      const left = random.integer(4, 9); const right = random.integer(4, 9); answer = left + right; choices = [answer, answer - 1, answer + 1]; values = { question: `What is ${left} plus ${right}?` }; explanation = `${left} plus ${right} equals ${answer}.`;
+    } else if (skill === "2.OA.C.3") {
+      const count = random.integer(3, 10) * 2; answer = "even"; choices = ["even", "odd", "zero"]; values = { question: `Is ${count} an odd number or an even number?` }; explanation = `${count} can be split into ${count / 2} pairs with none left over, so it is even.`;
+    } else if (skill === "2.OA.C.4") {
+      const rows = random.integer(2, 5); const columns = random.integer(2, 5); answer = rows * columns; const addends = rows + columns; choices = [answer, addends === answer ? answer + 1 : addends, answer + rows]; values = { question: `There are ${rows} rows of ${columns} stars. How many stars are there altogether?` }; explanation = `${rows} groups of ${columns} equals ${answer}.`;
+    } else if (skill === "2.NBT.A.1.a") {
+      answer = 100; choices = [100, 10, 1000]; values = { question: "How many tens make one hundred?" }; explanation = `Ten tens make one hundred.`;
+    } else if (skill === "2.NBT.A.1.b") {
+      const hundreds = random.integer(2, 9); answer = hundreds * 100; choices = [answer, hundreds * 10, hundreds]; values = { question: `What number is ${hundreds} hundreds, 0 tens, and 0 ones?` }; explanation = `${hundreds} hundreds is ${answer}.`;
+    } else if (skill === "2.NBT.A.2") {
+      const start = random.integer(2, 15) * 5; answer = start + 5; choices = [answer, start + 10, start + 1]; values = { question: `Count by fives. What comes after ${start}?` }; explanation = `When counting by fives, ${start} is followed by ${answer}.`;
+    } else if (skill === "2.NBT.A.3") {
+      const hundreds = random.integer(2, 8); const tens = random.integer(1, 8); let ones = random.integer(1, 9); if (ones === tens) ones = ones === 9 ? 1 : ones + 1; answer = hundreds * 100 + tens * 10 + ones; choices = [answer, hundreds * 100 + ones * 10 + tens, hundreds * 100 + tens * 10]; values = { question: `What number is ${hundreds} hundreds, ${tens} tens, and ${ones} ones?` }; explanation = `${hundreds * 100} plus ${tens * 10} plus ${ones} equals ${answer}.`;
+    } else if (skill === "2.NBT.A.4") {
+      const left = random.integer(2, 8) * 100 + random.integer(0, 9) * 10 + random.integer(0, 9); const right = left + random.integer(1, 30); answer = "<"; choices = ["<", ">", "="]; values = { question: `Which symbol makes this true: ${left} __ ${right}?` }; explanation = `${left} is less than ${right}, so the correct symbol is less than.`;
+    } else if (skill === "2.NBT.B.5") {
+      const left = random.integer(25, 68); const right = random.integer(12, 31); answer = left + right; choices = [answer, answer - 10, answer + 10]; values = { question: `What is ${left} plus ${right}?` }; explanation = `${left} plus ${right} equals ${answer}.`;
+    } else if (skill === "2.NBT.B.6") {
+      const valuesToAdd = Array.from({ length: 4 }, () => random.integer(10, 19)); answer = valuesToAdd.reduce((total, value) => total + value, 0); choices = [answer, answer - 10, answer + 10]; values = { question: `What is ${valuesToAdd.join(" + ")}?` }; explanation = `Adding the four two-digit numbers gives ${answer}.`;
+    } else if (skill === "2.NBT.B.7") {
+      const left = random.integer(325, 675); const right = random.integer(112, 224); answer = left + right; choices = [answer, answer - 100, answer + 100]; values = { question: `What is ${left} plus ${right}?` }; explanation = `${left} plus ${right} equals ${answer}.`;
+    } else if (skill === "2.NBT.B.8") {
+      const number = random.integer(2, 8) * 100 + random.integer(0, 9) * 10 + random.integer(0, 9); answer = number + 100; choices = [answer, number + 10, number - 100]; values = { question: `What is 100 more than ${number}?` }; explanation = `Adding one hundred to ${number} gives ${answer}.`;
+    } else if (skill === "2.NBT.B.9") {
+      answer = "Add hundreds to hundreds, tens to tens, and ones to ones."; choices = [answer, "Add the digits in any order without using place value.", "Only add the ones digits."]; values = { question: "Which strategy explains how to add two three-digit numbers?" }; explanation = `Place value helps us add hundreds, tens, and ones in matching places.`;
+    } else if (skill === "2.MD.A.1") {
+      answer = "a ruler"; choices = [answer, "a thermometer", "a scale"]; values = { question: "Which tool should you use to measure the length of a book?" }; explanation = `A ruler measures length.`;
+    } else if (skill === "2.MD.A.2") {
+      answer = "The smaller unit gives a larger number of units."; choices = [answer, "The larger unit gives a larger number of units.", "Both units always give the same number."]; values = { question: "A table is measured with inches and then with feet. Which statement is true?" }; explanation = `It takes more small inches than larger feet to measure the same length.`;
+    } else if (skill === "2.MD.A.3") {
+      answer = "about 8 inches"; choices = [answer, "about 8 feet", "about 8 meters"]; values = { question: "Which is a reasonable estimate for the length of a pencil?" }; explanation = `A pencil is usually about 8 inches long.`;
+    } else if (skill === "2.MD.A.4") {
+      const longer = random.integer(12, 24); const shorter = random.integer(4, longer - 4); answer = longer - shorter; choices = [answer, answer + 2, longer]; values = { question: `A ribbon is ${longer} inches long. A string is ${shorter} inches long. How many inches longer is the ribbon?` }; explanation = `${longer} minus ${shorter} equals ${answer}.`;
+    } else if (skill === "2.MD.B.5") {
+      const first = random.integer(18, 36); const second = random.integer(12, 28); answer = first + second; choices = [answer, answer - 5, answer + 5]; values = { question: `A blue ribbon is ${first} centimeters long and a red ribbon is ${second} centimeters long. What is their total length?` }; explanation = `${first} plus ${second} equals ${answer} centimeters.`;
+    } else if (skill === "2.MD.B.6") {
+      const start = random.integer(10, 40); const jump = random.integer(10, 30); answer = start + jump; choices = [answer, start - jump, answer + 10]; values = { question: `On a number line, start at ${start} and jump forward ${jump}. What number do you land on?` }; explanation = `${start} plus ${jump} equals ${answer}.`;
+    } else if (skill === "2.MD.C.7") {
+      const hour = random.integer(1, 11); answer = `${hour}:35`; choices = [answer, `${hour}:30`, `${hour}:40`]; values = { question: `The minute hand points to 7 and the hour hand is just past ${hour}. What time is it?` }; explanation = `Each number on the clock is five minutes. Pointing to 7 means 35 minutes past ${hour}.`;
+    } else if (skill === "2.MD.C.8") {
+      const quarters = random.integer(1, 3); const dimes = random.integer(1, 4); answer = quarters * 25 + dimes * 10; choices = [answer, answer - 5, answer + 5]; values = { question: `You have ${quarters} quarter${quarters === 1 ? "" : "s"} and ${dimes} dime${dimes === 1 ? "" : "s"}. How many cents do you have?` }; explanation = `${quarters} quarters are ${quarters * 25} cents and ${dimes} dimes are ${dimes * 10} cents. Together that is ${answer} cents.`;
+    } else if (skill === "2.MD.D.9") {
+      const measurements = [4, 5, 5, 6]; answer = 5; choices = [5, 4, 6]; values = { question: `A line plot has pencil lengths of ${measurements.join(", ")} inches. Which length appears most often?` }; explanation = `The length 5 appears twice, more often than the other lengths.`;
+    } else if (skill === "2.MD.D.10") {
+      const cats = random.integer(4, 9); const dogs = random.integer(1, cats - 1); answer = cats - dogs; choices = [answer, cats + dogs, cats]; values = { question: `A bar graph shows ${cats} children chose cats and ${dogs} chose dogs. How many more chose cats?` }; explanation = `${cats} minus ${dogs} equals ${answer}.`;
+    } else if (skill === "2.G.A.1") {
+      answer = "a pentagon"; choices = [answer, "a triangle", "a cube"]; values = { question: "Which shape has 5 sides and 5 angles?" }; explanation = `A pentagon has five sides and five angles.`;
+    } else if (skill === "2.G.A.2") {
+      const rows = random.integer(2, 5); const columns = random.integer(2, 5); answer = rows * columns; const addends = rows + columns; choices = [answer, addends === answer ? answer + 2 : addends, answer + 1]; values = { question: `A rectangle has ${rows} rows and ${columns} columns of equal squares. How many squares are in the rectangle?` }; explanation = `${rows} rows of ${columns} squares makes ${answer} squares.`;
+    } else {
+      answer = "thirds"; choices = ["halves", answer, "fourths"]; values = { question: "A circle is split into 3 equal shares. What are the shares called?" }; explanation = `Three equal shares are called thirds.`;
+    }
+    interaction = choiceInteraction(random.shuffle(choices)); canonicalAnswer = answer;
+  } else if (template.generator.kind === "gradeTwoElaAdult") {
+    const skill = String(configuration.skill);
+    const prompts: Record<string, string> = {
+      "2.L.2.e": "Use a child-friendly dictionary to check the spelling of a word in this sentence: I saw a beautiful butterfly.", "2.L.4.e": "Use a glossary or beginning dictionary with the adult to find the meaning of a new word.",
+      "2.RF.4.a": "Read this short passage and tell what it is mostly about: Bees visit flowers to collect nectar. They carry pollen from flower to flower.", "2.RF.4.b": "Read this sentence aloud smoothly and with expression: The playful puppy raced through the tall green grass.", "2.RF.4.c": "Read this sentence. If a word does not make sense, reread and fix it: The bright moon shone over the quiet lake.", "2.RI.10": "Read or listen to a Grade 2 informational text chosen by the adult. Tell the main topic and two facts.", "2.RL.10": "Read or listen to a Grade 2 story chosen by the adult. Recount the beginning, middle, and end.",
+      "2.SL.1.a": "Have a short discussion with the adult. Take turns, listen carefully, and speak about the same topic.", "2.SL.1.b": "Listen to the adult share an idea about a book. Add a connected idea of your own.", "2.SL.1.c": "Ask the adult for clarification about something they said during a conversation.", "2.SL.2": "After the adult reads a short passage, recount two key details in order.", "2.SL.3": "Listen to the adult explain how to do something. Ask and answer questions to make the directions clear.", "2.SL.4": "Tell about a memorable experience using facts, descriptive details, and complete sentences.", "2.SL.5": "Create a drawing or audio recording that helps explain a story or experience you are sharing.", "2.SL.6": "Answer the adult's question with a complete sentence that gives a helpful detail.",
+      "2.W.1": "Write an opinion about a book or activity. State your opinion, give two reasons using linking words, and write a conclusion.", "2.W.2": "Write an informational paragraph about an animal. Include a topic, facts or definitions, and a conclusion.", "2.W.3": "Write a narrative about a short event. Include actions, thoughts or feelings, time-order words, and an ending.", "2.W.5": "Revise a short piece of writing with the adult. Add or correct one detail that makes it clearer.", "2.W.6": "Use a digital tool with the adult to publish a short piece of writing.", "2.W.7": "Read several sources with the adult about one topic and help create a short shared report.", "2.W.8": "Use a provided source or your own experience to answer a question in writing."
+    };
+    canonicalAnswer = null; interaction = { kind: "adultScored", target: { standardId: skill } }; values = { question: prompts[skill] ?? "Complete the activity with an adult." }; explanation = "Your adult will decide whether this skill was demonstrated.";
+  } else if (template.generator.kind === "gradeTwoEla") {
+    const skill = String(configuration.skill);
+    const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {
+      "2.L.1.a": { question: "Which word is a collective noun?", answer: "team", choices: ["team", "runner", "jump"], explanation: "A team names a group." },
+      "2.L.1.b": { question: "Which word is the plural of mouse?", answer: "mice", choices: ["mouses", "mice", "mouse"], explanation: "Mice is the irregular plural of mouse." },
+      "2.L.1.c": { question: "Which word completes the sentence? I made this picture by ___.", answer: "myself", choices: ["myself", "my", "me"], explanation: "Myself is a reflexive pronoun." },
+      "2.L.1.d": { question: "Which sentence uses the correct irregular past-tense verb?", answer: "Yesterday, we went to the park.", choices: ["Yesterday, we went to the park.", "Yesterday, we goed to the park.", "Yesterday, we go to the park."], explanation: "Went is the past tense of go." },
+      "2.L.1.e": { question: "Which word tells how the bird sang?", answer: "sweetly", choices: ["sweetly", "song", "blue"], explanation: "Sweetly is an adverb that tells how the bird sang." },
+      "2.L.1.f": { question: "Which is a complete expanded sentence?", answer: "The little brown dog ran quickly home.", choices: ["The little brown dog ran quickly home.", "Dog quickly.", "Ran the."], explanation: "A complete sentence has a clear subject and predicate." },
+      "2.L.2.a": { question: "In the sentence We visited Lake Erie on Monday, which words need capital letters?", answer: "Lake Erie and Monday", choices: ["Lake Erie and Monday", "only Lake Erie", "no words"], explanation: "Lake Erie and Monday are proper names." },
+      "2.L.2.b": { question: "Which letter greeting uses a comma correctly?", answer: "Dear Grandma,", choices: ["Dear Grandma,", "Dear, Grandma", "Dear Grandma"], explanation: "A greeting in a letter uses a comma." },
+      "2.L.2.c": { question: "Which word shows that the backpack belongs to Mia?", answer: "Mia's", choices: ["Mias", "Mia's", "Mia"], explanation: "An apostrophe and s can show possession." },
+      "2.L.2.d": { question: "Which word follows the same long-a spelling pattern as rain?", answer: "train", choices: ["train", "ran", "turn"], explanation: "Rain and train both use ai for the long-a sound." },
+      "2.L.3.a": { question: "Which is the best formal way to ask for help at school?", answer: "Could you please help me?", choices: ["Could you please help me?", "Help me now!", "Gimme help."], explanation: "Formal language is polite and clear." },
+      "2.L.4.a": { question: "The desert was arid, so the plants needed very little water. What does arid mean?", answer: "very dry", choices: ["very dry", "very cold", "very noisy"], explanation: "The clue about little water shows that arid means very dry." },
+      "2.L.4.b": { question: "What does unhappy mean?", answer: "not happy", choices: ["not happy", "very happy", "happy again"], explanation: "The prefix un- means not." },
+      "2.L.4.c": { question: "Knowing the word help can help you understand helpful. What does helpful mean?", answer: "giving help", choices: ["giving help", "needing sleep", "full of color"], explanation: "The root word help gives a clue to helpful." },
+      "2.L.4.d": { question: "What is a birdhouse?", answer: "a house for a bird", choices: ["a house for a bird", "a bird that is a house", "a book about birds"], explanation: "Birdhouse joins bird and house." },
+      "2.L.5.a": { question: "Which food could be described as juicy?", answer: "an orange", choices: ["an orange", "a pencil", "a mitten"], explanation: "An orange has juice." },
+      "2.L.5.b": { question: "Which word means to throw with the most force?", answer: "hurl", choices: ["toss", "throw", "hurl"], explanation: "Hurl means to throw very forcefully." },
+      "2.L.6": { question: "Which phrase uses a describing word clearly?", answer: "The enormous whale splashed.", choices: ["The enormous whale splashed.", "The whale thing.", "Whale very."], explanation: "Enormous is a precise describing word." },
+      "2.RF.3.a": { question: "Which word has a short vowel sound?", answer: "ship", choices: ["ship", "shine", "sheep"], explanation: "Ship has the short i sound." },
+      "2.RF.3.b": { question: "Which word has the vowel team ea?", answer: "beach", choices: ["beach", "bench", "bunch"], explanation: "Beach has the vowel team ea." },
+      "2.RF.3.c": { question: "Which two-syllable word has a long vowel sound?", answer: "sunset", choices: ["sunset", "rabbit", "pumpkin"], explanation: "Sunset has a long e sound in its second syllable." },
+      "2.RF.3.d": { question: "What does reread mean?", answer: "read again", choices: ["read again", "read before", "not read"], explanation: "The prefix re- means again." },
+      "2.RF.3.e": { question: "Which word has a spelling that must be remembered?", answer: "said", choices: ["said", "cat", "hop"], explanation: "Said does not sound exactly the way its letters usually spell." },
+      "2.RF.3.f": { question: "Which is a grade-appropriate irregular word?", answer: "because", choices: ["because", "map", "sun"], explanation: "Because has an irregular spelling to learn by memory." },
+      "2.RI.1": { question: "A passage says owls hunt at night. Which question is answered by that detail?", answer: "When do owls hunt?", choices: ["When do owls hunt?", "What color are owls?", "Where do owls sleep?"], explanation: "The detail tells when owls hunt." },
+      "2.RI.2": { question: "A text explains how seeds grow into plants. What is the main topic?", answer: "how plants grow", choices: ["how plants grow", "how birds fly", "how games work"], explanation: "Every detail is about plants growing." },
+      "2.RI.3": { question: "First, water is heated. Next, it turns into steam. What connection does the text show?", answer: "steps in a process", choices: ["steps in a process", "two characters talking", "a made-up problem"], explanation: "The words first and next show steps in order." },
+      "2.RI.4": { question: "In a text about weather, forecast means what weather may be coming. What does forecast mean?", answer: "a prediction about weather", choices: ["a prediction about weather", "a kind of animal", "a place to play"], explanation: "The text gives the meaning of forecast." },
+      "2.RI.5": { question: "Which text feature helps you find the page for a topic in a book?", answer: "an index", choices: ["an index", "a character", "a rhyme"], explanation: "An index lists topics and page numbers." },
+      "2.RI.6": { question: "A text explains how rain forms. Why did the author write it?", answer: "to explain", choices: ["to explain", "to tell a joke", "to give directions for a game"], explanation: "The text gives information to explain rain." },
+      "2.RI.7": { question: "How can a labeled diagram help a reader?", answer: "It shows the parts and names them.", choices: ["It shows the parts and names them.", "It changes the ending.", "It makes every word rhyme."], explanation: "A diagram can clarify information with labels." },
+      "2.RI.8": { question: "An author says children should wear helmets because helmets protect heads. What supports the author's point?", answer: "Helmets protect heads.", choices: ["Helmets protect heads.", "Helmets are blue.", "Children like bicycles."], explanation: "Protection is a reason that supports wearing helmets." },
+      "2.RI.9": { question: "Two texts say bees help flowers by carrying pollen. What important point do both texts share?", answer: "Bees carry pollen.", choices: ["Bees carry pollen.", "Bees live underwater.", "Bees are reptiles."], explanation: "Both texts include the point about pollen." },
+      "2.RL.1": { question: "In a story, Maya packed an umbrella because dark clouds came. Why did Maya pack an umbrella?", answer: "Dark clouds came.", choices: ["Dark clouds came.", "She wanted to swim.", "She lost her backpack."], explanation: "The story gives dark clouds as Maya's reason." },
+      "2.RL.2": { question: "A fable tells about a rabbit who practiced every day and finished a race. What is the lesson?", answer: "Practice helps you improve.", choices: ["Practice helps you improve.", "Rabbits can fly.", "Races always happen at night."], explanation: "The rabbit improved by practicing." },
+      "2.RL.3": { question: "When the bridge washed out, Kai built a safe path with sticks. How did Kai respond to the challenge?", answer: "He solved the problem.", choices: ["He solved the problem.", "He ignored it forever.", "He made the rain start."], explanation: "Kai responded by making a safe path." },
+      "2.RL.4": { question: "What do repeated lines in a poem often help create?", answer: "rhythm", choices: ["rhythm", "a map", "a recipe"], explanation: "Repeated lines can make a poem have rhythm." },
+      "2.RL.5": { question: "What does the beginning of a story usually do?", answer: "introduces the characters and setting", choices: ["introduces the characters and setting", "solves every problem", "lists page numbers"], explanation: "The beginning introduces who and where the story is about." },
+      "2.RL.6": { question: "Why might two characters speak in different voices when reading dialogue?", answer: "They have different points of view.", choices: ["They have different points of view.", "They are the same person.", "They are reading a dictionary."], explanation: "Different voices can show different characters' viewpoints." },
+      "2.RL.7": { question: "A picture shows a character holding a suitcase beside the words She moved to a new town. What does the picture help explain?", answer: "The character is leaving home.", choices: ["The character is leaving home.", "The character is cooking.", "The character is asleep."], explanation: "The suitcase and words together show the character is moving." },
+      "2.RL.9": { question: "Two Cinderella stories both include a lost shoe. What is one similarity?", answer: "Both have a lost shoe.", choices: ["Both have a lost shoe.", "Both happen on the moon.", "Both have no main character."], explanation: "A lost shoe appears in both versions." }
+    };
+    const item = items[skill];
+    if (!item) throw new Error(`Unsupported Grade 2 ELA skill: ${skill}`);
+    interaction = choiceInteraction(random.shuffle(item.choices)); canonicalAnswer = item.answer; values = { question: item.question }; explanation = item.explanation;
   } else if (template.generator.kind === "gradeOneElaAdult") {
     const skill = String(configuration.skill);
     const prompts: Record<string, string> = {

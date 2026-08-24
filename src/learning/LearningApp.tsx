@@ -49,9 +49,16 @@ function isPhonemeChoiceQuestion(session: SessionView | null, choices: Array<{ i
 
 type LearningSubject = "ELA" | "MATH";
 type LearningPurpose = "practice" | "diagnostic" | "placement" | "proctored" | "adultScored";
+type LearningLevel = "K" | "GRADE_1" | "GRADE_2";
 
 function gradeName(grade: string | undefined): string {
+  if (grade === "GRADE_2") return "Grade 2";
   return grade === "GRADE_1" ? "Grade 1" : "Kindergarten";
+}
+
+function learningGrade(grade: string | undefined): "K" | "1" | "2" {
+  if (grade === "GRADE_2") return "2";
+  return grade === "GRADE_1" ? "1" : "K";
 }
 
 function LearningDashboard({ student, selectedSubject, setSelectedSubject, curriculumGrade, isLoading, proctorCode, setProctorCode, placementGrade, setPlacementGrade, start, updatePlacement, error }: {
@@ -62,8 +69,8 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, curri
   isLoading: boolean;
   proctorCode: string;
   setProctorCode: (code: string) => void;
-  placementGrade: "K" | "GRADE_1";
-  setPlacementGrade: (grade: "K" | "GRADE_1") => void;
+  placementGrade: LearningLevel;
+  setPlacementGrade: (grade: LearningLevel) => void;
   start: (purpose: LearningPurpose) => Promise<void>;
   updatePlacement: () => Promise<void>;
   error: string | null;
@@ -111,12 +118,12 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, curri
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("placement")}>NEW-STUDENT PLACEMENT</button>
           <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("proctored")}>PROCTORED CHECK</button>
-          {curriculumGrade === "1" && selectedSubject === "ELA" && <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("adultScored")}>ADULT-SCORED ELA</button>}
+          {curriculumGrade !== "K" && selectedSubject === "ELA" && <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("adultScored")}>ADULT-SCORED ELA</button>}
         </div>
         <div className="level-panel mt-7 rounded-2xl p-5">
           <h3 className="mb-3 text-lg font-black">Set subject level</h3>
           <div className="flex flex-wrap items-end gap-3">
-            <label className="!my-0">Level for {selectedSubject === "ELA" ? "Reading & Language" : "Math"}<select value={placementGrade} onChange={(event) => setPlacementGrade(event.target.value as "K" | "GRADE_1")}><option value="K">Kindergarten</option><option value="GRADE_1">Grade 1</option></select></label>
+            <label className="!my-0">Level for {selectedSubject === "ELA" ? "Reading & Language" : "Math"}<select value={placementGrade} onChange={(event) => setPlacementGrade(event.target.value as LearningLevel)}><option value="K">Kindergarten</option><option value="GRADE_1">Grade 1</option><option value="GRADE_2">Grade 2</option></select></label>
             <button className="secondary" disabled={!proctorCode} onClick={() => void updatePlacement()}>SAVE LEVEL</button>
           </div>
         </div>
@@ -135,7 +142,7 @@ export function LearningApp(): JSX.Element {
   const curriculumSubject = useState<"ELA" | "MATH">("ELA");
   const selectedSubject = curriculumSubject[0];
   const setSelectedSubject = curriculumSubject[1];
-  const curriculumGrade = student?.curriculumLevels?.[selectedSubject] === "GRADE_1" ? "1" : student?.grade === "GRADE_1" ? "1" : "K";
+  const curriculumGrade = learningGrade(student?.curriculumLevels?.[selectedSubject] ?? student?.grade);
   const [session, setSession] = useState<SessionView | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [classification, setClassification] = useState<Classification>({});
@@ -145,7 +152,7 @@ export function LearningApp(): JSX.Element {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [proctorCode, setProctorCode] = useState("");
-  const [placementGrade, setPlacementGrade] = useState<"K" | "GRADE_1">("K");
+  const [placementGrade, setPlacementGrade] = useState<LearningLevel>("K");
   const [progress, setProgress] = useState<Progress>({ attempts: [], mastery: [], latestDiagnosticPlacement: null });
   const isQuestion = location.pathname === "/learning/practice" || location.pathname === "/learning/diagnostic" || location.pathname === "/learning/placement" || location.pathname === "/learning/proctored" || location.pathname === "/learning/adult-scored";
   const sorting = classificationData(session);

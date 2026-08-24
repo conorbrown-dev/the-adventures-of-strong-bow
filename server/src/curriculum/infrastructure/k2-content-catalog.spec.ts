@@ -1,6 +1,9 @@
 import { kindergartenCoverageReport, loadK2ContentCatalog, validateK2ContentCatalog } from "./k2-content-catalog";
 import { createTemplateReview } from "./k2-review-packet";
 import { loadAndValidateVendoredStandards } from "./vendored-standards.validator";
+import { gradeTwoMathTemplates } from "../data/grade-two-math-templates";
+import { gradeTwoElaTemplates } from "../data/grade-two-ela-templates";
+import { gradeTwoElaAdultTemplates } from "../data/grade-two-ela-adult-templates";
 
 describe("Kindergarten production content catalog", () => {
   it("validates the catalog and preserves human review boundaries", async () => {
@@ -20,6 +23,19 @@ describe("Kindergarten production content catalog", () => {
       expect(item.total).toBeGreaterThanOrEqual(4);
       expect(item.status).toBe("assessment-ready");
     }
+  });
+
+  it("includes every independently assessable Grade 2 mathematics target", async () => {
+    const standards = (await loadAndValidateVendoredStandards()).records.filter((standard) => standard.grade === "2" && standard.subject === "math" && standard.active && standard.instructionalStatus === "assessable").map((standard) => standard.officialId).sort();
+    expect(gradeTwoMathTemplates.map((template) => template.standardId).sort()).toEqual(standards);
+    expect(gradeTwoMathTemplates.every((template) => template.review.status === "reviewed" && template.diagnosticEligible)).toBe(true);
+  });
+
+  it("maps every Grade 2 ELA target to either an independent or adult-scored activity", async () => {
+    const standards = (await loadAndValidateVendoredStandards()).records.filter((standard) => standard.grade === "2" && standard.subject === "ela" && standard.active && standard.instructionalStatus === "assessable").map((standard) => standard.officialId).sort();
+    expect([...gradeTwoElaTemplates, ...gradeTwoElaAdultTemplates].map((template) => template.standardId).sort()).toEqual(standards);
+    expect(gradeTwoElaTemplates.every((template) => template.diagnosticEligible && template.review.status === "reviewed")).toBe(true);
+    expect(gradeTwoElaAdultTemplates.every((template) => !template.diagnosticEligible && template.responseType === "constructedResponse")).toBe(true);
   });
 
   it("creates ten complete deterministic question instances instead of an inventory", async () => {

@@ -43,6 +43,24 @@ describe("LearningFacadeService", () => {
     expect(started.question.templateId).toMatch(/^1\./);
   });
 
+  it("serves Grade 2 mathematics and records Grade 2 diagnostic probes", async () => {
+    const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
+    const started = await service.start("grade-two", "diagnostic", 42, undefined, "2", "MATH");
+    expect(started.question.templateId).toMatch(/^2\./);
+    const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
+    const current = sessions.get(started.sessionId)!;
+    await service.submit(started.sessionId, current.instance.canonicalAnswer);
+    const stored = (service as unknown as { sessions: Map<string, { diagnosticProbes: Array<{ grade: string }> }> }).sessions.get(started.sessionId)!;
+    expect(stored.diagnosticProbes[0].grade).toBe("2");
+  });
+
+  it("starts Grade 2 adult-scored ELA activities only with an adult code", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository(), "adult-code");
+    const started = await service.start("grade-two", "adultScored", 42, "adult-code", "2", "ELA");
+    expect(started.question.templateId).toMatch(/^2\./);
+    expect(started.question.responseType).toBe("constructedResponse");
+  });
+
   it("records an adult-scored Grade 1 ELA observation before confirming mastery", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-one", "adultScored", 42, "adult-code", "1");
