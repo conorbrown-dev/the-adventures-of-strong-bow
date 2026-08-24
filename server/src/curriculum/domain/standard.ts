@@ -1,5 +1,5 @@
 export const CURRICULUM_GRADES = ["K", "1", "2", "3", "4", "5"] as const;
-export const CURRICULUM_SUBJECTS = ["math", "ela", "science"] as const;
+export const CURRICULUM_SUBJECTS = ["math", "ela", "science", "socialStudies"] as const;
 export const INSTRUCTIONAL_STATUSES = [
   "assessable",
   "broadStandard",

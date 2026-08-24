@@ -14,6 +14,7 @@ import { kindergartenElaTemplates } from "../data/kindergarten-ela-templates";
 import { catalogTemplateToQuestionTemplate } from "../infrastructure/k2-review-packet";
 import { loadLearningStandards } from "../infrastructure/learning-standards";
 import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
+import { oklahomaSocialStudiesTemplates } from "../data/oklahoma-social-studies-templates";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
 
@@ -127,6 +128,16 @@ describe("reviewed deterministic question engine", () => {
       const instance = generateQuestion(template, "oklahoma-science");
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("science investigation");
+      expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
+    }
+  });
+
+  it("generates complete adult-guided inquiries for every Oklahoma K–2 social studies standard", () => {
+    for (const catalogTemplate of oklahomaSocialStudiesTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "oklahoma-social-studies");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.prompt.text).toContain("social studies inquiry");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
     }
   });

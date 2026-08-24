@@ -8,6 +8,8 @@ import { kindergartenMathTemplates } from "../data/kindergarten-math-templates";
 import { kindergartenElaTemplates } from "../data/kindergarten-ela-templates";
 import { kindergartenElaAdultTemplates } from "../data/kindergarten-ela-adult-templates";
 import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
+import { oklahomaSocialStudiesStandards } from "../data/oklahoma-social-studies-standards";
+import { oklahomaSocialStudiesTemplates } from "../data/oklahoma-social-studies-templates";
 import { loadLearningStandards } from "./learning-standards";
 
 describe("Kindergarten production content catalog", () => {
@@ -18,7 +20,7 @@ describe("Kindergarten production content catalog", () => {
     const originalReviewed = kindergarten.filter((template) => template.review.reviewer === "Conor Brown");
     expect(originalReviewed).toHaveLength(27);
     expect(originalReviewed.every((template) => template.review.contentHash)).toBe(true);
-    expect(kindergarten).toHaveLength(121);
+    expect(kindergarten).toHaveLength(145);
     expect(kindergarten.every((template) => template.review.status === "reviewed")).toBe(true);
   });
 
@@ -51,6 +53,12 @@ describe("Kindergarten production content catalog", () => {
   it("includes a reviewed adult-observed investigation for each Oklahoma K–2 science standard", async () => {
     expect(oklahomaScienceTemplates).toHaveLength(40);
     expect(oklahomaScienceTemplates.every((template) => template.subject === "science" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
+  });
+
+  it("includes a reviewed adult-guided inquiry for each Oklahoma K–2 social studies standard", async () => {
+    expect(oklahomaSocialStudiesTemplates).toHaveLength(oklahomaSocialStudiesStandards.length);
+    expect(oklahomaSocialStudiesTemplates).toHaveLength(93);
+    expect(oklahomaSocialStudiesTemplates.every((template) => template.subject === "socialStudies" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
   });
 
   it("includes every independently assessable Grade 2 mathematics target", async () => {
