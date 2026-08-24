@@ -15,6 +15,7 @@ import { catalogTemplateToQuestionTemplate } from "../infrastructure/k2-review-p
 import { loadLearningStandards } from "../infrastructure/learning-standards";
 import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
 import { oklahomaSocialStudiesTemplates } from "../data/oklahoma-social-studies-templates";
+import { oklahomaHealthTemplates } from "../data/oklahoma-health-templates";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
 
@@ -138,6 +139,16 @@ describe("reviewed deterministic question engine", () => {
       const instance = generateQuestion(template, "oklahoma-social-studies");
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("social studies inquiry");
+      expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
+    }
+  });
+
+  it("generates complete adult-guided activities for every Oklahoma Health PreK–2 objective", () => {
+    for (const catalogTemplate of oklahomaHealthTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "oklahoma-health");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.prompt.text).toContain("health activity");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
     }
   });

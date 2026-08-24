@@ -1,0 +1,1 @@
+ALTER TYPE "CurriculumSubject" ADD VALUE IF NOT EXISTS 'HEALTH';

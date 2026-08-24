@@ -10,6 +10,8 @@ import { kindergartenElaAdultTemplates } from "../data/kindergarten-ela-adult-te
 import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
 import { oklahomaSocialStudiesStandards } from "../data/oklahoma-social-studies-standards";
 import { oklahomaSocialStudiesTemplates } from "../data/oklahoma-social-studies-templates";
+import { oklahomaHealthStandards } from "../data/oklahoma-health-standards";
+import { oklahomaHealthTemplates } from "../data/oklahoma-health-templates";
 import { loadLearningStandards } from "./learning-standards";
 
 describe("Kindergarten production content catalog", () => {
@@ -20,7 +22,7 @@ describe("Kindergarten production content catalog", () => {
     const originalReviewed = kindergarten.filter((template) => template.review.reviewer === "Conor Brown");
     expect(originalReviewed).toHaveLength(27);
     expect(originalReviewed.every((template) => template.review.contentHash)).toBe(true);
-    expect(kindergarten).toHaveLength(145);
+    expect(kindergarten).toHaveLength(181);
     expect(kindergarten.every((template) => template.review.status === "reviewed")).toBe(true);
   });
 
@@ -59,6 +61,11 @@ describe("Kindergarten production content catalog", () => {
     expect(oklahomaSocialStudiesTemplates).toHaveLength(oklahomaSocialStudiesStandards.length);
     expect(oklahomaSocialStudiesTemplates).toHaveLength(93);
     expect(oklahomaSocialStudiesTemplates.every((template) => template.subject === "socialStudies" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
+  });
+
+  it("includes each Oklahoma Health PreK–2 objective at every supported grade", () => {
+    expect(oklahomaHealthTemplates).toHaveLength(oklahomaHealthStandards.length * 3);
+    expect(oklahomaHealthTemplates.every((template) => template.subject === "health" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
   });
 
   it("includes every independently assessable Grade 2 mathematics target", async () => {

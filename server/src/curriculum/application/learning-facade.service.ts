@@ -13,7 +13,7 @@ import { validateK2ContentCatalog } from "../infrastructure/k2-content-catalog";
 import { diagnosticPlacement, evaluateDiagnostic, type DiagnosticProbe } from "./diagnostic-placement";
 
 type SessionPurpose = "practice" | "review" | "diagnostic" | "placement" | "proctored" | "adultScored";
-type LearningSubject = "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES";
+type LearningSubject = "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH";
 type StoredSession = { id: string; learnerId: string; purpose: SessionPurpose; grade: string; seed: number; position: number; length: number; templates: QuestionTemplate[]; instance: QuestionInstance; submittedInstanceIds: Set<string>; diagnosticProbes: DiagnosticProbe[]; proctoredCorrect: number; placement?: { subject: LearningSubject; grades: string[]; gradeIndex: number; templatesByGrade: QuestionTemplate[][]; correct: number; result: string | null } };
 export const CURRICULUM_PROCTOR_CODE = Symbol("CURRICULUM_PROCTOR_CODE");
 const seedAt = (seed: number, position: number) => Math.abs(Math.imul(seed ^ (position + 1), 2654435761)) >>> 0;

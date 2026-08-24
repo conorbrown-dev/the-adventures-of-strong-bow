@@ -1,6 +1,7 @@
 import type { QuestionInstance, QuestionTemplate } from "../domain/question-template";
 import { oklahomaScienceStandards } from "../data/oklahoma-science-standards";
 import { oklahomaSocialStudiesStandards } from "../data/oklahoma-social-studies-standards";
+import { oklahomaHealthStandards } from "../data/oklahoma-health-standards";
 
 class Random {
   private state: number;
@@ -148,6 +149,15 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Social Studies 2026" } };
     values = { question: `${gradeLabel} social studies inquiry: Work with an adult to ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Use a map, book, picture, object, or conversation when it helps. Explain your thinking and what evidence supports it.` };
     explanation = "An adult will check your evidence, explanation, and social studies thinking together with you.";
+  } else if (template.generator.kind === "oklahomaHealthAdult") {
+    const skill = String(configuration.skill);
+    const standard = oklahomaHealthStandards.find((item) => item.officialId === skill);
+    if (!standard) throw new Error(`Unsupported Oklahoma health skill: ${skill}`);
+    const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
+    canonicalAnswer = null;
+    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Health Education 2026" } };
+    values = { question: `${gradeLabel} health activity: Work with an adult to ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Talk about safe choices and show what you know using a drawing, role-play, or daily routine when it helps.` };
+    explanation = "An adult will check your health understanding and safe choices together with you.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);
     const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {

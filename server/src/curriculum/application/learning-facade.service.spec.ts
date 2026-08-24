@@ -86,6 +86,14 @@ describe("LearningFacadeService", () => {
     expect(started.question.responseType).toBe("constructedResponse");
   });
 
+  it("starts an Oklahoma Grade 2 health activity only with an adult code", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository(), "adult-code");
+    await expect(service.start("health", "adultScored", 42, "wrong-code", "2", "HEALTH")).rejects.toThrow("verification code");
+    const started = await service.start("health", "adultScored", 42, "adult-code", "2", "HEALTH");
+    expect(started.question.standardIds[0]).toMatch(/^[1-8]\./);
+    expect(started.question.responseType).toBe("constructedResponse");
+  });
+
   it("records an adult-scored Grade 1 ELA observation before confirming mastery", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-one", "adultScored", 42, "adult-code", "1");
