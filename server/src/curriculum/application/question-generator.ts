@@ -14,6 +14,7 @@ import { gradeTwoReadingVariants } from "../data/grade-two-reading-variants";
 import { gradeOneReadingVariants } from "../data/grade-one-reading-variants";
 import { kindergartenReadingVariants } from "../data/kindergarten-reading-variants";
 import { gradeTwoLanguageVariants } from "../data/grade-two-language-variants";
+import { gradeOneLanguageVariants } from "../data/grade-one-language-variants";
 
 class Random {
   private state: number;
@@ -421,7 +422,10 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     canonicalAnswer = null; interaction = { kind: "adultScored", target: { standardId: skill } }; values = { question: prompts[skill] ?? "Complete the activity with an adult." }; explanation = "Your adult will decide whether this skill was demonstrated.";
   } else if (template.generator.kind === "gradeOneEla") {
     const skill = String(configuration.skill); let answer: string; let choices: string[];
-    if (skill === "1.L.1.b") { const words = [["dog", "run", "blue"], ["teacher", "jump", "quickly"]][random.integer(0, 1)]; answer = words[0]; choices = words; values = { question: "Which word is a noun?" }; explanation = `${answer} names a person, place, thing, or animal.`; }
+    const languageVariants = gradeOneLanguageVariants[skill] ?? [];
+    const alternate = languageVariants.length > 0 && random.integer(0, 1) === 1 ? languageVariants[random.integer(0, languageVariants.length - 1)] : null;
+    if (alternate) { answer = alternate.answer; choices = alternate.choices; values = { question: alternate.question }; explanation = alternate.explanation; }
+    else if (skill === "1.L.1.b") { const words = [["dog", "run", "blue"], ["teacher", "jump", "quickly"]][random.integer(0, 1)]; answer = words[0]; choices = words; values = { question: "Which word is a noun?" }; explanation = `${answer} names a person, place, thing, or animal.`; }
     else if (skill === "1.L.1.c") { const rows = [["The dogs run.", "The dogs runs.", "The dogs running."], ["The bird flies.", "The bird fly.", "The bird flying."]][random.integer(0, 1)]; answer = rows[0]; choices = rows; values = { question: "Which sentence has a noun and verb that agree?" }; explanation = `The subject and verb match in “${answer}”`; }
     else if (skill === "1.L.1.d") { const rows = [["She", "Book", "Jump"], ["They", "Green", "Table"]][random.integer(0, 1)]; answer = rows[0]; choices = rows; values = { question: "Which word can take the place of a noun?" }; explanation = `${answer} is a pronoun.`; }
     else if (skill === "1.L.1.e") { const rows = [["Yesterday I walked home.", "Yesterday I walk home.", "Yesterday I will walk home."], ["Tomorrow we will play.", "Tomorrow we played.", "Tomorrow we play."]][random.integer(0, 1)]; answer = rows[0]; choices = rows; values = { question: "Which sentence uses the correct verb time word?" }; explanation = `“${answer}” tells when the action happens.`; }
@@ -479,7 +483,7 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
       };
       const baseItem = comprehension[skill];
       if (!baseItem) throw new Error(`Unsupported Grade 1 ELA skill: ${skill}`);
-      const variants = gradeOneReadingVariants[skill] ?? [];
+      const variants = [...(gradeOneReadingVariants[skill] ?? []), ...(gradeOneLanguageVariants[skill] ?? [])];
       const item = [baseItem, ...variants][random.integer(0, variants.length)];
       answer = item.answer; choices = item.choices; values = { question: item.question }; explanation = item.explanation;
     }

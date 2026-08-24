@@ -239,7 +239,7 @@ describe("reviewed deterministic question engine", () => {
     }
 
     const spellingQuestions = Array.from({ length: 20 }, (_, seed) => generate("1.l.2.d.spelling-patterns", seed));
-    expect(new Set(spellingQuestions.map((question) => question.prompt.text))).toEqual(new Set(["Which word begins with the /sh/ sound?", "Which word has the long a sound spelled ai?"]));
+    expect(new Set(spellingQuestions.map((question) => question.prompt.text))).toEqual(new Set(["Which word begins with the /sh/ sound?", "Which word begins with the /ch/ sound?", "Which word has the long a sound spelled ai?"]));
     for (const question of spellingQuestions) {
       const labels = (question.interaction.choices as Array<{ label: string }>).map((choice) => choice.label);
       expect(labels).toContain(question.canonicalAnswer);
@@ -270,6 +270,16 @@ describe("reviewed deterministic question engine", () => {
   it("varies Grade 1 reading comprehension prompts while keeping an answer in every choice set", () => {
     const byId = new Map(gradeOneElaTemplates.map((template) => [template.id, template]));
     for (const templateId of ["1.ri.2.main-topic", "1.rl.2.lesson", "1.rl.7.story-illustrations"]) {
+      const template = catalogTemplateToQuestionTemplate(byId.get(templateId)!);
+      const questions = Array.from({ length: 30 }, (_, seed) => generateQuestion(template, seed));
+      expect(new Set(questions.map((question) => question.prompt.text)).size).toBeGreaterThan(1);
+      for (const question of questions) expect((question.interaction.choices as Array<{ label: string }>).map((choice) => choice.label)).toContain(question.canonicalAnswer);
+    }
+  });
+
+  it("varies Grade 1 language and word-reading prompts while keeping an answer in every choice set", () => {
+    const byId = new Map(gradeOneElaTemplates.map((template) => [template.id, template]));
+    for (const templateId of ["1.l.1.b.nouns", "1.l.4.a.context-clues", "1.rf.3.a.digraphs"]) {
       const template = catalogTemplateToQuestionTemplate(byId.get(templateId)!);
       const questions = Array.from({ length: 30 }, (_, seed) => generateQuestion(template, seed));
       expect(new Set(questions.map((question) => question.prompt.text)).size).toBeGreaterThan(1);

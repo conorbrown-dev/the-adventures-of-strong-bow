@@ -1,0 +1,36 @@
+type GradeOneLanguageVariant = { question: string; answer: string; choices: string[]; explanation: string };
+
+/** Additional original prompts for Grade 1 language, phonics, and word-reading practice. */
+export const gradeOneLanguageVariants: Record<string, GradeOneLanguageVariant[]> = {
+  "1.L.1.b": [{ question: "Which word names a place?", answer: "school", choices: ["school", "jump", "yellow"], explanation: "School names a place, so it is a noun." }],
+  "1.L.1.c": [{ question: "Which sentence has a noun and verb that agree?", answer: "The cats play.", choices: ["The cats play.", "The cats plays.", "The cats playing."], explanation: "Cats is plural, so it uses the verb play." }],
+  "1.L.1.d": [{ question: "Which word can take the place of Mia and I?", answer: "we", choices: ["we", "blue", "run"], explanation: "We is a pronoun that can take the place of Mia and I." }],
+  "1.L.1.e": [{ question: "Which sentence tells about tomorrow?", answer: "Tomorrow I will visit Grandma.", choices: ["Tomorrow I will visit Grandma.", "Tomorrow I visited Grandma.", "Tomorrow I visit yesterday."], explanation: "Will visit tells about something that will happen." }],
+  "1.L.1.f": [{ question: "Which word describes the kite?", answer: "red", choices: ["red", "fly", "kite"], explanation: "Red is an adjective because it tells about the kite." }],
+  "1.L.1.g": [{ question: "Which word can join the ideas I like apples ___ bananas?", answer: "and", choices: ["and", "under", "purple"], explanation: "And joins two ideas or items." }],
+  "1.L.1.h": [{ question: "Which word can come before the noun dog to point to one dog?", answer: "this", choices: ["this", "quickly", "because"], explanation: "This is a determiner that points to a noun." }],
+  "1.L.1.i": [{ question: "Which word tells where the toy is? The toy is ___ the box.", answer: "inside", choices: ["inside", "and", "happy"], explanation: "Inside tells where the toy is." }],
+  "1.L.2.a": [{ question: "Which sentence uses capital letters correctly?", answer: "Sam visited Tulsa.", choices: ["Sam visited Tulsa.", "sam traveled to Tulsa.", "Sam drove to tulsa."], explanation: "Names of people and places begin with capital letters." }],
+  "1.L.2.b": [{ question: "Which sentence ends with the correct mark?", answer: "We saw a rainbow!", choices: ["We saw a rainbow!", "We saw a rainbow?", "We saw a rainbow,"], explanation: "An excited sentence can end with an exclamation mark." }],
+  "1.L.2.c": [{ question: "Which sentence uses commas correctly?", answer: "I packed a hat, a map, and a snack.", choices: ["I packed a hat, a map, and a snack.", "I packed a hat a map and a snack.", "I packed, a hat a map and a snack."], explanation: "Commas separate items in a list." }],
+  "1.L.2.d": [{ question: "Which word begins with the /ch/ sound?", answer: "chop", choices: ["chop", "shop", "top"], explanation: "The letters ch spell the /ch/ sound in chop." }],
+  "1.L.4.a": [{ question: "The soup was steaming, so it was hot. What does steaming mean here?", answer: "very hot", choices: ["very hot", "very cold", "very quiet"], explanation: "Steam is a clue that the soup is hot." }],
+  "1.L.4.b": [{ question: "What does the beginning un- mean in unwrap?", answer: "not or undo", choices: ["not or undo", "again", "very"], explanation: "Un- can mean not or undo." }],
+  "1.L.4.c": [{ question: "Which word comes from the root word jump?", answer: "jumping", choices: ["jumping", "jungle", "juice"], explanation: "Jumping is jump with an ending added." }],
+  "1.L.5.a": [{ question: "Which two things belong in the same group?", answer: "shirt and socks", choices: ["shirt and socks", "shirt and banana", "socks and shovel"], explanation: "A shirt and socks are both clothing." }],
+  "1.L.5.b": [{ question: "Which sentence tells what a bicycle is and what it does?", answer: "A bicycle is a vehicle with wheels that people ride.", choices: ["A bicycle is a vehicle with wheels that people ride.", "A bicycle is very.", "Bicycle because wheels."], explanation: "The sentence gives the category and helpful details." }],
+  "1.L.5.d": [{ question: "Which word means very happy?", answer: "delighted", choices: ["delighted", "sad", "tired"], explanation: "Delighted means very happy." }],
+  "1.L.6": [{ question: "Which word can connect these ideas? I wanted to play, ___ it started to rain.", answer: "but", choices: ["but", "blue", "under"], explanation: "But connects two ideas that are different." }],
+  "1.RF.1.a": [{ question: "Which sentence has words in the right order?", answer: "The frog hops.", choices: ["The frog hops.", "Frog the hops.", "Hops frog the."], explanation: "A sentence puts words in an order that makes sense." }],
+  "1.RF.2.a": [{ question: "What vowel sound do you hear in bike?", answer: "long i", choices: ["long i", "short i", "long o"], explanation: "The i in bike says its name: long i." }],
+  "1.RF.2.b": [{ question: "Blend these sounds: /f/ /i/ /sh/. What word do they make?", answer: "fish", choices: ["fish", "dish", "fin"], explanation: "The sounds blend to make fish." }],
+  "1.RF.2.c": [{ question: "What is the last sound in map?", answer: "/p/", choices: ["/p/", "/m/", "/a/"], explanation: "Map ends with the /p/ sound." }],
+  "1.RF.2.d": [{ question: "Which sounds do you hear in fish, in order?", answer: "f, i, sh", choices: ["f, i, sh", "f, sh, i", "i, f, sh"], explanation: "Fish has the sounds /f/, /i/, /sh/." }],
+  "1.RF.3.a": [{ question: "Which letters spell the first sound in chair?", answer: "ch", choices: ["ch", "sh", "th"], explanation: "The letters ch spell the first sound in chair." }],
+  "1.RF.3.b": [{ question: "Which word says /f/ /r/ /o/ /g/?", answer: "frog", choices: ["frog", "fog", "flag"], explanation: "The sounds blend to make frog." }],
+  "1.RF.3.c": [{ question: "Which word has a vowel team that makes the long e sound?", answer: "seed", choices: ["seed", "said", "sad"], explanation: "The letters ee in seed make the long e sound." }],
+  "1.RF.3.d": [{ question: "How many syllables are in tiger?", answer: "2", choices: ["2", "1", "3"], explanation: "Ti-ger has two syllables." }],
+  "1.RF.3.e": [{ question: "Which word has two syllables?", answer: "rabbit", choices: ["rabbit", "cat", "jump"], explanation: "Rab-bit has two syllables." }],
+  "1.RF.3.f": [{ question: "Which word tells that something happened in the past?", answer: "played", choices: ["played", "play", "player"], explanation: "The ending ed tells that it happened in the past." }],
+  "1.RF.3.g": [{ question: "Which word is an irregular word to remember?", answer: "were", choices: ["were", "sun", "map"], explanation: "Were is a common irregular word that readers learn by memory." }]
+};
