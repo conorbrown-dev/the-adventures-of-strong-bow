@@ -10,6 +10,7 @@ import { oklahomaAiCompetencies } from "../data/oklahoma-ai-competencies";
 import { oklahomaEducationTechnologyStandards } from "../data/oklahoma-education-technology-standards";
 import { oklahomaMathStandards } from "../data/oklahoma-math-standards";
 import { oklahomaElaStandards } from "../data/oklahoma-ela-standards";
+import { gradeTwoReadingVariants } from "../data/grade-two-reading-variants";
 
 class Random {
   private state: number;
@@ -394,8 +395,10 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
       "2.RL.7": { question: "A picture shows a character holding a suitcase beside the words She moved to a new town. What does the picture help explain?", answer: "The character is leaving home.", choices: ["The character is leaving home.", "The character is cooking.", "The character is asleep."], explanation: "The suitcase and words together show the character is moving." },
       "2.RL.9": { question: "Two Cinderella stories both include a lost shoe. What is one similarity?", answer: "Both have a lost shoe.", choices: ["Both have a lost shoe.", "Both happen on the moon.", "Both have no main character."], explanation: "A lost shoe appears in both versions." }
     };
-    const item = items[skill];
-    if (!item) throw new Error(`Unsupported Grade 2 ELA skill: ${skill}`);
+    const baseItem = items[skill];
+    if (!baseItem) throw new Error(`Unsupported Grade 2 ELA skill: ${skill}`);
+    const variants = gradeTwoReadingVariants[skill] ?? [];
+    const item = [baseItem, ...variants][random.integer(0, variants.length)];
     interaction = choiceInteraction(random.shuffle(item.choices)); canonicalAnswer = item.answer; values = { question: item.question }; explanation = item.explanation;
   } else if (template.generator.kind === "gradeOneElaAdult") {
     const skill = String(configuration.skill);
