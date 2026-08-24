@@ -22,6 +22,7 @@ const generators: Record<string, { responseType: string; required: string[] }> =
   , kindergartenMath: { responseType: "singleChoice", required: ["skill"] }
   , kindergartenEla: { responseType: "singleChoice", required: ["skill"] }
   , kindergartenElaAdult: { responseType: "constructedResponse", required: ["skill"] }
+  , oklahomaScienceAdult: { responseType: "constructedResponse", required: ["skill"] }
   , additionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , subtractionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , compareNumbers: { responseType: "singleChoice", required: ["minimum", "maximum"] }

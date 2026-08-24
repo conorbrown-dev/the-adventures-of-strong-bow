@@ -12,6 +12,8 @@ import { gradeTwoElaTemplates } from "../data/grade-two-ela-templates";
 import { kindergartenMathTemplates } from "../data/kindergarten-math-templates";
 import { kindergartenElaTemplates } from "../data/kindergarten-ela-templates";
 import { catalogTemplateToQuestionTemplate } from "../infrastructure/k2-review-packet";
+import { loadLearningStandards } from "../infrastructure/learning-standards";
+import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
 
@@ -20,7 +22,7 @@ describe("reviewed deterministic question engine", () => {
   let templates: QuestionTemplate[];
 
   beforeAll(async () => {
-    standards = (await loadAndValidateVendoredStandards()).records;
+    standards = await loadLearningStandards();
     const raw = await readFile(sourcePath, "utf8");
     templates = JSON.parse(raw) as QuestionTemplate[];
     templates.push(...(["additionWithinRange", "subtractionWithinRange", "compareNumbers"] as const).map((kind) => ({
@@ -116,6 +118,16 @@ describe("reviewed deterministic question engine", () => {
           throw new Error(`${template.id} failed with seed ${seed}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
+    }
+  });
+
+  it("generates complete adult-observed tasks for every Oklahoma K–2 science standard", () => {
+    for (const catalogTemplate of oklahomaScienceTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "oklahoma-science");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.prompt.text).toContain("science investigation");
+      expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
     }
   });
 

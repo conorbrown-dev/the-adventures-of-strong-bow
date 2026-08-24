@@ -7,6 +7,8 @@ import { gradeTwoElaAdultTemplates } from "../data/grade-two-ela-adult-templates
 import { kindergartenMathTemplates } from "../data/kindergarten-math-templates";
 import { kindergartenElaTemplates } from "../data/kindergarten-ela-templates";
 import { kindergartenElaAdultTemplates } from "../data/kindergarten-ela-adult-templates";
+import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
+import { loadLearningStandards } from "./learning-standards";
 
 describe("Kindergarten production content catalog", () => {
   it("validates the catalog and preserves human review boundaries", async () => {
@@ -16,7 +18,7 @@ describe("Kindergarten production content catalog", () => {
     const originalReviewed = kindergarten.filter((template) => template.review.reviewer === "Conor Brown");
     expect(originalReviewed).toHaveLength(27);
     expect(originalReviewed.every((template) => template.review.contentHash)).toBe(true);
-    expect(kindergarten).toHaveLength(109);
+    expect(kindergarten).toHaveLength(121);
     expect(kindergarten.every((template) => template.review.status === "reviewed")).toBe(true);
   });
 
@@ -46,6 +48,11 @@ describe("Kindergarten production content catalog", () => {
     expect(kindergartenElaAdultTemplates.every((template) => !template.diagnosticEligible && template.responseType === "constructedResponse")).toBe(true);
   });
 
+  it("includes a reviewed adult-observed investigation for each Oklahoma K–2 science standard", async () => {
+    expect(oklahomaScienceTemplates).toHaveLength(40);
+    expect(oklahomaScienceTemplates.every((template) => template.subject === "science" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
+  });
+
   it("includes every independently assessable Grade 2 mathematics target", async () => {
     const standards = (await loadAndValidateVendoredStandards()).records.filter((standard) => standard.grade === "2" && standard.subject === "math" && standard.active && standard.instructionalStatus === "assessable").map((standard) => standard.officialId).sort();
     expect(gradeTwoMathTemplates.map((template) => template.standardId).sort()).toEqual(standards);
@@ -61,7 +68,7 @@ describe("Kindergarten production content catalog", () => {
 
   it("creates ten complete deterministic question instances instead of an inventory", async () => {
     const catalog = await loadK2ContentCatalog();
-    const standards = new Map((await loadAndValidateVendoredStandards()).records.map((standard) => [standard.officialId, standard]));
+    const standards = new Map((await loadLearningStandards()).map((standard) => [standard.officialId, standard]));
     const reviews = catalog.templates.filter((template) => template.grade === "K").map((template) => createTemplateReview(template, standards.get(template.standardId)!));
     for (const review of reviews) {
       expect(review.examples).toHaveLength(10);

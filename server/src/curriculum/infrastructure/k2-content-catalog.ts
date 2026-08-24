@@ -12,6 +12,8 @@ import { gradeTwoElaAdultTemplates } from "../data/grade-two-ela-adult-templates
 import { kindergartenMathTemplates } from "../data/kindergarten-math-templates";
 import { kindergartenElaTemplates } from "../data/kindergarten-ela-templates";
 import { kindergartenElaAdultTemplates } from "../data/kindergarten-ela-adult-templates";
+import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
+import { loadLearningStandards } from "./learning-standards";
 
 export type CatalogReviewStatus = "draft" | "validated" | "reviewed" | "retired";
 export type CatalogTemplate = {
@@ -32,13 +34,13 @@ export function contentHash(template: CatalogTemplate): string {
 export async function loadK2ContentCatalog(): Promise<K2Catalog> {
   const catalog = JSON.parse(await readFile(catalogPath(), "utf8")) as K2Catalog;
   const existingIds = new Set(catalog.templates.map((template) => template.id));
-  return { ...catalog, templates: [...catalog.templates, ...[...kindergartenMathTemplates, ...kindergartenElaTemplates, ...kindergartenElaAdultTemplates, ...gradeOneMathTemplates, ...gradeOneElaTemplates, ...gradeOneElaAdultTemplates, ...gradeTwoMathTemplates, ...gradeTwoElaTemplates, ...gradeTwoElaAdultTemplates].filter((template) => !existingIds.has(template.id))] };
+  return { ...catalog, templates: [...catalog.templates, ...[...kindergartenMathTemplates, ...kindergartenElaTemplates, ...kindergartenElaAdultTemplates, ...oklahomaScienceTemplates, ...gradeOneMathTemplates, ...gradeOneElaTemplates, ...gradeOneElaAdultTemplates, ...gradeTwoMathTemplates, ...gradeTwoElaTemplates, ...gradeTwoElaAdultTemplates].filter((template) => !existingIds.has(template.id))] };
 }
 
 export async function validateK2ContentCatalog(): Promise<{ templates: number; passages: number; unsupported: number }> {
   const catalog = await loadK2ContentCatalog();
   if (catalog.schemaVersion !== 1 || !Array.isArray(catalog.templates)) throw new Error("Invalid K–2 content catalog schema.");
-  const standards = new Set((await loadAndValidateVendoredStandards()).records.filter((standard) => standard.active).map((standard) => standard.officialId));
+  const standards = new Set((await loadLearningStandards()).filter((standard) => standard.active).map((standard) => standard.officialId));
   const ids = new Set<string>();
   for (const template of catalog.templates) {
     if (!template.id || ids.has(template.id) || !standards.has(template.standardId) || !template.provenance || !template.audioSupported || !validStatuses.has(template.review?.status)) throw new Error(`Invalid K–2 production content template: ${template.id ?? "unknown"}.`);
@@ -60,7 +62,7 @@ export async function kindergartenCoverageReport(): Promise<Record<string, { tot
 
 export async function createK2ReviewPacket(): Promise<{ html: string; json: string }> {
   const catalog = await loadK2ContentCatalog();
-  const standards = (await loadAndValidateVendoredStandards()).records;
+  const standards = await loadLearningStandards();
   const result = await writeReviewPacket(catalog.templates, standards, resolve(getCurriculumPaths().root, "data/curriculum/content"));
   return { html: result.html, json: result.json };
 }

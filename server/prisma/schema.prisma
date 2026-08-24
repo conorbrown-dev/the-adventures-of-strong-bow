@@ -24,6 +24,7 @@ enum GradeLevel {
 enum CurriculumSubject {
   ELA
   MATH
+  SCIENCE
 }
 
 model GameMode {

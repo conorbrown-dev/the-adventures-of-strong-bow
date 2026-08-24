@@ -13,7 +13,8 @@ import { validateK2ContentCatalog } from "../infrastructure/k2-content-catalog";
 import { diagnosticPlacement, evaluateDiagnostic, type DiagnosticProbe } from "./diagnostic-placement";
 
 type SessionPurpose = "practice" | "review" | "diagnostic" | "placement" | "proctored" | "adultScored";
-type StoredSession = { id: string; learnerId: string; purpose: SessionPurpose; grade: string; seed: number; position: number; length: number; templates: QuestionTemplate[]; instance: QuestionInstance; submittedInstanceIds: Set<string>; diagnosticProbes: DiagnosticProbe[]; proctoredCorrect: number; placement?: { subject: "ELA" | "MATH"; grades: string[]; gradeIndex: number; templatesByGrade: QuestionTemplate[][]; correct: number; result: string | null } };
+type LearningSubject = "ELA" | "MATH" | "SCIENCE";
+type StoredSession = { id: string; learnerId: string; purpose: SessionPurpose; grade: string; seed: number; position: number; length: number; templates: QuestionTemplate[]; instance: QuestionInstance; submittedInstanceIds: Set<string>; diagnosticProbes: DiagnosticProbe[]; proctoredCorrect: number; placement?: { subject: LearningSubject; grades: string[]; gradeIndex: number; templatesByGrade: QuestionTemplate[][]; correct: number; result: string | null } };
 export const CURRICULUM_PROCTOR_CODE = Symbol("CURRICULUM_PROCTOR_CODE");
 const seedAt = (seed: number, position: number) => Math.abs(Math.imul(seed ^ (position + 1), 2654435761)) >>> 0;
 @Injectable()
@@ -21,11 +22,11 @@ export class LearningFacadeService {
   private readonly sessions = new Map<string, StoredSession>();
   private readonly progress: ProgressService;
   constructor(@Inject(PrismaProgressRepository) private readonly repository: ProgressRepository, @Inject(CURRICULUM_PROCTOR_CODE) private readonly proctorCode: string | undefined = process.env.CURRICULUM_PROCTOR_CODE) { this.progress = new ProgressService(repository, { now: () => new Date() }); }
-  async start(learnerId: string, purpose: SessionPurpose, seed = Math.floor(Math.random() * 2_147_483_647), submittedProctorCode?: string, grade = "K", subject?: "ELA" | "MATH") {
+  async start(learnerId: string, purpose: SessionPurpose, seed = Math.floor(Math.random() * 2_147_483_647), submittedProctorCode?: string, grade = "K", subject?: LearningSubject) {
     if ((purpose === "proctored" || purpose === "adultScored" || purpose === "placement") && (!this.proctorCode || submittedProctorCode !== this.proctorCode)) throw new ForbiddenException("A parent or teacher verification code is required to start a proctored assessment.");
     if (purpose === "placement" && !subject) throw new ForbiddenException("Choose one subject before starting a placement check.");
-    await validateK2ContentCatalog(); const catalog = await loadK2ContentCatalog(); const subjectFilter = subject ? subject.toLowerCase() : undefined; const templates = catalog.templates.filter((template) => template.grade === grade && template.review.status === "reviewed" && (!subjectFilter || template.subject === subjectFilter) && (purpose !== "adultScored" || template.generatorKind.endsWith("ElaAdult"))).map(catalogTemplateToQuestionTemplate);
-    const placementGrades = ["K", "1", "2"]; const placementStages = purpose === "placement" ? placementGrades.map((item) => ({ grade: item, templates: catalog.templates.filter((template) => template.grade === item && template.subject === subjectFilter && template.review.status === "reviewed" && !template.generatorKind.endsWith("ElaAdult")).map(catalogTemplateToQuestionTemplate) })).filter((stage) => stage.templates.length > 0) : [];
+    await validateK2ContentCatalog(); const catalog = await loadK2ContentCatalog(); const subjectFilter = subject ? subject.toLowerCase() : undefined; const templates = catalog.templates.filter((template) => template.grade === grade && template.review.status === "reviewed" && (!subjectFilter || template.subject === subjectFilter) && (purpose === "adultScored" ? template.generatorKind.endsWith("Adult") : !template.generatorKind.endsWith("Adult"))).map(catalogTemplateToQuestionTemplate);
+    const placementGrades = ["K", "1", "2"]; const placementStages = purpose === "placement" ? placementGrades.map((item) => ({ grade: item, templates: catalog.templates.filter((template) => template.grade === item && template.subject === subjectFilter && template.review.status === "reviewed" && !template.generatorKind.endsWith("Adult")).map(catalogTemplateToQuestionTemplate) })).filter((stage) => stage.templates.length > 0) : [];
     const placementTemplatesByGrade = placementStages.map((stage) => stage.templates);
     const availableTemplates = purpose === "placement" ? placementTemplatesByGrade[0] ?? [] : templates;
     if (!availableTemplates.length) throw new Error(`No approved ${subject ?? ""} Grade ${grade === "K" ? "Kindergarten" : grade} content is available.`);

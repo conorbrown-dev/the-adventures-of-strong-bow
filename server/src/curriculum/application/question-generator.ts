@@ -1,4 +1,5 @@
 import type { QuestionInstance, QuestionTemplate } from "../domain/question-template";
+import { oklahomaScienceStandards } from "../data/oklahoma-science-standards";
 
 class Random {
   private state: number;
@@ -128,6 +129,15 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     };
     if (!prompts[skill]) throw new Error(`Unsupported Kindergarten adult ELA skill: ${skill}`);
     canonicalAnswer = null; interaction = { kind: "adultScored", target: { standardId: skill } }; values = { question: prompts[skill] }; explanation = "Your adult will decide whether this skill was demonstrated.";
+  } else if (template.generator.kind === "oklahomaScienceAdult") {
+    const skill = String(configuration.skill);
+    const standard = oklahomaScienceStandards.find((item) => item.officialId === skill);
+    if (!standard) throw new Error(`Unsupported Oklahoma science skill: ${skill}`);
+    const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
+    canonicalAnswer = null;
+    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Science 2026" } };
+    values = { question: `${gradeLabel} science investigation: Work with an adult to ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Talk about what you notice, draw or build when it helps, and explain your evidence.` };
+    explanation = "An adult will check the investigation, evidence, and explanation together with you.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);
     const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {

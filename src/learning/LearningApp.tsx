@@ -47,7 +47,7 @@ function isPhonemeChoiceQuestion(session: SessionView | null, choices: Array<{ i
   return Boolean(session && choices.length > 1 && /\b(sound|phoneme)\b/i.test(session.question.prompt.text) && choices.every((choice) => choice.label.split(",").every((sound) => sound.trim().length <= 2)));
 }
 
-type LearningSubject = "ELA" | "MATH";
+type LearningSubject = "ELA" | "MATH" | "SCIENCE";
 type LearningPurpose = "practice" | "diagnostic" | "placement" | "proctored" | "adultScored";
 type LearningLevel = "K" | "GRADE_1" | "GRADE_2";
 
@@ -76,7 +76,7 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
 }): JSX.Element {
   return <section className="learning-dashboard mx-auto max-w-4xl">
     <div className="learning-hero mb-8">
-      <p className="learning-kicker mb-3 inline-flex rounded-full px-4 py-2 text-xs font-black tracking-[.18em]">COMMON CORE LEARNING</p>
+      <p className="learning-kicker mb-3 inline-flex rounded-full px-4 py-2 text-xs font-black tracking-[.18em]">OKLAHOMA-ALIGNED LEARNING</p>
       <h1 className="max-w-3xl !text-[clamp(2.25rem,6vw,4.5rem)]">Ready to learn something new?</h1>
       <p className="learning-intro mt-4 max-w-2xl text-lg">Choose one subject, then begin a focused activity at your current level.</p>
     </div>
@@ -86,12 +86,12 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
         <div><p className="learning-step text-xs font-black tracking-[.16em]">STEP 1</p><h2 id="subject-heading" className="!m-0 !text-2xl">Choose a subject</h2></div>
         <span className="learning-card-note hidden text-sm sm:block">You can learn at a different level in each subject.</span>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {(["ELA", "MATH"] as const).map((subject) => {
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {(["ELA", "MATH", "SCIENCE"] as const).map((subject) => {
           const isSelected = selectedSubject === subject;
           return <button className={`${isSelected ? "selected" : "secondary"} subject-choice !min-h-32 !rounded-2xl !p-6 !text-left`} key={subject} onClick={() => setSelectedSubject(subject)} aria-pressed={isSelected}>
-            <span aria-hidden="true" className="subject-icon">{subject === "ELA" ? "Aa" : "1+2"}</span>
-            <span><strong className="block text-xl">{subject === "ELA" ? "Reading & Language" : "Math"}</strong><small className="mt-1 block text-sm">{gradeName(student?.curriculumLevels?.[subject] ?? student?.grade)}</small></span>
+            <span aria-hidden="true" className="subject-icon">{subject === "ELA" ? "Aa" : subject === "MATH" ? "1+2" : "✦"}</span>
+            <span><strong className="block text-xl">{subject === "ELA" ? "Reading & Language" : subject === "MATH" ? "Math" : "Science"}</strong><small className="mt-1 block text-sm">{gradeName(student?.curriculumLevels?.[subject] ?? student?.grade)}</small></span>
           </button>;
         })}
       </div>
@@ -100,11 +100,11 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
     <section aria-labelledby="activity-heading" className="learning-card activity-card mb-7 rounded-3xl p-5 sm:p-7">
       <p className="learning-step text-xs font-black tracking-[.16em]">STEP 2</p>
       <h2 id="activity-heading" className="!mb-2 !mt-1 !text-2xl">Start your activity</h2>
-      <p className="learning-card-note mb-5">Practice builds skills. A diagnostic finds the best place to focus next.</p>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <p className="learning-card-note mb-5">{selectedSubject === "SCIENCE" ? "Oklahoma science is learned through hands-on investigations with an adult." : "Practice builds skills. A diagnostic finds the best place to focus next."}</p>
+      {selectedSubject !== "SCIENCE" && <div className="grid gap-3 sm:grid-cols-2">
         <button className="activity-button !min-h-16 !rounded-2xl" disabled={isLoading} onClick={() => void start("practice")}>START PRACTICE</button>
         <button className="activity-button secondary !min-h-16 !rounded-2xl" disabled={isLoading} onClick={() => void start("diagnostic")}>START DIAGNOSTIC</button>
-      </div>
+      </div>}
     </section>
 
     <details className="adult-tools group rounded-3xl p-5 sm:p-7">
@@ -115,9 +115,9 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
         <p className="learning-card-note mb-5 max-w-2xl">These tools require an adult verification code and should be completed with the student.</p>
         <label className="!my-0 !max-w-sm font-bold">Verification code<input value={proctorCode} onChange={(event) => setProctorCode(event.target.value)} inputMode="numeric" type="password" autoComplete="one-time-code" /></label>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("placement")}>NEW-STUDENT PLACEMENT</button>
-          <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("proctored")}>PROCTORED CHECK</button>
-          {selectedSubject === "ELA" && <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("adultScored")}>ADULT-SCORED ELA</button>}
+          {selectedSubject !== "SCIENCE" && <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("placement")}>NEW-STUDENT PLACEMENT</button>}
+          {selectedSubject !== "SCIENCE" && <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("proctored")}>PROCTORED CHECK</button>}
+          {(selectedSubject === "ELA" || selectedSubject === "SCIENCE") && <button className="secondary !rounded-2xl" disabled={isLoading || !proctorCode} onClick={() => void start("adultScored")}>{selectedSubject === "SCIENCE" ? "SCIENCE INVESTIGATION" : "ADULT-SCORED ELA"}</button>}
         </div>
         <div className="level-panel mt-7 rounded-2xl p-5">
           <h3 className="mb-3 text-lg font-black">Set subject level</h3>
@@ -138,7 +138,7 @@ export function LearningApp(): JSX.Element {
   const [studentSession, setStudentSession] = useState<StudentSession | null>(() => loadStudentSession());
   const student = studentSession?.student;
   const learnerId = student?.id ?? "anonymous";
-  const curriculumSubject = useState<"ELA" | "MATH">("ELA");
+  const curriculumSubject = useState<LearningSubject>("ELA");
   const selectedSubject = curriculumSubject[0];
   const setSelectedSubject = curriculumSubject[1];
   const curriculumGrade = learningGrade(student?.curriculumLevels?.[selectedSubject] ?? student?.grade);
@@ -260,7 +260,7 @@ export function LearningApp(): JSX.Element {
     {isQuestion && isLoadingSession && !session && <p className="feedback">Loading your learning session…</p>}
     {isQuestion && !isLoadingSession && !session && <section className="learning-empty-state"><h1>Choose a learning activity</h1><p className="feedback">{error ?? "This session is no longer available. Start a new one to continue."}</p><div className="actions"><button onClick={() => void start(location.pathname.endsWith("diagnostic") ? "diagnostic" : "practice")}>START NEW SESSION</button><Link className="secondary" to="/learning">BACK TO LEARNING</Link></div></section>}
     {isQuestion && session && <section className="learning-question">
-      <p className="eyebrow">{location.pathname === "/learning/adult-scored" ? "ADULT-SCORED ELA CHECK" : `QUESTION ${session.position + 1} OF ${session.length}`}</p>
+      <p className="eyebrow">{location.pathname === "/learning/adult-scored" ? selectedSubject === "SCIENCE" ? "SCIENCE INVESTIGATION" : "ADULT-SCORED ELA CHECK" : `QUESTION ${session.position + 1} OF ${session.length}`}</p>
       {session.question.interaction.visual && <div className="learning-visual" role="img" aria-label={`${session.question.interaction.visual.count} stars`}>
         {session.question.interaction.visual.count > 0 ? "★".repeat(session.question.interaction.visual.count) : <span className="empty-visual">No stars</span>}
       </div>}
