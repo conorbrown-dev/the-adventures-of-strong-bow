@@ -95,8 +95,8 @@ describe("Kindergarten production content catalog", () => {
     expect(oklahomaEducationTechnologyTemplates.every((template) => template.subject === "computerScience" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
   });
 
-  it("includes every Oklahoma 2022 Kindergarten mathematics objective as an adult-observed activity", () => {
-    expect(oklahomaMathStandards).toHaveLength(27);
+  it("includes every added Oklahoma 2022 mathematics objective as an adult-observed activity", () => {
+    expect(oklahomaMathStandards).toHaveLength(59);
     expect(oklahomaMathTemplates.map((template) => template.standardId).sort()).toEqual(oklahomaMathStandards.map((standard) => standard.officialId).sort());
   });
 

@@ -198,12 +198,12 @@ describe("reviewed deterministic question engine", () => {
     }
   });
 
-  it("generates complete adult-observed activities for every Oklahoma Kindergarten mathematics objective", () => {
+  it("generates complete adult-observed activities for every added Oklahoma mathematics objective", () => {
     for (const catalogTemplate of oklahomaMathTemplates) {
       const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
       const instance = generateQuestion(template, "oklahoma-kindergarten-math");
       expect(instance.responseType).toBe("constructedResponse");
-      expect(instance.prompt.text).toContain("Kindergarten math exploration");
+      expect(instance.prompt.text).toContain("math exploration");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Academic Standards for Mathematics 2022" }) }));
     }
   });

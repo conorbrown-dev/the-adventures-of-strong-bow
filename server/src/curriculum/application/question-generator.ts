@@ -207,9 +207,10 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     const skill = String(configuration.skill);
     const standard = oklahomaMathStandards.find((item) => item.officialId === skill);
     if (!standard) throw new Error(`Unsupported Oklahoma math skill: ${skill}`);
+    const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
     canonicalAnswer = null;
     interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Mathematics 2022" } };
-    values = { question: `Kindergarten math exploration: With an adult, ${standard.statement}. Use objects, drawings, number cards, a clock, coins, shapes, or other safe hands-on materials. Explain what you noticed and how you know.` };
+    values = { question: `${gradeLabel} math exploration: With an adult, ${standard.statement}. Use objects, drawings, number cards, a clock, coins, shapes, or other safe hands-on materials. Explain what you noticed and how you know.` };
     explanation = "An adult will observe the mathematical reasoning, representations, and vocabulary named in this activity.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);
