@@ -63,6 +63,31 @@ describe("reviewed deterministic question engine", () => {
     }
   });
 
+  it("keeps question wording aligned with the available answers", () => {
+    const byId = new Map([...gradeOneMathTemplates, ...gradeOneElaTemplates].map((template) => [template.id, template]));
+    const generate = (templateId: string, seed: number) => generateQuestion(catalogTemplateToQuestionTemplate(byId.get(templateId)!), seed);
+
+    const lengthQuestion = generate("1.md.a.1.compare-length", 1);
+    expect(lengthQuestion.prompt.text).toBe("A ribbon is 8 cubes long. A pencil is 5 cubes long. Which is longer?");
+    expect(lengthQuestion.canonicalAnswer).toBe("the ribbon");
+    expect(lengthQuestion.interaction.choices).toEqual(expect.arrayContaining([expect.objectContaining({ label: "the ribbon" }), expect.objectContaining({ label: "the pencil" })]));
+
+    const turnAroundFacts = Array.from({ length: 20 }, (_, seed) => generate("1.oa.b.3.properties", seed));
+    for (const question of turnAroundFacts) {
+      const addends = question.prompt.text.match(/If (\d+) plus (\d+) equals/);
+      expect(addends).not.toBeNull();
+      expect(addends?.[1]).not.toBe(addends?.[2]);
+    }
+
+    const spellingQuestions = Array.from({ length: 20 }, (_, seed) => generate("1.l.2.d.spelling-patterns", seed));
+    expect(new Set(spellingQuestions.map((question) => question.prompt.text))).toEqual(new Set(["Which word begins with the /sh/ sound?", "Which word has the long a sound spelled ai?"]));
+    for (const question of spellingQuestions) {
+      const labels = (question.interaction.choices as Array<{ label: string }>).map((choice) => choice.label);
+      expect(labels).toContain(question.canonicalAnswer);
+      if (question.prompt.text.includes("/sh/")) expect(labels.filter((label) => label.startsWith("sh"))).toEqual(["ship"]);
+    }
+  });
+
   it("varies deterministically between seeds without violating arithmetic bounds", () => {
     const arithmetic = templates.slice(-3).map((rawTemplate) => validateQuestionTemplate(rawTemplate, standards));
     for (const template of arithmetic) {

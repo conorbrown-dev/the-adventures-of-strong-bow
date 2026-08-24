@@ -27,8 +27,8 @@ function parameters(template: CatalogTemplate): Record<string, unknown> {
 }
 
 function prompt(template: CatalogTemplate): { text: string; audioText: string; instructions: string } {
-  if (template.generatorKind === "gradeOneMath") return { text: "{{question}}", audioText: "{{question}}", instructions: "Say one answer." };
-  if (template.generatorKind === "gradeOneEla") return { text: "{{question}}", audioText: "{{question}}", instructions: "Say one answer." };
+  if (template.generatorKind === "gradeOneMath") return { text: "{{question}}", audioText: "{{question}}", instructions: "Choose one answer." };
+  if (template.generatorKind === "gradeOneEla") return { text: "{{question}}", audioText: "{{question}}", instructions: "Choose one answer." };
   if (template.generatorKind === "gradeOneElaAdult") return { text: "{{question}}", audioText: "{{question}}", instructions: "An adult will listen and score this activity." };
   if (template.generatorKind === "letterIdentification") return { text: template.id.includes("uppercase") ? "Which uppercase letter matches {{letter}}?" : "Which lowercase letter matches {{letter}}?", audioText: template.id.includes("uppercase") ? "Which uppercase letter matches {{letter}}?" : "Which lowercase letter matches {{letter}}?", instructions: "Choose one answer." };
   if (template.generatorKind === "matchUpperLowerLetters") return { text: "Sort the letters into uppercase and lowercase.", audioText: "Sort the letters into uppercase and lowercase.", instructions: "Put each letter in the right group." };
@@ -36,8 +36,8 @@ function prompt(template: CatalogTemplate): { text: string; audioText: string; i
   if (template.generatorKind === "rhymeChoice") return { text: "Which word rhymes with {{targetWord}}?", audioText: "Which word rhymes with {{targetWord}}?", instructions: "Choose one answer." };
   if (template.generatorKind === "cvcMedialVowel") return { text: "What is the middle vowel sound in {{word}}?", audioText: "Listen to the word {{word}}. What is the middle vowel sound?", instructions: "Choose one answer." };
   if (template.generatorKind === "cvcSound") return { text: "What is the {{position}} sound in {{word}}?", audioText: "Listen to the word {{word}}. What is the {{position}} sound?", instructions: "Choose one answer." };
-  if (template.generatorKind === "silentEDecode") return { text: "Which word has a silent e?", audioText: "Which word has a silent e?", instructions: "Say one answer." };
-  if (template.generatorKind === "placeValueConstruction") return { text: "What number has {{tens}} tens and {{ones}} ones?", audioText: "What number has {{tens}} tens and {{ones}} ones?", instructions: "Say one answer." };
+  if (template.generatorKind === "silentEDecode") return { text: "Which word has a silent e?", audioText: "Which word has a silent e?", instructions: "Choose one answer." };
+  if (template.generatorKind === "placeValueConstruction") return { text: "What number has {{tens}} tens and {{ones}} ones?", audioText: "What number has {{tens}} tens and {{ones}} ones?", instructions: "Choose one answer." };
   if (template.generatorKind === "countSequence") return { text: template.responseType === "sequence" ? "Put these numbers in counting order starting at {{start}}." : "What number comes after {{start}}?", audioText: template.responseType === "sequence" ? "Put these numbers in counting order." : "What number comes after {{start}}?", instructions: template.responseType === "sequence" ? "Put the numbers in order." : "Choose one answer." };
   if (template.generatorKind === "nextNumber") return { text: "What number comes after {{start}}?", audioText: "What number comes after {{start}}?", instructions: "Choose one answer." };
   return { text: "Count the stars. How many are there?", audioText: "Count the stars. How many are there?", instructions: "Choose one answer." };
