@@ -20,6 +20,7 @@ import { oklahomaPhysicalEducationTemplates } from "../data/oklahoma-physical-ed
 import { oklahomaFineArtsTemplates } from "../data/oklahoma-fine-arts-templates";
 import { oklahomaComputerScienceTemplates } from "../data/oklahoma-computer-science-templates";
 import { oklahomaEducationTechnologyTemplates } from "../data/oklahoma-education-technology-templates";
+import { oklahomaMathTemplates } from "../data/oklahoma-math-templates";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
 
@@ -194,6 +195,16 @@ describe("reviewed deterministic question engine", () => {
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("supplemental digital learning activity");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Educational Technology Standards (ISTE 2016)" }) }));
+    }
+  });
+
+  it("generates complete adult-observed activities for every Oklahoma Kindergarten mathematics objective", () => {
+    for (const catalogTemplate of oklahomaMathTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "oklahoma-kindergarten-math");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.prompt.text).toContain("Kindergarten math exploration");
+      expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId, framework: "Oklahoma Academic Standards for Mathematics 2022" }) }));
     }
   });
 

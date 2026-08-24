@@ -21,6 +21,7 @@ import { oklahomaComputerScienceTemplates } from "../data/oklahoma-computer-scie
 import { oklahomaInformationLiteracyTemplates } from "../data/oklahoma-information-literacy-templates";
 import { oklahomaAiCompetencyTemplates } from "../data/oklahoma-ai-competency-templates";
 import { oklahomaEducationTechnologyTemplates } from "../data/oklahoma-education-technology-templates";
+import { oklahomaMathTemplates } from "../data/oklahoma-math-templates";
 import { loadLearningStandards } from "./learning-standards";
 
 export type CatalogReviewStatus = "draft" | "validated" | "reviewed" | "retired";
@@ -42,7 +43,7 @@ export function contentHash(template: CatalogTemplate): string {
 export async function loadK2ContentCatalog(): Promise<K2Catalog> {
   const catalog = JSON.parse(await readFile(catalogPath(), "utf8")) as K2Catalog;
   const existingIds = new Set(catalog.templates.map((template) => template.id));
-  return { ...catalog, templates: [...catalog.templates, ...[...kindergartenMathTemplates, ...kindergartenElaTemplates, ...kindergartenElaAdultTemplates, ...oklahomaScienceTemplates, ...oklahomaSocialStudiesTemplates, ...oklahomaHealthTemplates, ...oklahomaPhysicalEducationTemplates, ...oklahomaFineArtsTemplates, ...oklahomaComputerScienceTemplates, ...oklahomaAiCompetencyTemplates, ...oklahomaEducationTechnologyTemplates, ...oklahomaInformationLiteracyTemplates, ...gradeOneMathTemplates, ...gradeOneElaTemplates, ...gradeOneElaAdultTemplates, ...gradeTwoMathTemplates, ...gradeTwoElaTemplates, ...gradeTwoElaAdultTemplates].filter((template) => !existingIds.has(template.id))] };
+  return { ...catalog, templates: [...catalog.templates, ...[...kindergartenMathTemplates, ...kindergartenElaTemplates, ...kindergartenElaAdultTemplates, ...oklahomaMathTemplates, ...oklahomaScienceTemplates, ...oklahomaSocialStudiesTemplates, ...oklahomaHealthTemplates, ...oklahomaPhysicalEducationTemplates, ...oklahomaFineArtsTemplates, ...oklahomaComputerScienceTemplates, ...oklahomaAiCompetencyTemplates, ...oklahomaEducationTechnologyTemplates, ...oklahomaInformationLiteracyTemplates, ...gradeOneMathTemplates, ...gradeOneElaTemplates, ...gradeOneElaAdultTemplates, ...gradeTwoMathTemplates, ...gradeTwoElaTemplates, ...gradeTwoElaAdultTemplates].filter((template) => !existingIds.has(template.id))] };
 }
 
 export async function validateK2ContentCatalog(): Promise<{ templates: number; passages: number; unsupported: number }> {

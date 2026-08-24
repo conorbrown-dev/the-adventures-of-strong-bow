@@ -8,6 +8,7 @@ import { oklahomaComputerScienceStandards } from "../data/oklahoma-computer-scie
 import { oklahomaInformationLiteracyStandards } from "../data/oklahoma-information-literacy-standards";
 import { oklahomaAiCompetencies } from "../data/oklahoma-ai-competencies";
 import { oklahomaEducationTechnologyStandards } from "../data/oklahoma-education-technology-standards";
+import { oklahomaMathStandards } from "../data/oklahoma-math-standards";
 
 class Random {
   private state: number;
@@ -202,6 +203,14 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Information Literacy 2024" } };
     values = { question: `${gradeLabel} information literacy inquiry: With an adult, ${standard.statement}. Use books, people, library resources, or safe supervised digital tools as appropriate, and explain how you know.` };
     explanation = "An adult will observe your safe research, information choices, communication, and reflection.";
+  } else if (template.generator.kind === "oklahomaMathAdult") {
+    const skill = String(configuration.skill);
+    const standard = oklahomaMathStandards.find((item) => item.officialId === skill);
+    if (!standard) throw new Error(`Unsupported Oklahoma math skill: ${skill}`);
+    canonicalAnswer = null;
+    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Mathematics 2022" } };
+    values = { question: `Kindergarten math exploration: With an adult, ${standard.statement}. Use objects, drawings, number cards, a clock, coins, shapes, or other safe hands-on materials. Explain what you noticed and how you know.` };
+    explanation = "An adult will observe the mathematical reasoning, representations, and vocabulary named in this activity.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);
     const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {

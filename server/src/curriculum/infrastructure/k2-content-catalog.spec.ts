@@ -18,6 +18,8 @@ import { oklahomaComputerScienceStandards } from "../data/oklahoma-computer-scie
 import { oklahomaComputerScienceTemplates } from "../data/oklahoma-computer-science-templates";
 import { oklahomaEducationTechnologyStandards } from "../data/oklahoma-education-technology-standards";
 import { oklahomaEducationTechnologyTemplates } from "../data/oklahoma-education-technology-templates";
+import { oklahomaMathStandards } from "../data/oklahoma-math-standards";
+import { oklahomaMathTemplates } from "../data/oklahoma-math-templates";
 import { loadLearningStandards } from "./learning-standards";
 
 describe("Kindergarten production content catalog", () => {
@@ -28,7 +30,7 @@ describe("Kindergarten production content catalog", () => {
     const originalReviewed = kindergarten.filter((template) => template.review.reviewer === "Conor Brown");
     expect(originalReviewed).toHaveLength(27);
     expect(originalReviewed.every((template) => template.review.contentHash)).toBe(true);
-    expect(kindergarten).toHaveLength(312);
+    expect(kindergarten).toHaveLength(339);
     expect(kindergarten.every((template) => template.review.status === "reviewed")).toBe(true);
   });
 
@@ -44,7 +46,8 @@ describe("Kindergarten production content catalog", () => {
   it("covers every Kindergarten mathematics target", async () => {
     const standards = (await loadAndValidateVendoredStandards()).records.filter((standard) => standard.grade === "K" && standard.subject === "math" && standard.active && standard.instructionalStatus === "assessable").map((standard) => standard.officialId).sort();
     const catalog = await loadK2ContentCatalog();
-    const covered = [...new Set(catalog.templates.filter((template) => template.grade === "K" && template.subject === "math" && template.review.status === "reviewed").map((template) => template.standardId))].sort();
+    const standardIds = new Set(standards);
+    const covered = [...new Set(catalog.templates.filter((template) => template.grade === "K" && template.subject === "math" && template.review.status === "reviewed" && standardIds.has(template.standardId)).map((template) => template.standardId))].sort();
     expect(covered).toEqual(standards);
     expect(kindergartenMathTemplates).toHaveLength(21);
   });
@@ -90,6 +93,11 @@ describe("Kindergarten production content catalog", () => {
     expect(oklahomaEducationTechnologyStandards).toHaveLength(21);
     expect(oklahomaEducationTechnologyTemplates).toHaveLength(oklahomaEducationTechnologyStandards.length);
     expect(oklahomaEducationTechnologyTemplates.every((template) => template.subject === "computerScience" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
+  });
+
+  it("includes every Oklahoma 2022 Kindergarten mathematics objective as an adult-observed activity", () => {
+    expect(oklahomaMathStandards).toHaveLength(27);
+    expect(oklahomaMathTemplates.map((template) => template.standardId).sort()).toEqual(oklahomaMathStandards.map((standard) => standard.officialId).sort());
   });
 
   it("includes every independently assessable Grade 2 mathematics target", async () => {

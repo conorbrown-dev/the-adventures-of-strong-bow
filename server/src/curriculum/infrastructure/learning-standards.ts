@@ -8,10 +8,11 @@ import { oklahomaComputerScienceStandards } from "../data/oklahoma-computer-scie
 import { oklahomaInformationLiteracyStandards } from "../data/oklahoma-information-literacy-standards";
 import { oklahomaAiCompetencies } from "../data/oklahoma-ai-competencies";
 import { oklahomaEducationTechnologyStandards } from "../data/oklahoma-education-technology-standards";
+import { oklahomaMathStandards } from "../data/oklahoma-math-standards";
 import { loadAndValidateVendoredStandards } from "./vendored-standards.validator";
 
 /** Combines the immutable Common Core source with separately sourced Oklahoma standards. */
 export async function loadLearningStandards(): Promise<Standard[]> {
   const commonCore = await loadAndValidateVendoredStandards();
-  return [...commonCore.records, ...oklahomaScienceStandards, ...oklahomaSocialStudiesStandards, ...oklahomaHealthStandards, ...oklahomaPhysicalEducationStandards, ...oklahomaFineArtsStandards, ...oklahomaComputerScienceStandards, ...oklahomaAiCompetencies, ...oklahomaEducationTechnologyStandards, ...oklahomaInformationLiteracyStandards];
+  return [...commonCore.records, ...oklahomaMathStandards, ...oklahomaScienceStandards, ...oklahomaSocialStudiesStandards, ...oklahomaHealthStandards, ...oklahomaPhysicalEducationStandards, ...oklahomaFineArtsStandards, ...oklahomaComputerScienceStandards, ...oklahomaAiCompetencies, ...oklahomaEducationTechnologyStandards, ...oklahomaInformationLiteracyStandards];
 }
