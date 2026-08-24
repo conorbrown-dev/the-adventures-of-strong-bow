@@ -1,0 +1,15 @@
+import type { Standard } from "../domain/standard";
+
+const sourceUrl = "https://oklahoma.gov/content/dam/ok/en/osde/documents/services/literacy-policy-and-programs/oklahoma-academic-standards/2024-OAS-Information-Literacy-Standards.pdf";
+const license = { name: "Oklahoma Academic Standards", notice: "Oklahoma State Department of Education standards; identifiers and short descriptions are used for alignment." };
+const objectives = [
+  ["1.2.1", "visit a library in person or virtually to access resources"], ["1.2.2", "read literary and informational texts suited to ability and interest"], ["1.2.3", "listen to or view resources for enjoyment or information"], ["1.2.4", "listen to and read award-winning works by authors, illustrators, and creators"], ["1.2.5", "set and monitor goals to expand reading volume or variety with guidance"],
+  ["2.2.1", "discuss reasons and ways to locate information with guidance"], ["2.2.2", "brainstorm and choose a topic"], ["2.2.3", "generate and discuss possible research questions with guidance"], ["2.2.4", "list questions that expand and narrow a research topic with guidance"],
+  ["3.2.1", "use internet search engines to locate information with guidance"], ["3.2.2", "identify the author or creator of a work or source"], ["3.2.3", "determine facts related to a topic with guidance"],
+  ["4.2.1", "discuss why information should be located from multiple resources with guidance"], ["4.2.2", "identify key ideas related to an identified topic"], ["4.2.3", "classify key ideas into groups or categories orally or with a graphic organizer with guidance"],
+  ["5.2.1", "cooperate with group members to answer questions or solve problems"], ["5.2.2", "create a product to share learning with an intended audience with guidance"], ["5.2.3", "seek and provide constructive feedback and revise a product with guidance"], ["5.2.4", "use multiple communication tools and methods to share information with guidance"]
+] as const;
+
+export const oklahomaInformationLiteracyStandards: Standard[] = (["K", "1", "2"] as const).flatMap((grade) => objectives.map(([officialId, statement]) => ({
+  schemaVersion: 1, officialId: `${grade}.${officialId}`, canonicalId: `oklahoma.information-literacy.${grade}.${officialId}`, subject: "informationLiteracy", grade, gradeName: grade === "K" ? "Kindergarten" : `Grade ${grade}`, domainCode: officialId.split(".")[0]!, domain: "Oklahoma Academic Standards for Information Literacy", strand: null, clusterCode: null, parentId: officialId, sourceItem: officialId, statement, childFriendlyDescription: `I can ${statement}.`, isLeaf: true, instructionalStatus: "assessable", prerequisiteIds: [], tags: ["oklahoma", "information-literacy", "2024"], source: { publisher: "Oklahoma State Department of Education", package: "Oklahoma Academic Standards for Information Literacy 2024", reference: officialId, recoverySourceUrl: sourceUrl, recoveryRevision: "2024", officialReferencePdf: sourceUrl, verification: "Checked against official 2024 Oklahoma Information Literacy PK–2 objectives; each grade receives the full PK–2 band." }, license, active: true
+})));

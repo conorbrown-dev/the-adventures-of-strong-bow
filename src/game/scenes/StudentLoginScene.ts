@@ -55,6 +55,7 @@ export class StudentLoginScene extends Phaser.Scene {
     if (this.mode === "create" && event.key.toLowerCase() === "p") { this.toggleSubject("PHYSICAL_EDUCATION"); return; }
     if (this.mode === "create" && event.key.toLowerCase() === "f") { this.toggleSubject("FINE_ARTS"); return; }
     if (this.mode === "create" && event.key.toLowerCase() === "c") { this.toggleSubject("COMPUTER_SCIENCE"); return; }
+    if (this.mode === "create" && event.key.toLowerCase() === "i") { this.toggleSubject("INFORMATION_LITERACY"); return; }
     if (event.key === "Backspace") { if (this.activeField === "username") this.username = this.username.slice(0, -1); else this.pin = this.pin.slice(0, -1); this.renderForm(); return; }
     if (this.activeField === "username" && /^[a-zA-Z0-9 _-]$/.test(event.key) && this.username.length < 24) this.username += event.key;
     if (this.activeField === "pin" && /^\d$/.test(event.key) && this.pin.length < 4) this.pin += event.key;
@@ -64,7 +65,7 @@ export class StudentLoginScene extends Phaser.Scene {
   private renderForm(): void {
     const usernameCursor = this.activeField === "username" ? " ◀" : "";
     const pinCursor = this.activeField === "pin" ? " ◀" : "";
-    const createHelp = this.mode === "create" ? `\n\nAssigned grade: ${gradeLabel(this.grade)}  (use ← →)\nSubjects: ${this.subjects.join(" + ")}  (press E, M, S, O, H, P, F, or C to toggle)` : "";
+    const createHelp = this.mode === "create" ? `\n\nAssigned grade: ${gradeLabel(this.grade)}  (use ← →)\nSubjects: ${this.subjects.join(" + ")}  (press E, M, S, O, H, P, F, C, or I to toggle)` : "";
     this.formText?.setText(`Username:  ${this.username || "________________"}${usernameCursor}\nPIN:  ${this.pin ? "•".repeat(this.pin.length) : "____"}${pinCursor}${createHelp}`);
   }
 
@@ -98,7 +99,7 @@ export class StudentLoginScene extends Phaser.Scene {
     saveStudentSession({
       demo: true,
       token: "demo-mode",
-      student: { id: "demo-player", username: "Demo Player", grade: "K", subjects: ["ELA", "MATH", "SCIENCE", "SOCIAL_STUDIES", "HEALTH", "PHYSICAL_EDUCATION", "FINE_ARTS", "COMPUTER_SCIENCE"] }
+      student: { id: "demo-player", username: "Demo Player", grade: "K", subjects: ["ELA", "MATH", "SCIENCE", "SOCIAL_STUDIES", "HEALTH", "PHYSICAL_EDUCATION", "FINE_ARTS", "COMPUTER_SCIENCE", "INFORMATION_LITERACY"] }
     });
     this.scene.start(SCENE_KEYS.CURRICULUM_QUIZ);
   }

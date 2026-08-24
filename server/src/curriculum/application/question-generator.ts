@@ -5,6 +5,7 @@ import { oklahomaHealthStandards } from "../data/oklahoma-health-standards";
 import { oklahomaPhysicalEducationStandards } from "../data/oklahoma-physical-education-standards";
 import { oklahomaFineArtsStandards } from "../data/oklahoma-fine-arts-standards";
 import { oklahomaComputerScienceStandards } from "../data/oklahoma-computer-science-standards";
+import { oklahomaInformationLiteracyStandards } from "../data/oklahoma-information-literacy-standards";
 
 class Random {
   private state: number;
@@ -188,6 +189,15 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Computer Science 2023" } };
     values = { question: `${gradeLabel} computer science activity: With an adult, ${standard.statement}. Use a safe unplugged model, hands-on materials, robot, or appropriate device. Explain the steps, pattern, data, or safe choice you used.` };
     explanation = "An adult will observe the computer science thinking and safe, responsible use named in this activity.";
+  } else if (template.generator.kind === "oklahomaInformationLiteracyAdult") {
+    const skill = String(configuration.skill);
+    const standard = oklahomaInformationLiteracyStandards.find((item) => item.officialId === skill);
+    if (!standard) throw new Error(`Unsupported Oklahoma information literacy skill: ${skill}`);
+    const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
+    canonicalAnswer = null;
+    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Information Literacy 2024" } };
+    values = { question: `${gradeLabel} information literacy inquiry: With an adult, ${standard.statement}. Use books, people, library resources, or safe supervised digital tools as appropriate, and explain how you know.` };
+    explanation = "An adult will observe your safe research, information choices, communication, and reflection.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);
     const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {

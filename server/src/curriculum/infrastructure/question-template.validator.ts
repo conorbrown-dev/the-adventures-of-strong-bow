@@ -28,6 +28,7 @@ const generators: Record<string, { responseType: string; required: string[] }> =
   , oklahomaPhysicalEducationAdult: { responseType: "constructedResponse", required: ["skill"] }
   , oklahomaFineArtsAdult: { responseType: "constructedResponse", required: ["skill"] }
   , oklahomaComputerScienceAdult: { responseType: "constructedResponse", required: ["skill"] }
+  , oklahomaInformationLiteracyAdult: { responseType: "constructedResponse", required: ["skill"] }
   , additionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , subtractionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , compareNumbers: { responseType: "singleChoice", required: ["minimum", "maximum"] }
