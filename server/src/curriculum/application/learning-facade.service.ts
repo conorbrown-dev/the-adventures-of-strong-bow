@@ -11,6 +11,7 @@ import { catalogTemplateToQuestionTemplate } from "../infrastructure/k2-review-p
 import { loadK2ContentCatalog } from "../infrastructure/k2-content-catalog";
 import { validateK2ContentCatalog } from "../infrastructure/k2-content-catalog";
 import { diagnosticPlacement, evaluateDiagnostic, type DiagnosticProbe } from "./diagnostic-placement";
+import { selectNextLearningTemplates } from "./curriculum-sequence";
 
 type SessionPurpose = "practice" | "review" | "diagnostic" | "placement" | "proctored" | "adultScored";
 type LearningSubject = "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY";
@@ -31,7 +32,7 @@ export class LearningFacadeService {
     const availableTemplates = purpose === "placement" ? placementTemplatesByGrade[0] ?? [] : templates;
     if (!availableTemplates.length) throw new Error(`No approved ${subject ?? ""} Grade ${grade === "K" ? "Kindergarten" : grade} content is available.`);
     await this.progress.markDue(learnerId); const mastery = await this.repository.listMastery(learnerId);
-    const activeTemplates = purpose === "placement" ? availableTemplates : purpose === "practice" ? this.templatesForPractice(templates, mastery) : templates;
+    const activeTemplates = purpose === "placement" ? availableTemplates : purpose === "practice" || purpose === "adultScored" ? selectNextLearningTemplates(templates, mastery) : templates;
     if (!activeTemplates.length) throw new Error("All skills are mastered for now. Return when a scheduled review is due.");
     const selected = activeTemplates[seedAt(seed, 0) % activeTemplates.length]; const sessionTemplates = purpose === "proctored" ? templates.filter((template) => template.primaryStandardId === selected.primaryStandardId) : activeTemplates;
     const sessionPurpose: SessionPurpose = purpose === "practice" && mastery.some((record) => record.standardId === selected.primaryStandardId && record.state === "reviewDue") ? "review" : purpose;
@@ -49,7 +50,6 @@ export class LearningFacadeService {
   next(sessionId: string) { const session = this.requireSession(sessionId); if (session.position + 1 >= session.length) { if (!session.placement || session.placement.result) return null; session.placement.gradeIndex += 1; session.placement.correct = 0; session.templates = session.placement.templatesByGrade[session.placement.gradeIndex]; session.grade = session.templates[0].grade; session.position = 0; session.instance = generateQuestion(session.templates[seedAt(session.seed, 0) % session.templates.length], seedAt(session.seed, 0)); return this.view(session); } session.position += 1; const candidates = session.templates.filter((template) => template.id !== session.instance.templateId); const template = candidates[seedAt(session.seed, session.position) % candidates.length] ?? session.templates[0]; session.grade = template.grade; session.instance = generateQuestion(template, seedAt(session.seed, session.position)); return this.view(session); }
   async progressFor(learnerId: string) { const [attempts, mastery, placements] = await Promise.all([this.repository.listAttempts(learnerId), this.repository.listMastery(learnerId), this.repository.listDiagnosticPlacements(learnerId)]); return { attempts, mastery, latestDiagnosticPlacement: placements[0] ?? null }; }
   get(sessionId: string) { return this.view(this.requireSession(sessionId)); }
-  private templatesForPractice(templates: QuestionTemplate[], mastery: Awaited<ReturnType<ProgressRepository["listMastery"]>>) { const mastered = new Set(mastery.filter((record) => record.state === "mastered").map((record) => record.standardId)); return templates.filter((template) => !mastered.has(template.primaryStandardId)); }
   private requireSession(id: string) { const session = this.sessions.get(id); if (!session) throw new Error("Learning session is unavailable. Start a new session."); return session; }
   private view(session: StoredSession) { const { canonicalAnswer: _answer, ...instance } = session.instance; return { sessionId: session.id, position: session.position, length: session.length, question: instance }; }
 }
