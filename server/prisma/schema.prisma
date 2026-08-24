@@ -27,6 +27,7 @@ enum CurriculumSubject {
   SCIENCE
   SOCIAL_STUDIES
   HEALTH
+  PHYSICAL_EDUCATION
 }
 
 model GameMode {

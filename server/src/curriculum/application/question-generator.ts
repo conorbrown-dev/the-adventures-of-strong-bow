@@ -2,6 +2,7 @@ import type { QuestionInstance, QuestionTemplate } from "../domain/question-temp
 import { oklahomaScienceStandards } from "../data/oklahoma-science-standards";
 import { oklahomaSocialStudiesStandards } from "../data/oklahoma-social-studies-standards";
 import { oklahomaHealthStandards } from "../data/oklahoma-health-standards";
+import { oklahomaPhysicalEducationStandards } from "../data/oklahoma-physical-education-standards";
 
 class Random {
   private state: number;
@@ -158,6 +159,15 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Health Education 2026" } };
     values = { question: `${gradeLabel} health activity: Work with an adult to ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Talk about safe choices and show what you know using a drawing, role-play, or daily routine when it helps.` };
     explanation = "An adult will check your health understanding and safe choices together with you.";
+  } else if (template.generator.kind === "oklahomaPhysicalEducationAdult") {
+    const skill = String(configuration.skill);
+    const standard = oklahomaPhysicalEducationStandards.find((item) => item.officialId === skill);
+    if (!standard) throw new Error(`Unsupported Oklahoma physical education skill: ${skill}`);
+    const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
+    canonicalAnswer = null;
+    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Physical Education 2026" } };
+    values = { question: `${gradeLabel} movement activity: With an adult, safely ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Use a clear open space and stop if something feels unsafe or uncomfortable.` };
+    explanation = "An adult will observe safe movement, effort, and the skill named in this activity.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);
     const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {

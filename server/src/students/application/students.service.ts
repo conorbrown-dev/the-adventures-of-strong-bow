@@ -62,7 +62,7 @@ export class StudentsService {
     return this.toPublicStudent(student);
   }
 
-  async updateSubjectLevel(studentId: string, dto: { subject: "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH"; grade: string; verificationCode: string }) {
+  async updateSubjectLevel(studentId: string, dto: { subject: "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION"; grade: string; verificationCode: string }) {
     await this.findStudent(studentId);
     if (!process.env.CURRICULUM_PROCTOR_CODE || dto.verificationCode !== process.env.CURRICULUM_PROCTOR_CODE) throw new UnauthorizedException("A parent or teacher verification code is required.");
     const student = await this.prisma.student.findUnique({ where: { id: studentId } });

@@ -16,6 +16,7 @@ import { loadLearningStandards } from "../infrastructure/learning-standards";
 import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
 import { oklahomaSocialStudiesTemplates } from "../data/oklahoma-social-studies-templates";
 import { oklahomaHealthTemplates } from "../data/oklahoma-health-templates";
+import { oklahomaPhysicalEducationTemplates } from "../data/oklahoma-physical-education-templates";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
 
@@ -149,6 +150,16 @@ describe("reviewed deterministic question engine", () => {
       const instance = generateQuestion(template, "oklahoma-health");
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("health activity");
+      expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
+    }
+  });
+
+  it("generates complete adult-observed movement activities for every Oklahoma K–2 PE outcome", () => {
+    for (const catalogTemplate of oklahomaPhysicalEducationTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "oklahoma-pe");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.prompt.text).toContain("movement activity");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
     }
   });

@@ -22,7 +22,7 @@ describe("Kindergarten production content catalog", () => {
     const originalReviewed = kindergarten.filter((template) => template.review.reviewer === "Conor Brown");
     expect(originalReviewed).toHaveLength(27);
     expect(originalReviewed.every((template) => template.review.contentHash)).toBe(true);
-    expect(kindergarten).toHaveLength(181);
+    expect(kindergarten).toHaveLength(215);
     expect(kindergarten.every((template) => template.review.status === "reviewed")).toBe(true);
   });
 

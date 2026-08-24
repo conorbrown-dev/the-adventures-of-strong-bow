@@ -26,6 +26,7 @@ function parameters(template: CatalogTemplate): Record<string, unknown> {
   if (template.generatorKind === "oklahomaScienceAdult") return { skill: template.standardId };
   if (template.generatorKind === "oklahomaSocialStudiesAdult") return { skill: template.standardId };
   if (template.generatorKind === "oklahomaHealthAdult") return { skill: template.standardId };
+  if (template.generatorKind === "oklahomaPhysicalEducationAdult") return { skill: template.standardId };
   if (template.generatorKind === "matchUpperLowerLetters") return { pairCount: 3 };
   if (template.generatorKind === "rhymeChoice") return { wordFamilies: ["-at", "-an", "-ig", "-op", "-ug"], choiceCount: 3 };
   if (template.generatorKind === "cvcMedialVowel") return { vowels: ["a", "e", "i", "o", "u"], choiceCount: 3 };
@@ -48,6 +49,7 @@ function prompt(template: CatalogTemplate): { text: string; audioText: string; i
   if (template.generatorKind === "oklahomaScienceAdult") return { text: "{{question}}", audioText: "{{question}}", instructions: "Work with an adult, then have the adult score what you demonstrated." };
   if (template.generatorKind === "oklahomaSocialStudiesAdult") return { text: "{{question}}", audioText: "{{question}}", instructions: "Work with an adult, then have the adult score what you demonstrated." };
   if (template.generatorKind === "oklahomaHealthAdult") return { text: "{{question}}", audioText: "{{question}}", instructions: "Work with an adult, then have the adult score what you demonstrated." };
+  if (template.generatorKind === "oklahomaPhysicalEducationAdult") return { text: "{{question}}", audioText: "{{question}}", instructions: "Move safely with an adult, then have the adult score what you demonstrated." };
   if (template.generatorKind === "letterIdentification") return { text: template.id.includes("uppercase") ? "Which uppercase letter matches {{letter}}?" : "Which lowercase letter matches {{letter}}?", audioText: template.id.includes("uppercase") ? "Which uppercase letter matches {{letter}}?" : "Which lowercase letter matches {{letter}}?", instructions: "Choose one answer." };
   if (template.generatorKind === "matchUpperLowerLetters") return { text: "Sort the letters into uppercase and lowercase.", audioText: "Sort the letters into uppercase and lowercase.", instructions: "Put each letter in the right group." };
   if (template.generatorKind === "rhymeOddOne") return { text: "Which word does not rhyme?", audioText: "Which word does not rhyme?", instructions: "Choose one answer." };
