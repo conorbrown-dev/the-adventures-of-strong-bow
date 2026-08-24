@@ -152,4 +152,12 @@ describe("LearningFacadeService", () => {
     const started = await service.start("learner", "practice", 42, undefined, "K", "MATH");
     expect(started.question.templateId).toMatch(/^k\.cc\./);
   });
+
+  it("records when a learner used a hint before answering", async () => {
+    const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository);
+    const started = await service.start("hint-user", "practice", 42, undefined, "K", "MATH");
+    const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
+    await service.submit(started.sessionId, sessions.get(started.sessionId)!.instance.canonicalAnswer, true);
+    expect(repository.attempts[0]?.usedHint).toBe(true);
+  });
 });

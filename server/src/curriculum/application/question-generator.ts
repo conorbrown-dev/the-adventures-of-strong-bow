@@ -40,6 +40,11 @@ const adultScoredInteraction = (standardId: string, statement: string, framework
     "I saw or heard enough evidence to make a fair decision about the skill."
   ]
 });
+const learningTip = (template: QuestionTemplate) => template.subject === "math"
+  ? "Try drawing the objects, using counters, or saying the number sentence slowly before you choose."
+  : template.subject === "ela"
+    ? "Listen to every word in the question. Look back at the short text or say the sounds slowly before you choose."
+    : "Talk through what you notice, then use the materials named in the activity to show your thinking.";
 
 export function generateQuestion(template: QuestionTemplate, seed: string | number): QuestionInstance {
   const random = new Random(seed); const configuration = params(template);
@@ -510,5 +515,5 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = choiceInteraction(["<", "=", ">"]); canonicalAnswer = answer; values = { left, right }; explanation = `${left} is ${answer === "<" ? "less than" : answer === ">" ? "greater than" : "equal to"} ${right}.`;
   } else throw new Error(`Unsupported generator kind: ${template.generator.kind}`);
   const prompt = { text: text(template, values), audioText: audioText(template, values), instructions: template.prompt.instructions ?? null };
-  return { schemaVersion: 1, id: `${template.id}@${template.version}:${seed}`, templateId: template.id, templateVersion: template.version, seed, standardIds: [template.primaryStandardId, ...template.supportingStandardIds], responseType: template.responseType, prompt, interaction, canonicalAnswer, answerNormalization: { trim: true, caseInsensitive: true }, explanation, accessibility: { spokenPrompt: prompt.audioText, textAlternative: prompt.text, reducedMotionSafe: true }, provenance: { templateId: template.id, templateVersion: template.version, ...template.provenance } };
+  return { schemaVersion: 1, id: `${template.id}@${template.version}:${seed}`, templateId: template.id, templateVersion: template.version, seed, standardIds: [template.primaryStandardId, ...template.supportingStandardIds], responseType: template.responseType, prompt, interaction: { ...interaction, learningTip: learningTip(template) }, canonicalAnswer, answerNormalization: { trim: true, caseInsensitive: true }, explanation, accessibility: { spokenPrompt: prompt.audioText, textAlternative: prompt.text, reducedMotionSafe: true }, provenance: { templateId: template.id, templateVersion: template.version, ...template.provenance } };
 }

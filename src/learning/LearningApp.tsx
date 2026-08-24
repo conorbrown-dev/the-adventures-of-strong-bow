@@ -149,6 +149,7 @@ export function LearningApp(): JSX.Element {
   const [classification, setClassification] = useState<Classification>({});
   const [sequenceAnswer, setSequenceAnswer] = useState<string[]>([]);
   const [adultChecks, setAdultChecks] = useState<string[]>([]);
+  const [usedHint, setUsedHint] = useState(false);
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
@@ -185,7 +186,7 @@ export function LearningApp(): JSX.Element {
     }
   }, [learnerId, location.pathname]);
 
-  const resetQuestionState = () => { setSelectedAnswer(""); setClassification({}); setSequenceAnswer([]); setAdultChecks([]); setResult(null); setIsListening(false); };
+  const resetQuestionState = () => { setSelectedAnswer(""); setClassification({}); setSequenceAnswer([]); setAdultChecks([]); setUsedHint(false); setResult(null); setIsListening(false); };
   const start = async (purpose: "practice" | "diagnostic" | "placement" | "proctored" | "adultScored") => {
     try {
       setIsLoadingSession(true);
@@ -204,7 +205,7 @@ export function LearningApp(): JSX.Element {
     if (!session) return;
     try {
       setError(null);
-      setResult(await learningApplication.submit(session.sessionId, submittedAnswer));
+      setResult(await learningApplication.submit(session.sessionId, submittedAnswer, usedHint));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to save your answer.");
     }
@@ -270,6 +271,7 @@ export function LearningApp(): JSX.Element {
       </div>}
       <div className="prompt"><h1>{session.question.prompt.text}</h1><button className="speaker-button" onClick={() => void speak(session.question.accessibility.spokenPrompt ?? session.question.prompt.text)} aria-label="Replay question">🔊</button></div>
       {session.question.prompt.instructions && <p className="question-instructions">{session.question.prompt.instructions}</p>}
+      {session.question.interaction.learningTip && !result && location.pathname !== "/learning/adult-scored" && <details className="learning-tip" onToggle={(event) => { if (event.currentTarget.open) setUsedHint(true); }}><summary>Need a hint?</summary><p>{session.question.interaction.learningTip}</p></details>}
       {location.pathname === "/learning/adult-scored" && !result ? <section className="adult-score">
         <p>Adult: observe the student complete this activity, then record the result.</p>
         {adultChecklist.length > 0 && <fieldset className="adult-checklist"><legend>Before recording a result, check each item.</legend>{adultChecklist.map((item, index) => <label className="check" key={item}><input type="checkbox" checked={adultChecks.includes(String(index))} onChange={() => setAdultChecks((current) => current.includes(String(index)) ? current.filter((value) => value !== String(index)) : [...current, String(index)])} /> {item}</label>)}</fieldset>}
