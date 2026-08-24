@@ -17,6 +17,7 @@ import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
 import { oklahomaSocialStudiesTemplates } from "../data/oklahoma-social-studies-templates";
 import { oklahomaHealthTemplates } from "../data/oklahoma-health-templates";
 import { oklahomaPhysicalEducationTemplates } from "../data/oklahoma-physical-education-templates";
+import { oklahomaFineArtsTemplates } from "../data/oklahoma-fine-arts-templates";
 
 const sourcePath = resolve(getCurriculumPaths().root, "data/curriculum/examples/question-templates.sample.json");
 
@@ -160,6 +161,16 @@ describe("reviewed deterministic question engine", () => {
       const instance = generateQuestion(template, "oklahoma-pe");
       expect(instance.responseType).toBe("constructedResponse");
       expect(instance.prompt.text).toContain("movement activity");
+      expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
+    }
+  });
+
+  it("generates complete adult-observed activities for every Oklahoma Fine Arts catalog entry", () => {
+    for (const catalogTemplate of oklahomaFineArtsTemplates) {
+      const template = validateQuestionTemplate(catalogTemplateToQuestionTemplate(catalogTemplate), standards);
+      const instance = generateQuestion(template, "oklahoma-fine-arts");
+      expect(instance.responseType).toBe("constructedResponse");
+      expect(instance.prompt.text).toContain("activity");
       expect(instance.interaction).toEqual(expect.objectContaining({ kind: "adultScored", target: expect.objectContaining({ standardId: catalogTemplate.standardId }) }));
     }
   });

@@ -16,6 +16,7 @@ import { oklahomaScienceTemplates } from "../data/oklahoma-science-templates";
 import { oklahomaSocialStudiesTemplates } from "../data/oklahoma-social-studies-templates";
 import { oklahomaHealthTemplates } from "../data/oklahoma-health-templates";
 import { oklahomaPhysicalEducationTemplates } from "../data/oklahoma-physical-education-templates";
+import { oklahomaFineArtsTemplates } from "../data/oklahoma-fine-arts-templates";
 import { loadLearningStandards } from "./learning-standards";
 
 export type CatalogReviewStatus = "draft" | "validated" | "reviewed" | "retired";
@@ -37,7 +38,7 @@ export function contentHash(template: CatalogTemplate): string {
 export async function loadK2ContentCatalog(): Promise<K2Catalog> {
   const catalog = JSON.parse(await readFile(catalogPath(), "utf8")) as K2Catalog;
   const existingIds = new Set(catalog.templates.map((template) => template.id));
-  return { ...catalog, templates: [...catalog.templates, ...[...kindergartenMathTemplates, ...kindergartenElaTemplates, ...kindergartenElaAdultTemplates, ...oklahomaScienceTemplates, ...oklahomaSocialStudiesTemplates, ...oklahomaHealthTemplates, ...oklahomaPhysicalEducationTemplates, ...gradeOneMathTemplates, ...gradeOneElaTemplates, ...gradeOneElaAdultTemplates, ...gradeTwoMathTemplates, ...gradeTwoElaTemplates, ...gradeTwoElaAdultTemplates].filter((template) => !existingIds.has(template.id))] };
+  return { ...catalog, templates: [...catalog.templates, ...[...kindergartenMathTemplates, ...kindergartenElaTemplates, ...kindergartenElaAdultTemplates, ...oklahomaScienceTemplates, ...oklahomaSocialStudiesTemplates, ...oklahomaHealthTemplates, ...oklahomaPhysicalEducationTemplates, ...oklahomaFineArtsTemplates, ...gradeOneMathTemplates, ...gradeOneElaTemplates, ...gradeOneElaAdultTemplates, ...gradeTwoMathTemplates, ...gradeTwoElaTemplates, ...gradeTwoElaAdultTemplates].filter((template) => !existingIds.has(template.id))] };
 }
 
 export async function validateK2ContentCatalog(): Promise<{ templates: number; passages: number; unsupported: number }> {

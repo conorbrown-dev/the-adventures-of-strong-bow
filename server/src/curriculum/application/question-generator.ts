@@ -3,6 +3,7 @@ import { oklahomaScienceStandards } from "../data/oklahoma-science-standards";
 import { oklahomaSocialStudiesStandards } from "../data/oklahoma-social-studies-standards";
 import { oklahomaHealthStandards } from "../data/oklahoma-health-standards";
 import { oklahomaPhysicalEducationStandards } from "../data/oklahoma-physical-education-standards";
+import { oklahomaFineArtsStandards } from "../data/oklahoma-fine-arts-standards";
 
 class Random {
   private state: number;
@@ -168,6 +169,15 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Physical Education 2026" } };
     values = { question: `${gradeLabel} movement activity: With an adult, safely ${standard.statement.charAt(0).toLowerCase()}${standard.statement.slice(1)} Use a clear open space and stop if something feels unsafe or uncomfortable.` };
     explanation = "An adult will observe safe movement, effort, and the skill named in this activity.";
+  } else if (template.generator.kind === "oklahomaFineArtsAdult") {
+    const skill = String(configuration.skill);
+    const standard = oklahomaFineArtsStandards.find((item) => item.officialId === skill);
+    if (!standard) throw new Error(`Unsupported Oklahoma fine arts skill: ${skill}`);
+    const gradeLabel = template.grade === "K" ? "Kindergarten" : `Grade ${template.grade}`;
+    canonicalAnswer = null;
+    interaction = { kind: "adultScored", target: { standardId: skill, framework: "Oklahoma Academic Standards for Fine Arts 2023" } };
+    values = { question: `${gradeLabel} ${standard.strand ?? "fine arts"} activity: With an adult, ${standard.statement}. Create or perform when it fits, then explain one choice, observation, feeling, or idea.` };
+    explanation = "An adult will observe the artistic process, care for people and materials, and the skill named in this activity.";
   } else if (template.generator.kind === "kindergartenEla") {
     const skill = String(configuration.skill);
     const items: Record<string, { question: string; answer: string; choices: string[]; explanation: string }> = {

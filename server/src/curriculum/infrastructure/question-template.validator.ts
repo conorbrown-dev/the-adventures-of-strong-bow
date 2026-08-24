@@ -26,6 +26,7 @@ const generators: Record<string, { responseType: string; required: string[] }> =
   , oklahomaSocialStudiesAdult: { responseType: "constructedResponse", required: ["skill"] }
   , oklahomaHealthAdult: { responseType: "constructedResponse", required: ["skill"] }
   , oklahomaPhysicalEducationAdult: { responseType: "constructedResponse", required: ["skill"] }
+  , oklahomaFineArtsAdult: { responseType: "constructedResponse", required: ["skill"] }
   , additionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , subtractionWithinRange: { responseType: "singleChoice", required: ["minimum", "maximum", "choiceCount"] }
   , compareNumbers: { responseType: "singleChoice", required: ["minimum", "maximum"] }

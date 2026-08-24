@@ -12,6 +12,8 @@ import { oklahomaSocialStudiesStandards } from "../data/oklahoma-social-studies-
 import { oklahomaSocialStudiesTemplates } from "../data/oklahoma-social-studies-templates";
 import { oklahomaHealthStandards } from "../data/oklahoma-health-standards";
 import { oklahomaHealthTemplates } from "../data/oklahoma-health-templates";
+import { oklahomaFineArtsStandards } from "../data/oklahoma-fine-arts-standards";
+import { oklahomaFineArtsTemplates } from "../data/oklahoma-fine-arts-templates";
 import { loadLearningStandards } from "./learning-standards";
 
 describe("Kindergarten production content catalog", () => {
@@ -22,7 +24,7 @@ describe("Kindergarten production content catalog", () => {
     const originalReviewed = kindergarten.filter((template) => template.review.reviewer === "Conor Brown");
     expect(originalReviewed).toHaveLength(27);
     expect(originalReviewed.every((template) => template.review.contentHash)).toBe(true);
-    expect(kindergarten).toHaveLength(215);
+    expect(kindergarten).toHaveLength(266);
     expect(kindergarten.every((template) => template.review.status === "reviewed")).toBe(true);
   });
 
@@ -66,6 +68,12 @@ describe("Kindergarten production content catalog", () => {
   it("includes each Oklahoma Health PreK–2 objective at every supported grade", () => {
     expect(oklahomaHealthTemplates).toHaveLength(oklahomaHealthStandards.length * 3);
     expect(oklahomaHealthTemplates.every((template) => template.subject === "health" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
+  });
+
+  it("includes reviewed K–2 activities across every Oklahoma Fine Arts discipline", () => {
+    expect(oklahomaFineArtsTemplates).toHaveLength(140);
+    expect(oklahomaFineArtsTemplates.every((template) => template.subject === "fineArts" && template.responseType === "constructedResponse" && !template.diagnosticEligible)).toBe(true);
+    expect(new Set(oklahomaFineArtsStandards.map((standard) => standard.strand))).toEqual(new Set(["Dance", "Drama/Theatre", "Media Arts", "Music", "Visual Arts"]));
   });
 
   it("includes every independently assessable Grade 2 mathematics target", async () => {
