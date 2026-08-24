@@ -11,6 +11,7 @@ import { oklahomaEducationTechnologyStandards } from "../data/oklahoma-education
 import { oklahomaMathStandards } from "../data/oklahoma-math-standards";
 import { oklahomaElaStandards } from "../data/oklahoma-ela-standards";
 import { gradeTwoReadingVariants } from "../data/grade-two-reading-variants";
+import { gradeOneReadingVariants } from "../data/grade-one-reading-variants";
 
 class Random {
   private state: number;
@@ -467,7 +468,11 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
         "1.RL.7": { question: "Read: Ava carries an umbrella. A picture shows dark clouds and rain. What does the picture help show?", answer: "It is raining.", choices: ["It is raining.", "It is bedtime.", "It is very hot."], explanation: "The rain and dark clouds show the weather." },
         "1.RL.9": { question: "In one story, Kai climbs a tree. In another, Zoe climbs a hill. How are Kai and Zoe alike?", answer: "Both like climbing.", choices: ["Both like climbing.", "Both are asleep.", "Both are swimming."], explanation: "Each character climbs something." }
       };
-      const item = comprehension[skill]; answer = item.answer; choices = item.choices; values = { question: item.question }; explanation = item.explanation;
+      const baseItem = comprehension[skill];
+      if (!baseItem) throw new Error(`Unsupported Grade 1 ELA skill: ${skill}`);
+      const variants = gradeOneReadingVariants[skill] ?? [];
+      const item = [baseItem, ...variants][random.integer(0, variants.length)];
+      answer = item.answer; choices = item.choices; values = { question: item.question }; explanation = item.explanation;
     }
     interaction = choiceInteraction(random.shuffle(choices)); canonicalAnswer = answer;
   } else if (template.generator.kind === "letterIdentification") {
