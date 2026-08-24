@@ -104,9 +104,10 @@ describe("Kindergarten production content catalog", () => {
   });
 
   it("includes every added Oklahoma 2021 ELA objective as an adult-observed activity", () => {
-    expect(oklahomaElaStandards).toHaveLength(122);
+    expect(oklahomaElaStandards).toHaveLength(183);
     expect(oklahomaElaStandards.filter((standard) => standard.grade === "K")).toHaveLength(60);
     expect(oklahomaElaStandards.filter((standard) => standard.grade === "1")).toHaveLength(62);
+    expect(oklahomaElaStandards.filter((standard) => standard.grade === "2")).toHaveLength(61);
     expect(oklahomaElaTemplates.map((template) => template.standardId).sort()).toEqual(oklahomaElaStandards.map((standard) => standard.officialId).sort());
   });
 
