@@ -267,6 +267,16 @@ describe("reviewed deterministic question engine", () => {
     }
   });
 
+  it("varies Kindergarten reading comprehension prompts while keeping an answer in every choice set", () => {
+    const byId = new Map(kindergartenElaTemplates.map((template) => [template.id, template]));
+    for (const templateId of ["k.ri.2.main-topic", "k.rl.2.recount-story", "k.rl.7.illustrations"]) {
+      const template = catalogTemplateToQuestionTemplate(byId.get(templateId)!);
+      const questions = Array.from({ length: 30 }, (_, seed) => generateQuestion(template, seed));
+      expect(new Set(questions.map((question) => question.prompt.text)).size).toBeGreaterThan(1);
+      for (const question of questions) expect((question.interaction.choices as Array<{ label: string }>).map((choice) => choice.label)).toContain(question.canonicalAnswer);
+    }
+  });
+
   it("varies deterministically between seeds without violating arithmetic bounds", () => {
     const arithmetic = templates.slice(-3).map((rawTemplate) => validateQuestionTemplate(rawTemplate, standards));
     for (const template of arithmetic) {

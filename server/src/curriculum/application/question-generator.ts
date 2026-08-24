@@ -12,6 +12,7 @@ import { oklahomaMathStandards } from "../data/oklahoma-math-standards";
 import { oklahomaElaStandards } from "../data/oklahoma-ela-standards";
 import { gradeTwoReadingVariants } from "../data/grade-two-reading-variants";
 import { gradeOneReadingVariants } from "../data/grade-one-reading-variants";
+import { kindergartenReadingVariants } from "../data/kindergarten-reading-variants";
 
 class Random {
   private state: number;
@@ -279,8 +280,10 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
       "K.RL.7": { question: "A story says Ava carries an umbrella. The picture shows rain. What does the picture help show?", answer: "It is raining.", choices: ["It is raining.", "It is bedtime.", "It is snowing."], explanation: "The picture gives a clue that it is raining." },
       "K.RL.9": { question: "In one story, a rabbit hops. In another, a frog hops. How are they alike?", answer: "Both animals hop.", choices: ["Both animals hop.", "Both animals fly.", "Both animals are fish."], explanation: "Each animal hops in its story." }
     };
-    const item = items[skill];
-    if (!item) throw new Error(`Unsupported Kindergarten ELA skill: ${skill}`);
+    const baseItem = items[skill];
+    if (!baseItem) throw new Error(`Unsupported Kindergarten ELA skill: ${skill}`);
+    const variants = kindergartenReadingVariants[skill] ?? [];
+    const item = [baseItem, ...variants][random.integer(0, variants.length)];
     interaction = choiceInteraction(random.shuffle(item.choices)); canonicalAnswer = item.answer; values = { question: item.question }; explanation = item.explanation;
   } else if (template.generator.kind === "gradeTwoMath") {
     const skill = String(configuration.skill);

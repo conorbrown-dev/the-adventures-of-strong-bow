@@ -1,0 +1,22 @@
+type KindergartenReadingVariant = { question: string; answer: string; choices: string[]; explanation: string };
+
+/** Additional original, orally readable prompts for repeated Kindergarten comprehension practice. */
+export const kindergartenReadingVariants: Record<string, KindergartenReadingVariant[]> = {
+  "K.RI.1": [{ question: "Read: Fish live in water and use fins to swim. What do fish use to swim?", answer: "fins", choices: ["fins", "wings", "boots"], explanation: "The sentence says fish use fins to swim." }],
+  "K.RI.2": [{ question: "Read: A pumpkin can be orange. It grows on a vine. What is this text mostly about?", answer: "a pumpkin", choices: ["a pumpkin", "a car", "a cloud"], explanation: "Both sentences tell about a pumpkin." }],
+  "K.RI.3": [{ question: "Read: First, a child puts soil in a pot. Next, the child adds a seed. What happens next?", answer: "The child adds a seed.", choices: ["The child adds a seed.", "The child goes to sleep.", "The child eats a cookie."], explanation: "The text says the seed is added next." }],
+  "K.RI.4": [{ question: "Read: A cub is a baby bear. What is a cub?", answer: "a baby bear", choices: ["a baby bear", "a big tree", "a kind of shoe"], explanation: "The sentence tells that a cub is a baby bear." }],
+  "K.RI.5": [{ question: "Which part of a book tells its name?", answer: "the title", choices: ["the title", "the shoe", "the snack"], explanation: "A book's title tells its name." }],
+  "K.RI.6": [{ question: "A book says a rabbit has long ears. The picture shows a white rabbit. What do you learn from the picture?", answer: "The rabbit is white.", choices: ["The rabbit is white.", "The rabbit has long ears.", "The rabbit can drive."], explanation: "The rabbit's color is shown in the picture." }],
+  "K.RI.7": [{ question: "Read: Bees visit flowers. A picture shows a bee on a yellow flower. What does the picture help show?", answer: "A bee visits a flower.", choices: ["A bee visits a flower.", "A bee is asleep.", "A bee is a fish."], explanation: "The picture shows the bee on the flower." }],
+  "K.RI.8": [{ question: "Read: We wear coats because coats help keep us warm. Why do we wear coats?", answer: "They help keep us warm.", choices: ["They help keep us warm.", "They make us fly.", "They turn into hats."], explanation: "Keeping warm is the reason given in the text." }],
+  "K.RI.9": [{ question: "One book says dogs can bark. Another book says dogs can wag their tails. What do both books tell about?", answer: "dogs", choices: ["dogs", "boats", "stars"], explanation: "Both books give facts about dogs." }],
+  "K.RL.1": [{ question: "Read: Ana put her doll in the box. Where did Ana put her doll?", answer: "in the box", choices: ["in the box", "on the moon", "under the sea"], explanation: "The story says the doll is in the box." }],
+  "K.RL.2": [{ question: "Read: Tim dropped his crayons. He picked them up and put them away. What happened last?", answer: "Tim put the crayons away.", choices: ["Tim put the crayons away.", "Tim dropped the crayons.", "Tim found a dragon."], explanation: "Putting the crayons away happened last." }],
+  "K.RL.3": [{ question: "Read: Mia and her dad made a snowman outside. Where does the story happen?", answer: "outside", choices: ["outside", "in a spaceship", "at the beach"], explanation: "The snowman is made outside." }],
+  "K.RL.4": [{ question: "Read: “Oh no!” said Pip when the balloon popped. How does Pip feel?", answer: "upset", choices: ["upset", "happy", "sleepy"], explanation: "Oh no shows that Pip feels upset." }],
+  "K.RL.5": [{ question: "Which book would tell a make-believe story about a talking cat?", answer: "a storybook", choices: ["a storybook", "a bus schedule", "a grocery list"], explanation: "A storybook can tell a make-believe story." }],
+  "K.RL.6": [{ question: "Who makes the words in a storybook?", answer: "the author", choices: ["the author", "the chair", "the reader's shoe"], explanation: "The author writes the words in a book." }],
+  "K.RL.7": [{ question: "Read: Leo wears boots. A picture shows puddles and rain. What does the picture help show?", answer: "It is rainy.", choices: ["It is rainy.", "It is bedtime.", "It is very hot."], explanation: "The puddles and rain show rainy weather." }],
+  "K.RL.9": [{ question: "In one story, a cat naps. In another, a dog naps. How are they alike?", answer: "Both animals nap.", choices: ["Both animals nap.", "Both animals swim.", "Both animals fly."], explanation: "Each animal naps in its story." }]
+};
