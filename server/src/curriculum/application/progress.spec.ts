@@ -41,6 +41,11 @@ describe("curriculum progress", () => {
     expect(phonics.placedGrade).toBe("K"); expect(operations.learningTargetIds.length).toBeGreaterThan(0);
   });
 
+  it("reports the grade that was actually assessed when a diagnostic starts above Kindergarten", () => {
+    const result = evaluateDiagnostic("Math", [0, 1, 2, 3].map((index) => ({ standardId: `2.NBT.${index}`, grade: "2", correct: true, independent: true })));
+    expect(result).toMatchObject({ grouping: "Math", placedGrade: "2", learningTargetIds: [] });
+  });
+
   it("prioritizes reviews, then reviewed prerequisite gaps, and respects content constraints", () => {
     const templates = [template("review", "K.CC.A.1"), template("gap", "K.CC.A.2")]; const base = { seed: "same", standards: [standard("K.CC.A.1"), standard("K.CC.A.2")], templates, targets: [{ learnerId: "learner", standardId: "K.CC.A.1", active: true }], prerequisites: [{ standardId: "K.CC.A.1", prerequisiteStandardId: "K.CC.A.2", source: "explicitlyAuthored" as const, reviewed: true }], allowedGameModes: ["fossilDigging"], allowedResponseTypes: ["singleChoice"], audioRequired: true };
     expect(selectNextQuestion({ ...base, mastery: [{ learnerId: "learner", standardId: "K.CC.A.1", state: "reviewDue", scoredAttemptCount: 8, masteryAchievedAt: new Date(), reviewStage: 0, nextReviewAt: new Date(), updatedAt: new Date() }] }).reason).toContain("overdueReview");

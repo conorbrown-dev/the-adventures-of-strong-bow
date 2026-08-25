@@ -64,6 +64,21 @@ describe("LearningFacadeService", () => {
     expect(stored.diagnosticProbes[0].grade).toBe("2");
   });
 
+  it("returns and persists a useful placement when a diagnostic finishes", async () => {
+    const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
+    const started = await service.start("grade-two", "diagnostic", 42, undefined, "2", "MATH");
+    const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
+    let result: Awaited<ReturnType<typeof service.submit>> | undefined;
+    for (let index = 0; index < 4; index += 1) {
+      result = await service.submit(started.sessionId, sessions.get(started.sessionId)!.instance.canonicalAnswer);
+      if (!result.complete) service.next(started.sessionId);
+    }
+
+    expect(result).toMatchObject({ complete: true, placement: { grouping: "Math", grade: "2", learningTargetIds: [] } });
+    expect(repository.placements).toHaveLength(1);
+    await expect(service.progressFor("grade-two")).resolves.toMatchObject({ latestDiagnosticPlacement: { grouping: "Math", grade: "2" } });
+  });
+
   it("starts Grade 2 adult-scored ELA activities only with an adult code", async () => {
     const service = new LearningFacadeService(new InMemoryProgressRepository(), "adult-code");
     const started = await service.start("grade-two", "adultScored", 42, "adult-code", "2", "ELA");
