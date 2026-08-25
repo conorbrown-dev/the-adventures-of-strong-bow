@@ -459,21 +459,20 @@ Hide these details in production child-facing mode.
 
 ## 14. Diagnostic requirements
 
-Diagnostics are intentionally short.
+Diagnostics use the coverage and evidence state machine described in [DIAGNOSTIC_DESIGN.md](./DIAGNOSTIC_DESIGN.md). Question count is a consequence of the grade/subject blueprint and learner uncertainty, not a fixed four-item gate.
 
 For a given domain or strand:
 
-- ask four independent reviewed probes;
-- advance with at least three correct;
-- stop with one or fewer correct;
-- ask two tie-breakers when exactly two are correct;
+- require repeated independent evidence across representative standards;
+- gather breadth before making a promotion decision;
+- probe inconsistent skills until the configured evidence maximum;
+- block advancement on critical prerequisite gaps;
+- retain unresolved evidence as unresolved;
 - do not use speed;
-- do not count diagnostic results as full mastery by default;
-- do not assign one overall grade level;
+- do not count diagnostic results as retained practice mastery by default;
+- preserve strand-level results alongside the simplified instructional level;
 - do not repeat an instance;
 - do not reuse the same narrow item form when alternatives exist.
-
-A standard is not diagnostic-ready unless it can supply four independent probes.
 
 ## 15. Mastery requirements
 

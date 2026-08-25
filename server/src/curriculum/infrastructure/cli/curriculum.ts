@@ -81,7 +81,7 @@ async function main(): Promise<void> {
       const learnerId = process.argv[3]; if (!learnerId) throw new Error("Usage: curriculum review:due <learnerId>");
       console.log(JSON.stringify(await new ProgressService(progressRepository, clock).markDue(learnerId), null, 2)); return;
     }
-    if (command === "diagnostic") throw new Error("Diagnostic probes are submitted through the application service; use the diagnostic-placement API with independent probe results.");
+    if (command === "diagnostic") throw new Error("Diagnostics are resumable authenticated learning sessions; start one through the curriculum learning session API.");
     if (command === "session:plan") throw new Error("Session planning requires a learner context, eligible reviewed templates, and delivery constraints from the application API.");
     if (command === "import") {
       console.log(JSON.stringify(await importVendoredStandards(repository), null, 2));

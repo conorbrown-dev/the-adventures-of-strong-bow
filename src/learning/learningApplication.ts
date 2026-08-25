@@ -4,7 +4,19 @@ import type { CurriculumGrade, CurriculumSubject } from "../game/data/commonCore
 export type LearningMode = "practice" | "diagnostic" | "placement" | "proctored" | "adultScored";
 export type QuestionView = { schemaVersion: number; id: string; templateId: string; templateVersion: number; standardIds: string[]; responseType: string; prompt: { text: string; audioText: string | null; instructions: string | null }; interaction: { choices?: Array<{ id: string; label: string }>; visual?: { count: number; objectKey: string }; items?: string[]; categories?: string[]; adultChecklist?: string[]; learningTip?: string }; explanation: string; accessibility: { spokenPrompt: string | null; textAlternative: string } };
 export type SessionView = { sessionId: string; position: number; length: number; assessmentStage?: { grade: string; number: number; total: number }; question: QuestionView };
-export type PlacementResult = { grouping: string; grade: string; learningTargetIds: string[] };
+export type PlacementResult = {
+  grouping: string;
+  grade: string;
+  learningTargetIds: string[];
+  placementConfidence?: "LOW" | "MODERATE" | "HIGH";
+  evidenceCoverage?: number;
+  totalItems?: number;
+  demonstratedStrengths?: string[];
+  needsReinforcement?: string[];
+  criticalPrerequisiteGaps?: string[];
+  unresolvedSkills?: string[];
+  strandPlacements?: Array<{ domain: string; label: string; instructionalGrade: string; status: "ready" | "needsReinforcement" | "unresolved" }>;
+};
 export type AnswerResult = { correct: boolean; explanation: string; masteryState: string; complete: boolean; retry?: boolean; placement?: PlacementResult };
 export type StudentPlacement = { id: string; username: string; grade: CurriculumGrade; subjects: CurriculumSubject[]; curriculumLevels: Partial<Record<CurriculumSubject, CurriculumGrade>> };
 export type LessonPlanActivity = { minutes: number; directions: string[] };

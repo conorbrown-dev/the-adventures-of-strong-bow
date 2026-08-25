@@ -3,6 +3,8 @@
 Date: 2026-07-27  
 Branch / commit: `main` / `2698365`
 
+> Historical acceptance snapshot. Its diagnostic findings describe the 2026-07-27 implementation and were superseded on 2026-08-25 by [DIAGNOSTIC_GAP_ANALYSIS.md](./DIAGNOSTIC_GAP_ANALYSIS.md), [DIAGNOSTIC_DESIGN.md](./DIAGNOSTIC_DESIGN.md), and [DIAGNOSTIC_SIMULATION_RESULTS.md](./DIAGNOSTIC_SIMULATION_RESULTS.md).
+
 ## Executive classification
 
 The approved Kindergarten catalog and the isolated curriculum domain pass their validation and mastery-policy tests. The standalone React Learning UI does **not** yet select from that catalog or write curriculum attempt events, so the end-to-end proof of concept is **fail**. This report intentionally does not treat a launched UI or an approved catalog as an end-to-end pass.

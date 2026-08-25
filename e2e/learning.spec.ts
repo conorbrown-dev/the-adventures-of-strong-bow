@@ -33,6 +33,10 @@ test("Learning is interactive without launching Phaser", async ({ page }) => {
       await route.fulfill({ json: { attempts: [], mastery: [], latestDiagnosticPlacement: null, latestAssessmentSessionId: null } });
       return;
     }
+    if (url.pathname.endsWith("/lesson-plans")) {
+      await route.fulfill({ json: [] });
+      return;
+    }
     await route.fulfill({ json: session });
   });
 
@@ -97,6 +101,10 @@ test("a completed diagnostic shows its placement and does not call checked skill
         { sessionId: "old-practice", primaryStandardId: "K.RF.1.d", correct: false, usedHint: false, independent: true, purpose: "practice", submittedAnswer: "x" },
         { sessionId: "diagnostic-session", primaryStandardId: "K.RF.1.d", correct: true, usedHint: false, independent: true, purpose: "diagnostic", submittedAnswer: "l" }
       ], mastery: [{ standardId: "K.RF.1.d", state: "notStarted", nextReviewAt: null }], latestDiagnosticPlacement: placement, latestAssessmentSessionId: "diagnostic-session" } });
+      return;
+    }
+    if (path.endsWith("/lesson-plans")) {
+      await route.fulfill({ json: [] });
       return;
     }
     await route.fulfill({ json: { sessionId: "diagnostic-session", position: 0, length: 1, question } });

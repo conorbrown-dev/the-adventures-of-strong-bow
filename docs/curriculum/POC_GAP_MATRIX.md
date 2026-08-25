@@ -1,5 +1,7 @@
 # Common Core POC gap matrix
 
+> Historical snapshot from 2026-07-27. The diagnostic and session-persistence rows were superseded on 2026-08-25 by [DIAGNOSTIC_GAP_ANALYSIS.md](./DIAGNOSTIC_GAP_ANALYSIS.md) and [DIAGNOSTIC_DESIGN.md](./DIAGNOSTIC_DESIGN.md).
+
 | Requirement | Current status | Evidence | Missing behavior | Files responsible | Planned correction |
 | --- | --- | --- | --- | --- | --- |
 | Approved production catalog | partial | Facade filters reviewed, Conor Brown, hash-present K rows | Hash is not recalculated on every selection | `learning-facade.service.ts` | Validate catalog before session creation |

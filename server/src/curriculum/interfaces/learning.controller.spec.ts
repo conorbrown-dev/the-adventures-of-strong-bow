@@ -12,11 +12,11 @@ describe("LearningController", () => {
     expect(learning.start).toHaveBeenCalledWith("student-1", "practice", 42, undefined, undefined, undefined);
   });
 
-  it("returns an explicit JSON envelope when a session is complete", () => {
+  it("returns an explicit JSON envelope when a session is complete", async () => {
     const learning = { nextForLearner: jest.fn().mockReturnValue(null) } as unknown as LearningFacadeService;
     const controller = new LearningController(learning);
 
-    expect(controller.next(student, "completed-session")).toEqual({ session: null });
+    await expect(controller.next(student, "completed-session")).resolves.toEqual({ session: null });
     expect(learning.nextForLearner).toHaveBeenCalledWith("completed-session", "student-1");
   });
 

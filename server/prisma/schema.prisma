@@ -188,6 +188,7 @@ model CurriculumDiagnosticPlacement {
   grouping          String
   grade             String
   learningTargetIds Json     @default("[]")
+  report            Json     @default("{}")
   completedAt       DateTime
 
   @@index([learnerId, grouping, completedAt])

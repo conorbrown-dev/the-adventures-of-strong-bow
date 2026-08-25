@@ -18,4 +18,8 @@ export interface MasteryRecord {
 }
 export interface PrerequisiteLink { standardId: string; prerequisiteStandardId: string; source: PrerequisiteSource; reviewed: boolean; }
 export interface LearningTarget { learnerId: string; standardId: string; active: boolean; }
-export interface DiagnosticPlacement { learnerId: string; grouping: string; grade: string; learningTargetIds: string[]; completedAt: Date; }
+export interface DiagnosticPlacement { learnerId: string; grouping: string; grade: string; learningTargetIds: string[]; report: Record<string, unknown>; completedAt: Date; }
+export interface LearningSessionRecord {
+  id: string; learnerId: string; purpose: AttemptPurpose; seed: number; position: number; length: number;
+  state: Record<string, unknown>; status: "active" | "completed"; createdAt: Date; updatedAt: Date; completedAt: Date | null;
+}

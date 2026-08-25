@@ -1,4 +1,3 @@
-import { evaluateDiagnostic } from "./diagnostic-placement";
 import { ProgressService } from "./progress-service";
 import { planSession } from "./session-planner";
 import { selectNextQuestion } from "./question-selection";
@@ -35,15 +34,13 @@ describe("curriculum progress", () => {
     expect(reviewed.reviewStage).toBe(1); expect(reviewed.nextReviewAt?.getTime()).toBe(clock.now().getTime() + 3 * 86_400_000);
   });
 
-  it("places diagnostic results separately by grouping and handles tiebreaks", () => {
-    const phonics = evaluateDiagnostic("Reading foundational skills", [0, 1, 2, 3].map((index) => ({ standardId: `rf-${index}`, grade: "K", correct: index < 3, independent: true })));
-    const operations = evaluateDiagnostic("Operations", [0, 1, 2, 3, 4, 5].map((index) => ({ standardId: `oa-${index}`, grade: "K", correct: index === 0 || index >= 4, independent: true })));
-    expect(phonics.placedGrade).toBe("K"); expect(operations.learningTargetIds.length).toBeGreaterThan(0);
-  });
-
-  it("reports the grade that was actually assessed when a diagnostic starts above Kindergarten", () => {
-    const result = evaluateDiagnostic("Math", [0, 1, 2, 3].map((index) => ({ standardId: `2.NBT.${index}`, grade: "2", correct: true, independent: true })));
-    expect(result).toMatchObject({ grouping: "Math", placedGrade: "2", learningTargetIds: [] });
+  it("records diagnostic evidence without erasing previously earned mastery", async () => {
+    const clock = new FakeClock(new Date("2026-01-10T00:00:00Z")); const repo = new InMemoryProgressRepository(); const service = new ProgressService(repo, clock);
+    await service.verifyProctoredMastery("learner", "K.CC.A.1");
+    const result = await service.recordAttempt(attempt(20, { purpose: "diagnostic", correct: false }));
+    expect(result.state).toBe("mastered");
+    expect((await repo.getMastery("learner", "K.CC.A.1"))?.state).toBe("mastered");
+    expect(repo.attempts).toHaveLength(1);
   });
 
   it("prioritizes reviews, then reviewed prerequisite gaps, and respects content constraints", () => {

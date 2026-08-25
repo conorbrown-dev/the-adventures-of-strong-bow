@@ -7,13 +7,13 @@ describe("LearningFacadeService", () => {
     const started = await service.start("learner", "practice", 42);
     expect(started.question.templateId).toMatch(/^k\./);
     expect(started.question).not.toHaveProperty("canonicalAnswer");
-    expect(service.get(started.sessionId)).toEqual(started);
+    expect(await service.get(started.sessionId)).toEqual(started);
     const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
     const answer = sessions.get(started.sessionId)!.instance.canonicalAnswer;
     await service.submit(started.sessionId, answer);
     await service.submit(started.sessionId, answer);
     expect(repository.attempts).toHaveLength(1);
-    const next = service.next(started.sessionId);
+    const next = await service.next(started.sessionId);
     expect(next?.question.id).not.toBe(started.question.id);
     expect(next?.question.templateId).not.toBe(started.question.templateId);
   });
@@ -22,9 +22,9 @@ describe("LearningFacadeService", () => {
     const service = new LearningFacadeService(new InMemoryProgressRepository());
     const started = await service.start("learner-one", "practice", 42);
 
-    expect(() => service.getForLearner(started.sessionId, "learner-two")).toThrow("belongs to another student");
-    expect(() => service.nextForLearner(started.sessionId, "learner-two")).toThrow("belongs to another student");
-    expect(() => service.submitForLearner(started.sessionId, "learner-two", "answer")).toThrow("belongs to another student");
+    await expect(service.getForLearner(started.sessionId, "learner-two")).rejects.toThrow("belongs to another student");
+    await expect(service.nextForLearner(started.sessionId, "learner-two")).rejects.toThrow("belongs to another student");
+    await expect(service.submitForLearner(started.sessionId, "learner-two", "answer")).rejects.toThrow("belongs to another student");
   });
 
   it("requires an adult code before starting a proctored skill check", async () => {
@@ -42,7 +42,7 @@ describe("LearningFacadeService", () => {
     for (let index = 0; index < 5; index += 1) {
       const current = sessions.get(started.sessionId)!;
       result = await service.submit(started.sessionId, current.instance.canonicalAnswer);
-      if (!result.complete) service.next(started.sessionId);
+      if (!result.complete) await service.next(started.sessionId);
     }
     expect(result).toMatchObject({ complete: true, masteryState: "mastered" });
   });
@@ -53,63 +53,72 @@ describe("LearningFacadeService", () => {
     expect(started.question.templateId).toMatch(/^1\./);
   });
 
-  it("starts diagnostics at Kindergarten and samples several math domains", async () => {
+  it("starts a coverage-based diagnostic at Kindergarten", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-two", "diagnostic", 42, undefined, "2", "MATH");
-    expect(started).toMatchObject({ length: 4, assessmentStage: { grade: "K", number: 1, total: 3 } });
-    const sessions = (service as unknown as { sessions: Map<string, { templates: Array<{ primaryStandardId: string }>; instance: { canonicalAnswer: unknown }; diagnosticProbes: Array<{ grade: string }> }> }).sessions;
+    expect(started).toMatchObject({ length: 30, assessmentStage: { grade: "K", number: 1, total: 3 } });
+    const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown }; diagnostic: { probes: Array<{ grade: string }> } }> }).sessions;
     const stored = sessions.get(started.sessionId)!;
-    expect(new Set(stored.templates.slice(0, 4).map((template) => template.primaryStandardId.split(".")[1])).size).toBe(4);
     await service.submit(started.sessionId, stored.instance.canonicalAnswer);
-    expect(stored.diagnosticProbes[0].grade).toBe("K");
+    expect(stored.diagnostic.probes[0].grade).toBe("K");
+    expect(repository.sessions).toHaveLength(1);
   });
 
-  it("advances through all K–2 stages and persists a useful placement", async () => {
+  it("advances a consistently strong learner through K–2 and persists a detailed placement", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("grade-two", "diagnostic", 42, undefined, "2", "MATH");
     const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
     let result: Awaited<ReturnType<typeof service.submit>> | undefined;
     let answered = 0;
-    while (!result?.complete && answered < 20) {
+    while (!result?.complete && answered < 70) {
       result = await service.submit(started.sessionId, sessions.get(started.sessionId)!.instance.canonicalAnswer);
-      if (!result.complete) service.next(started.sessionId);
+      if (!result.complete) await service.next(started.sessionId);
       answered += 1;
     }
 
-    expect(answered).toBe(12);
-    expect(result).toMatchObject({ complete: true, placement: { grouping: "Math", grade: "2", learningTargetIds: [] } });
+    expect(answered).toBeGreaterThan(12);
+    expect(result).toMatchObject({ complete: true, placement: { grouping: "Math", grade: "2", placementConfidence: "HIGH", learningTargetIds: [] } });
+    expect(result?.placement?.totalItems).toBe(answered);
     expect(repository.placements).toHaveLength(1);
     await expect(service.progressFor("grade-two")).resolves.toMatchObject({ latestDiagnosticPlacement: { grouping: "Math", grade: "2" }, latestAssessmentSessionId: started.sessionId });
   });
 
-  it("uses two tie-breakers before advancing a close diagnostic stage", async () => {
-    const service = new LearningFacadeService(new InMemoryProgressRepository(), "adult-code");
-    const started = await service.start("close-result", "diagnostic", 42, undefined, "2", "MATH");
-    const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
-    for (let index = 0; index < 6; index += 1) {
-      const answer = index === 2 || index === 3 ? "definitely incorrect" : sessions.get(started.sessionId)!.instance.canonicalAnswer;
-      const result = await service.submit(started.sessionId, answer);
-      if (index === 3) expect(service.get(started.sessionId).length).toBe(6);
-      if (index < 5) service.next(started.sessionId);
-      else expect(result.complete).toBe(false);
-    }
-
-    const nextStage = service.next(started.sessionId);
-    expect(nextStage).toMatchObject({ length: 4, position: 0, assessmentStage: { grade: "1", number: 2, total: 3 } });
-  });
-
-  it("stops after a clear miss and returns the missed standards as learning targets", async () => {
+  it("stops after covered foundational misses and returns remediation targets", async () => {
     const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
     const started = await service.start("needs-foundations", "diagnostic", 42, undefined, "2", "ELA");
     let result: Awaited<ReturnType<typeof service.submit>> | undefined;
-    for (let index = 0; index < 4; index += 1) {
+    for (let index = 0; index < 30 && !result?.complete; index += 1) {
       result = await service.submit(started.sessionId, "definitely incorrect");
-      if (!result.complete) service.next(started.sessionId);
+      if (!result.complete) await service.next(started.sessionId);
     }
 
-    expect(result).toMatchObject({ complete: true, placement: { grouping: "Reading & Language", grade: "K" } });
-    expect(result?.placement?.learningTargetIds).toHaveLength(4);
+    expect(result).toMatchObject({ complete: true, placement: { grouping: "Reading & Language", grade: "K", placementConfidence: "HIGH" } });
+    expect(result?.placement?.learningTargetIds.length).toBeGreaterThan(4);
+    expect(result?.placement?.criticalPrerequisiteGaps.length).toBeGreaterThan(0);
     expect(repository.placements[0]?.learningTargetIds).toEqual(result?.placement?.learningTargetIds);
+  });
+
+  it("resumes a diagnostic after a service restart with the same evidence and question", async () => {
+    const repository = new InMemoryProgressRepository();
+    const firstService = new LearningFacadeService(repository, "adult-code");
+    const started = await firstService.start("restart-learner", "diagnostic", 42, undefined, "K", "ELA");
+    const firstSessions = (firstService as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown } }> }).sessions;
+    await firstService.submit(started.sessionId, firstSessions.get(started.sessionId)!.instance.canonicalAnswer);
+    const next = await firstService.next(started.sessionId);
+
+    const restartedService = new LearningFacadeService(repository, "adult-code");
+    await expect(restartedService.get(started.sessionId)).resolves.toEqual(next);
+    expect(repository.attempts).toHaveLength(1);
+  });
+
+  it("counts a concurrent duplicate diagnostic submission once", async () => {
+    const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
+    const started = await service.start("duplicate-learner", "diagnostic", 42, undefined, "K", "ELA");
+    const sessions = (service as unknown as { sessions: Map<string, { instance: { canonicalAnswer: unknown }; diagnostic: { probes: unknown[] } }> }).sessions;
+    const answer = sessions.get(started.sessionId)!.instance.canonicalAnswer;
+    await Promise.all([service.submit(started.sessionId, answer), service.submit(started.sessionId, answer)]);
+    expect(repository.attempts).toHaveLength(1);
+    expect(sessions.get(started.sessionId)!.diagnostic.probes).toHaveLength(1);
   });
 
   it("starts Grade 2 adult-scored ELA activities only with an adult code", async () => {
@@ -225,7 +234,7 @@ describe("LearningFacadeService", () => {
     const result = await service.submit(started.sessionId, "not the answer");
 
     expect(result).toMatchObject({ correct: false, retry: true, complete: false });
-    const retry = service.next(started.sessionId);
+    const retry = await service.next(started.sessionId);
     expect(retry?.question.standardIds[0]).toBe(started.question.standardIds[0]);
     expect(retry?.question.id).not.toBe(started.question.id);
   });

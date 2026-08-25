@@ -91,8 +91,10 @@ function PlacementSummary({ placement, title }: { placement: PlacementResult; ti
     <p className="learning-step text-xs font-black tracking-[.16em]">{title.toUpperCase()}</p>
     <h2 className="!mb-2 !mt-1 !text-2xl">{placement.grouping}</h2>
     <p>Recommended starting level: <strong>{placementGradeName(placement.grade)}</strong></p>
+    {placement.placementConfidence && <p>Placement confidence: <strong>{placement.placementConfidence.toLowerCase()}</strong>{typeof placement.totalItems === "number" ? ` · ${placement.totalItems} learning checks` : ""}</p>}
     <p>{placement.learningTargetIds.length > 0 ? `${placement.learningTargetIds.length} skill ${placement.learningTargetIds.length === 1 ? "area is" : "areas are"} ready for focused practice.` : "No priority gaps were found in this check. Regular practice will build and confirm mastery."}</p>
     {placement.learningTargetIds.length > 0 && <details className="mt-3"><summary>See skills to practice</summary><ul className="mt-2 list-disc pl-6">{placement.learningTargetIds.map((standardId) => <li key={standardId}>{standardId}</li>)}</ul></details>}
+    {placement.strandPlacements && placement.strandPlacements.length > 0 && <details className="mt-3"><summary>See skill-area placement</summary><ul className="mt-2 list-disc pl-6">{placement.strandPlacements.map((strand) => <li key={strand.domain}><strong>{strand.label}:</strong> {placementGradeName(strand.instructionalGrade)} · {strand.status === "ready" ? "ready" : strand.status === "unresolved" ? "more evidence needed" : "focused practice recommended"}</li>)}</ul></details>}
   </section>;
 }
 
@@ -195,7 +197,7 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
         <button className="activity-button !min-h-16 !rounded-2xl" disabled={isLoading} onClick={() => void start("practice")}>START PRACTICE</button>
         <button className="activity-button secondary !min-h-16 !rounded-2xl" disabled={isLoading} onClick={() => void start("diagnostic")}>START DIAGNOSTIC</button>
       </div>}
-      {!isAdultObservedOnly && <p className="learning-card-note mt-4">The diagnostic starts with Kindergarten skills and adapts through Grade 2. It checks several kinds of skills at each level and may add two tie-breaker questions when the result is close.</p>}
+      {!isAdultObservedOnly && <p className="learning-card-note mt-4">The learning check starts with Kindergarten skills and adapts through Grade 2. It checks each important skill area more than once and asks a few more activities when an answer pattern is unclear. You can take a break and continue later.</p>}
     </section>
 
     {lessonPlan && <section aria-labelledby="guided-lesson-heading" className="learning-card guided-lesson-card mb-7 rounded-3xl p-5 sm:p-7">
@@ -393,7 +395,8 @@ export function LearningApp(): JSX.Element {
     {isQuestion && isLoadingSession && !session && <p className="feedback">Loading your learning session…</p>}
     {isQuestion && !isLoadingSession && !session && <section className="learning-empty-state"><h1>Choose a learning activity</h1><p className="feedback">{error ?? "This session is no longer available. Start a new one to continue."}</p><div className="actions"><button onClick={() => void start(location.pathname.endsWith("diagnostic") ? "diagnostic" : "practice")}>START NEW SESSION</button><Link className="secondary" to="/learning">BACK TO LEARNING</Link></div></section>}
     {isQuestion && session && <section className="learning-question">
-      <p className="eyebrow">{location.pathname === "/learning/adult-scored" ? selectedSubject === "MATH" ? "HANDS-ON MATH ACTIVITY" : selectedSubject === "SCIENCE" ? "SCIENCE INVESTIGATION" : selectedSubject === "SOCIAL_STUDIES" ? "SOCIAL STUDIES INQUIRY" : selectedSubject === "HEALTH" ? "HEALTH ACTIVITY" : selectedSubject === "PHYSICAL_EDUCATION" ? "MOVEMENT ACTIVITY" : selectedSubject === "FINE_ARTS" ? "FINE ARTS ACTIVITY" : selectedSubject === "COMPUTER_SCIENCE" ? "COMPUTER SCIENCE ACTIVITY" : selectedSubject === "INFORMATION_LITERACY" ? "INFORMATION LITERACY INQUIRY" : "ADULT-SCORED ELA CHECK" : session.assessmentStage ? `${placementGradeName(session.assessmentStage.grade).toUpperCase()} CHECK · QUESTION ${session.position + 1} OF ${session.length}` : `QUESTION ${session.position + 1} OF ${session.length}`}</p>
+      <p className="eyebrow">{location.pathname === "/learning/adult-scored" ? selectedSubject === "MATH" ? "HANDS-ON MATH ACTIVITY" : selectedSubject === "SCIENCE" ? "SCIENCE INVESTIGATION" : selectedSubject === "SOCIAL_STUDIES" ? "SOCIAL STUDIES INQUIRY" : selectedSubject === "HEALTH" ? "HEALTH ACTIVITY" : selectedSubject === "PHYSICAL_EDUCATION" ? "MOVEMENT ACTIVITY" : selectedSubject === "FINE_ARTS" ? "FINE ARTS ACTIVITY" : selectedSubject === "COMPUTER_SCIENCE" ? "COMPUTER SCIENCE ACTIVITY" : selectedSubject === "INFORMATION_LITERACY" ? "INFORMATION LITERACY INQUIRY" : "ADULT-SCORED ELA CHECK" : session.assessmentStage ? `${placementGradeName(session.assessmentStage.grade).toUpperCase()} LEARNING CHECK · ACTIVITY ${session.position + 1}` : `QUESTION ${session.position + 1} OF ${session.length}`}</p>
+      {session.assessmentStage && !result && <button className="secondary" onClick={() => { stopSpeaking(); navigate("/learning"); }}>TAKE A BREAK</button>}
       {session.question.interaction.visual && <div className="learning-visual" role="img" aria-label={`${session.question.interaction.visual.count} stars`}>
         {session.question.interaction.visual.count > 0 ? "★".repeat(session.question.interaction.visual.count) : <span className="empty-visual">No stars</span>}
       </div>}
