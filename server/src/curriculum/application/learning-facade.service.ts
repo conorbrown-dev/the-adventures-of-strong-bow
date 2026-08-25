@@ -10,7 +10,7 @@ import type { ProgressRepository } from "../domain/progress.repository";
 import { catalogTemplateToQuestionTemplate } from "../infrastructure/k2-review-packet";
 import { loadK2ContentCatalog } from "../infrastructure/k2-content-catalog";
 import { validateK2ContentCatalog } from "../infrastructure/k2-content-catalog";
-import { diagnosticPlacement, evaluateDiagnostic, type DiagnosticProbe } from "./diagnostic-placement";
+import { diagnosticPlacement, evaluateDiagnostic, selectDiagnosticStageTemplates, type DiagnosticProbe } from "./diagnostic-placement";
 import { selectNextLearningTemplates } from "./curriculum-sequence";
 import { loadProductionLessonPlans } from "../infrastructure/lesson-plan-catalog";
 
@@ -20,6 +20,7 @@ type StoredSession = { id: string; learnerId: string; purpose: SessionPurpose; g
 export const CURRICULUM_PROCTOR_CODE = Symbol("CURRICULUM_PROCTOR_CODE");
 const seedAt = (seed: number, position: number) => Math.abs(Math.imul(seed ^ (position + 1), 2654435761)) >>> 0;
 const subjectName = (subject: LearningSubject | undefined) => subject === "ELA" ? "Reading & Language" : subject === "MATH" ? "Math" : subject?.split("_").map((word) => `${word[0]}${word.slice(1).toLowerCase()}`).join(" ") ?? "Learning";
+const isAdaptiveAssessment = (purpose: SessionPurpose) => purpose === "diagnostic" || purpose === "placement";
 @Injectable()
 export class LearningFacadeService {
   private readonly sessions = new Map<string, StoredSession>();
@@ -27,53 +28,47 @@ export class LearningFacadeService {
   constructor(@Inject(PrismaProgressRepository) private readonly repository: ProgressRepository, @Inject(CURRICULUM_PROCTOR_CODE) private readonly proctorCode: string | undefined = process.env.CURRICULUM_PROCTOR_CODE) { this.progress = new ProgressService(repository, { now: () => new Date() }); }
   async start(learnerId: string, purpose: SessionPurpose, seed = Math.floor(Math.random() * 2_147_483_647), submittedProctorCode?: string, grade = "K", subject?: LearningSubject) {
     if ((purpose === "proctored" || purpose === "adultScored" || purpose === "placement") && (!this.proctorCode || submittedProctorCode !== this.proctorCode)) throw new ForbiddenException("A parent or teacher verification code is required to start a proctored assessment.");
-    if (purpose === "placement" && !subject) throw new ForbiddenException("Choose one subject before starting a placement check.");
+    if (isAdaptiveAssessment(purpose) && !subject) throw new ForbiddenException("Choose one subject before starting a diagnostic or placement check.");
     await validateK2ContentCatalog(); const catalog = await loadK2ContentCatalog(); const subjectFilter = subject === "SOCIAL_STUDIES" ? "socialStudies" : subject === "PHYSICAL_EDUCATION" ? "physicalEducation" : subject === "FINE_ARTS" ? "fineArts" : subject === "COMPUTER_SCIENCE" ? "computerScience" : subject === "INFORMATION_LITERACY" ? "informationLiteracy" : subject?.toLowerCase(); const templates = catalog.templates.filter((template) => template.grade === grade && template.review.status === "reviewed" && (!subjectFilter || template.subject === subjectFilter) && (purpose === "adultScored" ? template.generatorKind.endsWith("Adult") : !template.generatorKind.endsWith("Adult"))).map(catalogTemplateToQuestionTemplate);
-    const placementGrades = ["K", "1", "2"]; const placementStages = purpose === "placement" ? placementGrades.map((item) => ({ grade: item, templates: catalog.templates.filter((template) => template.grade === item && template.subject === subjectFilter && template.review.status === "reviewed" && !template.generatorKind.endsWith("Adult")).map(catalogTemplateToQuestionTemplate) })).filter((stage) => stage.templates.length > 0) : [];
+    const placementGrades = ["K", "1", "2"]; const placementStages = isAdaptiveAssessment(purpose) ? placementGrades.map((item, gradeIndex) => ({ grade: item, templates: selectDiagnosticStageTemplates(catalog.templates.filter((template) => template.grade === item && template.subject === subjectFilter && template.review.status === "reviewed" && template.diagnosticEligible && !template.generatorKind.endsWith("Adult")).map(catalogTemplateToQuestionTemplate), seedAt(seed, gradeIndex), 6) })).filter((stage) => stage.templates.length >= 6) : [];
     const placementTemplatesByGrade = placementStages.map((stage) => stage.templates);
-    const availableTemplates = purpose === "placement" ? placementTemplatesByGrade[0] ?? [] : templates;
+    if (isAdaptiveAssessment(purpose) && placementStages.length !== placementGrades.length) throw new Error(`A complete K–2 ${subjectName(subject)} diagnostic is not available yet.`);
+    const availableTemplates = isAdaptiveAssessment(purpose) ? placementTemplatesByGrade[0] ?? [] : templates;
     if (!availableTemplates.length) throw new Error(`No approved ${subject ?? ""} Grade ${grade === "K" ? "Kindergarten" : grade} content is available.`);
     await this.progress.markDue(learnerId); const mastery = await this.repository.listMastery(learnerId);
-    const activeTemplates = purpose === "placement" ? availableTemplates : purpose === "practice" ? selectNextLearningTemplates(templates, mastery) : purpose === "adultScored" ? selectNextLearningTemplates(templates, mastery, 1) : templates;
+    const activeTemplates = isAdaptiveAssessment(purpose) ? availableTemplates : purpose === "practice" ? selectNextLearningTemplates(templates, mastery) : purpose === "adultScored" ? selectNextLearningTemplates(templates, mastery, 1) : templates;
     if (!activeTemplates.length) throw new Error("All skills are mastered for now. Return when a scheduled review is due.");
-    const selected = activeTemplates[seedAt(seed, 0) % activeTemplates.length]; const sessionTemplates = purpose === "proctored" ? templates.filter((template) => template.primaryStandardId === selected.primaryStandardId) : activeTemplates;
+    const selected = isAdaptiveAssessment(purpose) ? activeTemplates[0] : activeTemplates[seedAt(seed, 0) % activeTemplates.length]; const sessionTemplates = purpose === "proctored" ? templates.filter((template) => template.primaryStandardId === selected.primaryStandardId) : activeTemplates;
     const sessionPurpose: SessionPurpose = purpose === "practice" && mastery.some((record) => record.standardId === selected.primaryStandardId && record.state === "reviewDue") ? "review" : purpose;
-    const instance = generateQuestion(selected, seedAt(seed, 0)); const session = { id: randomUUID(), learnerId, purpose: sessionPurpose, grade: selected.grade, diagnosticGrouping: subjectName(subject), seed, position: 0, length: purpose === "placement" ? 5 : purpose === "adultScored" ? 1 : purpose === "proctored" ? 5 : purpose === "diagnostic" ? 4 : 10, templates: sessionTemplates, instance, submittedInstanceIds: new Set<string>(), diagnosticProbes: [], proctoredCorrect: 0, placement: purpose === "placement" ? { subject: subject!, grades: placementStages.map((stage) => stage.grade), gradeIndex: 0, templatesByGrade: placementTemplatesByGrade, correct: 0, result: null } : undefined }; this.sessions.set(session.id, session); return this.view(session);
+    const instance = generateQuestion(selected, seedAt(seed, 0)); const session = { id: randomUUID(), learnerId, purpose: sessionPurpose, grade: selected.grade, diagnosticGrouping: subjectName(subject), seed, position: 0, length: isAdaptiveAssessment(purpose) ? 4 : purpose === "adultScored" ? 1 : purpose === "proctored" ? 5 : 10, templates: sessionTemplates, instance, submittedInstanceIds: new Set<string>(), diagnosticProbes: [], proctoredCorrect: 0, placement: isAdaptiveAssessment(purpose) ? { subject: subject!, grades: placementStages.map((stage) => stage.grade), gradeIndex: 0, templatesByGrade: placementTemplatesByGrade, correct: 0, result: null } : undefined }; this.sessions.set(session.id, session); return this.view(session);
   }
   async submit(sessionId: string, answer: unknown, usedHint = false) {
     const session = this.requireSession(sessionId);
     const evaluation = evaluateAnswer(session.instance, answer);
-    if (session.submittedInstanceIds.has(session.instance.id)) return { correct: evaluation.correct, explanation: session.instance.explanation, masteryState: "unchanged", complete: session.position + 1 >= session.length, placement: this.placementView(session.assessmentResult) };
+    if (session.submittedInstanceIds.has(session.instance.id)) return { correct: evaluation.correct, explanation: session.instance.explanation, masteryState: "unchanged", complete: session.placement ? Boolean(session.assessmentResult) : session.position + 1 >= session.length, placement: this.placementView(session.assessmentResult) };
     const attempt: AttemptEvent = { id: randomUUID(), learnerId: session.learnerId, sessionId, questionInstanceId: session.instance.id, templateId: session.instance.templateId, templateVersion: session.instance.templateVersion, primaryStandardId: session.instance.standardIds[0], supportingStandardIds: session.instance.standardIds.slice(1), submittedAnswer: answer, correct: evaluation.correct, usedHint, independent: !evaluation.requiresHumanReview, purpose: session.purpose, deliveryContext: "standaloneLearning", responseDurationMs: null, attemptedAt: new Date(), responseType: session.instance.responseType };
     session.submittedInstanceIds.add(session.instance.id);
     const retry = !evaluation.correct && (session.purpose === "practice" || session.purpose === "review");
     if (retry) session.retryTemplateId = session.instance.templateId;
-    if (session.purpose === "placement" && session.placement) {
+    if (isAdaptiveAssessment(session.purpose) && session.placement) {
+      session.diagnosticProbes.push({ standardId: attempt.primaryStandardId, grade: session.grade, correct: evaluation.correct, independent: attempt.independent });
       session.placement.correct += Number(evaluation.correct);
+      if (session.position === 3 && session.placement.correct === 2) session.length = 6;
       const stageComplete = session.position + 1 >= session.length;
       const mastery = await this.progress.recordAttempt(attempt);
       if (!stageComplete) return { correct: evaluation.correct, explanation: session.instance.explanation, masteryState: mastery.state, complete: false };
-      const passed = session.placement.correct / session.length >= 0.8;
+      const passed = session.length === 4 ? session.placement.correct >= 3 : session.placement.correct === 4;
       const hasNext = passed && session.placement.gradeIndex + 1 < session.placement.grades.length;
       if (!hasNext) {
-        const grade = passed ? session.placement.grades[session.placement.gradeIndex] : session.placement.grades[Math.max(0, session.placement.gradeIndex - 1)];
-        session.placement.result = grade;
-        session.assessmentResult = { learnerId: session.learnerId, grouping: subjectName(session.placement.subject), grade, learningTargetIds: [], completedAt: new Date() };
+        session.assessmentResult = diagnosticPlacement(session.learnerId, evaluateDiagnostic(session.diagnosticGrouping, session.diagnosticProbes), { now: () => new Date() });
+        session.placement.result = session.assessmentResult.grade;
         await this.repository.saveDiagnosticPlacement(session.assessmentResult);
       }
       return { correct: evaluation.correct, explanation: session.instance.explanation, masteryState: mastery.state, complete: !hasNext, placement: this.placementView(session.assessmentResult) };
     }
-    if (session.purpose === "diagnostic") {
-      session.diagnosticProbes.push({ standardId: attempt.primaryStandardId, grade: session.grade, correct: evaluation.correct, independent: attempt.independent });
-      if (session.position === 3 && session.diagnosticProbes.filter((probe) => probe.correct).length === 2) session.length = 6;
-    }
     if (session.purpose === "proctored" && evaluation.correct) session.proctoredCorrect += 1;
     const complete = session.position + 1 >= session.length;
     const mastery = complete && session.purpose === "proctored" && session.proctoredCorrect >= 4 ? await this.progress.verifyProctoredMastery(session.learnerId, attempt.primaryStandardId) : await this.progress.recordAttempt(attempt);
-    if (complete && session.purpose === "diagnostic") {
-      session.assessmentResult = diagnosticPlacement(session.learnerId, evaluateDiagnostic(session.diagnosticGrouping, session.diagnosticProbes), { now: () => new Date() });
-      await this.repository.saveDiagnosticPlacement(session.assessmentResult);
-    }
     return { correct: evaluation.correct, explanation: session.instance.explanation, masteryState: mastery.state, complete, retry, placement: this.placementView(session.assessmentResult) };
   }
   async scoreAdult(sessionId: string, demonstrated: boolean, evidenceNote?: string) {
@@ -92,7 +87,35 @@ export class LearningFacadeService {
       complete: true
     };
   }
-  next(sessionId: string) { const session = this.requireSession(sessionId); if (session.position + 1 >= session.length) { if (!session.placement || session.placement.result) return null; session.placement.gradeIndex += 1; session.placement.correct = 0; session.templates = session.placement.templatesByGrade[session.placement.gradeIndex]; session.grade = session.templates[0].grade; session.position = 0; session.instance = generateQuestion(session.templates[seedAt(session.seed, 0) % session.templates.length], seedAt(session.seed, 0)); return this.view(session); } session.position += 1; const retryTemplate = session.retryTemplateId ? session.templates.find((template) => template.id === session.retryTemplateId) : undefined; session.retryTemplateId = undefined; const candidates = retryTemplate ? [retryTemplate] : session.templates.filter((template) => template.id !== session.instance.templateId); const template = candidates[seedAt(session.seed, session.position) % candidates.length] ?? session.templates[0]; session.grade = template.grade; session.instance = generateQuestion(template, seedAt(session.seed, session.position)); return this.view(session); }
+  next(sessionId: string) {
+    const session = this.requireSession(sessionId);
+    if (session.position + 1 >= session.length) {
+      if (!session.placement || session.placement.result) return null;
+      session.placement.gradeIndex += 1;
+      session.placement.correct = 0;
+      session.templates = session.placement.templatesByGrade[session.placement.gradeIndex];
+      session.grade = session.templates[0].grade;
+      session.position = 0;
+      session.length = 4;
+      const questionSeed = seedAt(session.seed, session.placement.gradeIndex * 6);
+      session.instance = generateQuestion(session.templates[0], questionSeed);
+      return this.view(session);
+    }
+    session.position += 1;
+    if (session.placement) {
+      const template = session.templates[session.position] ?? session.templates[0];
+      session.grade = template.grade;
+      session.instance = generateQuestion(template, seedAt(session.seed, session.placement.gradeIndex * 6 + session.position));
+      return this.view(session);
+    }
+    const retryTemplate = session.retryTemplateId ? session.templates.find((template) => template.id === session.retryTemplateId) : undefined;
+    session.retryTemplateId = undefined;
+    const candidates = retryTemplate ? [retryTemplate] : session.templates.filter((template) => template.id !== session.instance.templateId);
+    const template = candidates[seedAt(session.seed, session.position) % candidates.length] ?? session.templates[0];
+    session.grade = template.grade;
+    session.instance = generateQuestion(template, seedAt(session.seed, session.position));
+    return this.view(session);
+  }
   async progressFor(learnerId: string) {
     const [attempts, mastery, placements] = await Promise.all([this.repository.listAttempts(learnerId), this.repository.listMastery(learnerId), this.repository.listDiagnosticPlacements(learnerId)]);
     const latestAssessment = attempts.filter((attempt) => attempt.purpose === "diagnostic" || attempt.purpose === "placement").sort((left, right) => right.attemptedAt.getTime() - left.attemptedAt.getTime())[0];
@@ -107,5 +130,5 @@ export class LearningFacadeService {
   private requireSession(id: string) { const session = this.sessions.get(id); if (!session) throw new Error("Learning session is unavailable. Start a new session."); return session; }
   private requireOwnedSession(id: string, learnerId: string) { const session = this.requireSession(id); if (session.learnerId !== learnerId) throw new ForbiddenException("This learning session belongs to another student."); return session; }
   private placementView(placement: DiagnosticPlacement | undefined) { return placement ? { grouping: placement.grouping, grade: placement.grade, learningTargetIds: placement.learningTargetIds } : undefined; }
-  private view(session: StoredSession) { const { canonicalAnswer: _answer, ...instance } = session.instance; return { sessionId: session.id, position: session.position, length: session.length, question: instance }; }
+  private view(session: StoredSession) { const { canonicalAnswer: _answer, ...instance } = session.instance; return { sessionId: session.id, position: session.position, length: session.length, ...(session.placement ? { assessmentStage: { grade: session.grade, number: session.placement.gradeIndex + 1, total: session.placement.grades.length } } : {}), question: instance }; }
 }

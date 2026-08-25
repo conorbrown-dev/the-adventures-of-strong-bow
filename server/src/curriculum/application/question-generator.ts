@@ -531,6 +531,17 @@ export function generateQuestion(template: QuestionTemplate, seed: string | numb
     const left = random.integer(min, max); let right = random.integer(min, max); if (right === left && max > min) right = right === max ? right - 1 : right + 1;
     const answer = left < right ? "<" : left > right ? ">" : "=";
     interaction = choiceInteraction(["<", "=", ">"]); canonicalAnswer = answer; values = { left, right }; explanation = `${left} is ${answer === "<" ? "less than" : answer === ">" ? "greater than" : "equal to"} ${right}.`;
+  } else if (template.generator.kind === "clockTime") {
+    const hour = random.integer(1, 12); const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]; const minute = minutes[random.integer(0, minutes.length - 1)];
+    const answer = `${hour}:${String(minute).padStart(2, "0")}`;
+    const distractors = [`${hour}:${String((minute + 5) % 60).padStart(2, "0")}`, `${hour === 12 ? 1 : hour + 1}:${String(minute).padStart(2, "0")}`];
+    interaction = { ...choiceInteraction(random.shuffle([answer, ...distractors])), target: { hour, minute } }; canonicalAnswer = answer; values = { question: `The minute hand points to ${minute / 5 || 12}, and the hour hand is just past ${hour}. What time is it?` }; explanation = `The hour hand is just past ${hour} and the minute hand shows ${minute} minutes, so the time is ${answer}.`;
+  } else if (template.generator.kind === "moneyTotal") {
+    const quarters = random.integer(0, 3); const dimes = random.integer(0, 3); const nickels = random.integer(0, 3); const pennies = random.integer(0, 4);
+    const cents = quarters * 25 + dimes * 10 + nickels * 5 + pennies;
+    const answer = `$${(cents / 100).toFixed(2)}`;
+    const distractors = [...new Set([cents + 5, Math.max(0, cents - 5), cents + 10])].filter((value) => value !== cents).slice(0, 2).map((value) => `$${(value / 100).toFixed(2)}`);
+    interaction = { ...choiceInteraction(random.shuffle([answer, ...distractors])), target: { quarters, dimes, nickels, pennies, cents } }; canonicalAnswer = answer; values = { question: `What is the total value of ${quarters} quarters, ${dimes} dimes, ${nickels} nickels, and ${pennies} pennies?` }; explanation = `${quarters} quarters, ${dimes} dimes, ${nickels} nickels, and ${pennies} pennies are worth ${answer}.`;
   } else throw new Error(`Unsupported generator kind: ${template.generator.kind}`);
   const prompt = { text: text(template, values), audioText: audioText(template, values), instructions: template.prompt.instructions ?? null };
   return { schemaVersion: 1, id: `${template.id}@${template.version}:${seed}`, templateId: template.id, templateVersion: template.version, seed, standardIds: [template.primaryStandardId, ...template.supportingStandardIds], responseType: template.responseType, prompt, interaction: { ...interaction, learningTip: learningTip(template) }, canonicalAnswer, answerNormalization: { trim: true, caseInsensitive: true }, explanation, accessibility: { spokenPrompt: prompt.audioText, textAlternative: prompt.text, reducedMotionSafe: true }, provenance: { templateId: template.id, templateVersion: template.version, ...template.provenance } };
