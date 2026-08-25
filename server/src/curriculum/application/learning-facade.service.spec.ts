@@ -76,7 +76,7 @@ describe("LearningFacadeService", () => {
 
     expect(result).toMatchObject({ complete: true, placement: { grouping: "Math", grade: "2", learningTargetIds: [] } });
     expect(repository.placements).toHaveLength(1);
-    await expect(service.progressFor("grade-two")).resolves.toMatchObject({ latestDiagnosticPlacement: { grouping: "Math", grade: "2" } });
+    await expect(service.progressFor("grade-two")).resolves.toMatchObject({ latestDiagnosticPlacement: { grouping: "Math", grade: "2" }, latestAssessmentSessionId: started.sessionId });
   });
 
   it("starts Grade 2 adult-scored ELA activities only with an adult code", async () => {

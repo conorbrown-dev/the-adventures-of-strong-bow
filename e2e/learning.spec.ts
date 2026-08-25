@@ -30,7 +30,7 @@ test("Learning is interactive without launching Phaser", async ({ page }) => {
       return;
     }
     if (url.pathname.endsWith("/progress")) {
-      await route.fulfill({ json: { attempts: [], mastery: [], latestDiagnosticPlacement: null } });
+      await route.fulfill({ json: { attempts: [], mastery: [], latestDiagnosticPlacement: null, latestAssessmentSessionId: null } });
       return;
     }
     await route.fulfill({ json: session });
@@ -92,7 +92,11 @@ test("a completed diagnostic shows its placement and does not call checked skill
       return;
     }
     if (path.endsWith("/progress")) {
-      await route.fulfill({ json: { attempts: [{ primaryStandardId: "K.RF.1.d", correct: true, usedHint: false, independent: true, purpose: "diagnostic", submittedAnswer: "l" }], mastery: [{ standardId: "K.RF.1.d", state: "notStarted", nextReviewAt: null }], latestDiagnosticPlacement: placement } });
+      await route.fulfill({ json: { attempts: [
+        { sessionId: "old-diagnostic", primaryStandardId: "OLD.DIAGNOSTIC", correct: false, usedHint: false, independent: true, purpose: "diagnostic", submittedAnswer: "x" },
+        { sessionId: "old-practice", primaryStandardId: "K.RF.1.d", correct: false, usedHint: false, independent: true, purpose: "practice", submittedAnswer: "x" },
+        { sessionId: "diagnostic-session", primaryStandardId: "K.RF.1.d", correct: true, usedHint: false, independent: true, purpose: "diagnostic", submittedAnswer: "l" }
+      ], mastery: [{ standardId: "K.RF.1.d", state: "notStarted", nextReviewAt: null }], latestDiagnosticPlacement: placement, latestAssessmentSessionId: "diagnostic-session" } });
       return;
     }
     await route.fulfill({ json: { sessionId: "diagnostic-session", position: 0, length: 1, question } });
@@ -106,7 +110,11 @@ test("a completed diagnostic shows its placement and does not call checked skill
   await expect(page.getByText("Diagnostic complete")).toBeVisible();
   await expect(page.getByText("Recommended starting level:")).toContainText("Kindergarten");
   await page.getByRole("button", { name: "VIEW SKILLS PROGRESS" }).click();
-  await expect(page.getByText("Latest diagnostic")).toBeVisible();
-  await expect(page.getByText("Diagnostic checked")).toBeVisible();
+  await expect(page.getByText("LATEST DIAGNOSTIC", { exact: true })).toBeVisible();
+  const latestDiagnostic = page.getByRole("region", { name: "Latest diagnostic skills" });
+  await expect(latestDiagnostic.getByText("Diagnostic checked")).toBeVisible();
+  await expect(latestDiagnostic).toContainText("1 checked answer · 100% correct");
+  await expect(latestDiagnostic).not.toContainText("OLD.DIAGNOSTIC");
+  await expect(page.getByRole("heading", { name: "Ongoing practice progress" })).toBeVisible();
   await expect(page.getByText("notStarted")).toHaveCount(0);
 });

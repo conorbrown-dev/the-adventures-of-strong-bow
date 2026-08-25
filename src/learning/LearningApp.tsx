@@ -6,8 +6,8 @@ import { clearStudentSession, loadStudentSession, saveStudentSession, type Stude
 import { learningApplication, type AnswerResult, type PlacementResult, type SessionView } from "./learningApplication";
 import { coreCourseRoadmap } from "./coreCourseRoadmaps";
 
-type ProgressAttempt = { primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean; purpose: string; submittedAnswer: unknown };
-type Progress = { attempts: ProgressAttempt[]; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: PlacementResult | null };
+type ProgressAttempt = { sessionId: string; primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean; purpose: string; submittedAnswer: unknown };
+type Progress = { attempts: ProgressAttempt[]; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: PlacementResult | null; latestAssessmentSessionId: string | null };
 type Classification = Record<string, string>;
 type BrowserRecognition = {
   lang: string;
@@ -93,6 +93,17 @@ function PlacementSummary({ placement, title }: { placement: PlacementResult; ti
     <p>Recommended starting level: <strong>{placementGradeName(placement.grade)}</strong></p>
     <p>{placement.learningTargetIds.length > 0 ? `${placement.learningTargetIds.length} skill ${placement.learningTargetIds.length === 1 ? "area is" : "areas are"} ready for focused practice.` : "No priority gaps were found in this check. Regular practice will build and confirm mastery."}</p>
   </section>;
+}
+
+function groupAttempts(attempts: ProgressAttempt[]): Array<[string, ProgressAttempt[]]> {
+  return Object.entries(attempts.reduce<Record<string, ProgressAttempt[]>>((all, attempt) => {
+    all[attempt.primaryStandardId] = [...(all[attempt.primaryStandardId] ?? []), attempt];
+    return all;
+  }, {}));
+}
+
+function SkillProgressCards({ groups, mastery, isDiagnostic = false }: { groups: Array<[string, ProgressAttempt[]]>; mastery: Progress["mastery"]; isDiagnostic?: boolean }): JSX.Element {
+  return <div className="progress-grid">{groups.map(([standardId, attempts]) => { const correct = attempts.filter((attempt) => attempt.correct).length; const independent = attempts.filter((attempt) => attempt.independent && !attempt.usedHint).length; return <article key={standardId}><strong>{standardId}</strong><span>{attempts.length} {isDiagnostic ? "checked" : "practice"} {attempts.length === 1 ? "answer" : "answers"} · {Math.round(correct / attempts.length * 100)}% correct</span><span>{independent} independent · {attempts.length - independent} supported</span><b>{isDiagnostic ? "Diagnostic checked" : masteryLabel(mastery.find((item) => item.standardId === standardId)?.state, attempts)}</b></article>; })}</div>;
 }
 
 function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoading, proctorCode, setProctorCode, placementGrade, setPlacementGrade, start, updatePlacement, error }: {
@@ -199,7 +210,7 @@ export function LearningApp(): JSX.Element {
   const [isListening, setIsListening] = useState(false);
   const [proctorCode, setProctorCode] = useState("");
   const [placementGrade, setPlacementGrade] = useState<LearningLevel>("K");
-  const [progress, setProgress] = useState<Progress>({ attempts: [], mastery: [], latestDiagnosticPlacement: null });
+  const [progress, setProgress] = useState<Progress>({ attempts: [], mastery: [], latestDiagnosticPlacement: null, latestAssessmentSessionId: null });
   const isQuestion = location.pathname === "/learning/practice" || location.pathname === "/learning/diagnostic" || location.pathname === "/learning/placement" || location.pathname === "/learning/proctored" || location.pathname === "/learning/adult-scored";
   const sorting = classificationData(session);
   const sequence = sequenceData(session);
@@ -210,10 +221,8 @@ export function LearningApp(): JSX.Element {
     const note = attempt.purpose === "adultScored" ? adultEvidenceNote(attempt.submittedAnswer) : null;
     return note ? [{ standardId: attempt.primaryStandardId, note }] : [];
   });
-  const skillProgress = Object.entries(progress.attempts.reduce<Record<string, ProgressAttempt[]>>((all, attempt) => {
-    all[attempt.primaryStandardId] = [...(all[attempt.primaryStandardId] ?? []), attempt];
-    return all;
-  }, {}));
+  const latestDiagnosticProgress = groupAttempts(progress.attempts.filter((attempt) => attempt.sessionId === progress.latestAssessmentSessionId));
+  const practiceProgress = groupAttempts(progress.attempts.filter((attempt) => attempt.purpose !== "diagnostic" && attempt.purpose !== "placement"));
   const canSubmit = sorting
     ? sorting.items.every((item) => Boolean(classification[item]))
     : sequence
@@ -347,6 +356,6 @@ export function LearningApp(): JSX.Element {
       {result && <><p className={result.correct ? "feedback correct" : "feedback"}>{result.explanation}</p>{result.placement && <PlacementSummary placement={result.placement} title={location.pathname === "/learning/placement" ? "Placement complete" : "Diagnostic complete"} />}<button onClick={() => void advance()}>{result.complete && result.placement ? "VIEW SKILLS PROGRESS" : result.complete ? "FINISH SESSION" : result.retry ? "TRY ANOTHER ONE" : "CONTINUE"}</button></>}
       {error && <p className="feedback">{error}</p>}
     </section>}
-    {location.pathname === "/learning/progress" && <section className="learning-progress"><p className="eyebrow">LEARNING PROGRESS</p><h1>Your skills</h1><p className="learning-card-note">Independent answers and supported work are listed separately so you and your adult can decide what to practice next.</p>{progress.latestDiagnosticPlacement && <PlacementSummary placement={progress.latestDiagnosticPlacement} title="Latest diagnostic" />}<div className="progress-grid">{skillProgress.map(([standardId, attempts]) => { const correct = attempts.filter((attempt) => attempt.correct).length; const independent = attempts.filter((attempt) => attempt.independent && !attempt.usedHint).length; return <article key={standardId}><strong>{standardId}</strong><span>{attempts.length} attempts · {Math.round(correct / attempts.length * 100)}% correct</span><span>{independent} independent · {attempts.length - independent} supported</span><b>{masteryLabel(progress.mastery.find((item) => item.standardId === standardId)?.state, attempts)}</b></article>; })}{!progress.attempts.length && <p>Start a practice or diagnostic session to see learning activity here.</p>}</div>{progress.attempts.some((attempt) => attempt.purpose === "diagnostic" || attempt.purpose === "placement") && <p className="learning-card-note mt-5">A diagnostic records what was checked and recommends where to begin. Skills move into Learning and Mastered states through practice or a verified check.</p>}{adultObservationNotes.length > 0 && <section className="adult-observation-notes"><h2>Adult observation notes</h2><ul>{adultObservationNotes.map((observation, index) => <li key={`${observation.standardId}-${index}`}><strong>{observation.standardId}</strong><span>{observation.note}</span></li>)}</ul></section>}</section>}
+    {location.pathname === "/learning/progress" && <section className="learning-progress"><p className="eyebrow">LEARNING PROGRESS</p><h1>Your skills</h1><p className="learning-card-note">Your latest diagnostic is kept separate from earlier practice so its results are clear.</p>{progress.latestDiagnosticPlacement && <PlacementSummary placement={progress.latestDiagnosticPlacement} title="Latest diagnostic" />}{latestDiagnosticProgress.length > 0 && <section aria-labelledby="diagnostic-skills-heading"><h2 id="diagnostic-skills-heading">Latest diagnostic skills</h2><SkillProgressCards groups={latestDiagnosticProgress} mastery={progress.mastery} isDiagnostic /></section>}{practiceProgress.length > 0 && <section aria-labelledby="practice-progress-heading"><h2 id="practice-progress-heading">Ongoing practice progress</h2><SkillProgressCards groups={practiceProgress} mastery={progress.mastery} /></section>}{!progress.attempts.length && <p>Start a practice or diagnostic session to see learning activity here.</p>}{latestDiagnosticProgress.length > 0 && <p className="learning-card-note mt-5">A diagnostic records what was checked and recommends where to begin. Skills move into Learning and Mastered states through practice or a verified check.</p>}{adultObservationNotes.length > 0 && <section className="adult-observation-notes"><h2>Adult observation notes</h2><ul>{adultObservationNotes.map((observation, index) => <li key={`${observation.standardId}-${index}`}><strong>{observation.standardId}</strong><span>{observation.note}</span></li>)}</ul></section>}</section>}
   </section></main>;
 }

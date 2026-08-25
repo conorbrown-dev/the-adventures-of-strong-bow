@@ -45,7 +45,7 @@ describe("learningApplication authentication", () => {
 
   it("uses the authenticated progress endpoint without a learner ID in the URL", async () => {
     saveStudentSession({ token: "student-token", student: { id: "student-1", username: "Molly", grade: "K", subjects: ["MATH"] } });
-    const fetch = vi.fn().mockResolvedValue(Response.json({ attempts: [], mastery: [], latestDiagnosticPlacement: null }));
+    const fetch = vi.fn().mockResolvedValue(Response.json({ attempts: [], mastery: [], latestDiagnosticPlacement: null, latestAssessmentSessionId: null }));
     vi.stubGlobal("fetch", fetch);
 
     await learningApplication.progress();
