@@ -1,5 +1,6 @@
 import { LearningFacadeService } from "./learning-facade.service";
 import { InMemoryProgressRepository } from "../infrastructure/in-memory-progress.repository";
+import { diagnosticQuestionFingerprint } from "./diagnostic-question-fingerprint";
 
 describe("LearningFacadeService", () => {
   it("serves only approved K content, hides answers, records one immutable attempt, and restores a session", async () => {
@@ -109,6 +110,25 @@ describe("LearningFacadeService", () => {
     const restartedService = new LearningFacadeService(repository, "adult-code");
     await expect(restartedService.get(started.sessionId)).resolves.toEqual(next);
     expect(repository.attempts).toHaveLength(1);
+  });
+
+  it("never shows equivalent diagnostic questions twice", async () => {
+    const repository = new InMemoryProgressRepository(); const service = new LearningFacadeService(repository, "adult-code");
+    const started = await service.start("unique-question-learner", "diagnostic", 42, undefined, "2", "ELA");
+    const sessions = (service as unknown as { sessions: Map<string, { instance: Parameters<typeof diagnosticQuestionFingerprint>[0] }> }).sessions;
+    const fingerprints = new Set<string>();
+
+    for (let index = 0; index < 40; index += 1) {
+      const instance = sessions.get(started.sessionId)!.instance;
+      const fingerprint = diagnosticQuestionFingerprint(instance);
+      expect(fingerprints.has(fingerprint)).toBe(false);
+      fingerprints.add(fingerprint);
+      const result = await service.submit(started.sessionId, "definitely incorrect");
+      if (result.complete || !await service.next(started.sessionId)) break;
+    }
+
+    expect(fingerprints.size).toBe(repository.attempts.length);
+    expect(repository.placements).toHaveLength(1);
   });
 
   it("counts a concurrent duplicate diagnostic submission once", async () => {

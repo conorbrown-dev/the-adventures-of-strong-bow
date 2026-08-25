@@ -24,5 +24,5 @@ export const mathPracticeVariants: Record<string, MathPracticeVariant[]> = {
   "2.MD.A.3": [{ question: "Which is a reasonable estimate for the height of a door?", answer: "about 2 meters", choices: ["about 2 meters", "about 2 centimeters", "about 20 meters"], explanation: "A door is about two meters tall." }],
   "2.MD.D.9": [{ question: "A line plot has bean-plant heights of 3, 4, 4, and 5 inches. Which height appears most often?", answer: "4", choices: ["4", "3", "5"], explanation: "The height 4 appears twice, more often than the other heights." }],
   "2.G.A.1": [{ question: "Which shape has 4 equal sides and 4 angles?", answer: "a square", choices: ["a square", "a triangle", "a cone"], explanation: "A square has four equal sides and four angles." }],
-  "2.G.A.3": [{ question: "A rectangle is split into 4 equal parts. What are the parts called?", answer: "fourths", choices: ["fourths", "halves", "thirds"], explanation: "Four equal shares are called fourths." }]
+  "2.G.A.3": [{ question: "A square is split into 4 equal parts. What are the parts called?", answer: "fourths", choices: ["fourths", "halves", "thirds"], explanation: "Four equal shares are called fourths." }]
 };

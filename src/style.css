@@ -440,6 +440,54 @@ canvas { display: block; touch-action: none; user-select: none; max-width: 100vw
   color: #664d18;
 }
 .learning-shell .feedback.correct { border-color: #abd2bd; background: #eaf7ef; color: #225d42; }
+.learning-confetti {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.learning-confetti-piece {
+  position: absolute;
+  top: -18px;
+  width: 11px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--confetti-color);
+  opacity: 0;
+  animation: learning-confetti-fall 1.55s cubic-bezier(.16, .76, .38, 1) var(--confetti-delay) forwards;
+}
+.learning-confetti-piece:nth-child(3n) { width: 14px; height: 14px; border-radius: 50%; }
+.learning-confetti-piece:nth-child(4n) { width: 16px; height: 8px; }
+@keyframes learning-confetti-fall {
+  0% { opacity: 0; transform: translate3d(0, -4vh, 0) rotate(0deg); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--confetti-drift), 92vh, 0) rotate(var(--confetti-rotation)); }
+}
+.learning-shell .learning-continue-button {
+  position: relative;
+  isolation: isolate;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  overflow: hidden;
+  border-color: var(--learning-teal-dark);
+  background: #f3fbf8;
+  color: #174d40;
+}
+.learning-continue-button::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  width: 0;
+  background: #8fd0bc;
+  content: "";
+  animation: learning-continue-fill 2.2s linear forwards;
+}
+.learning-continue-button > span { position: relative; }
+.continue-arrow { font-size: 1.55rem; line-height: 1; }
+@keyframes learning-continue-fill { to { width: 100%; } }
 .progress-grid { gap: 16px; }
 .progress-grid article {
   border-color: var(--learning-line);
@@ -462,5 +510,9 @@ canvas { display: block; touch-action: none; user-select: none; max-width: 100vw
   .classification-item { align-items: flex-start; flex-direction: column; }
   .classification-item > div { width: 100%; }
   .classification-item button { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .learning-confetti { display: none; }
+  .learning-continue-button::before { width: 100%; animation: none; }
 }
 @import "tailwindcss";

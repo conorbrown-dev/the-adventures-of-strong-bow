@@ -70,6 +70,68 @@ test("Learning requires a real student login instead of Demo Mode", async ({ pag
   await expect(page.getByRole("button", { name: "SIGN IN OR CREATE A STUDENT" })).toBeVisible();
 });
 
+test("correct Learning answers celebrate and Continue fills before advancing", async ({ page }) => {
+  await mockModelTts(page);
+  const question = {
+    schemaVersion: 1, id: "celebration-question", templateId: "k.rf.celebration", templateVersion: 1, standardIds: ["K.RF.1.d"], responseType: "singleChoice",
+    prompt: { text: "Which letter is L?", audioText: "Which letter is L?", instructions: "Choose one answer." },
+    interaction: { choices: [{ id: "l", label: "l" }, { id: "x", label: "x" }] }, explanation: "Yes, that is L!",
+    accessibility: { spokenPrompt: "Which letter is L?", textAlternative: "Which letter is L?" }
+  };
+  const nextQuestion = { ...question, id: "next-question", prompt: { ...question.prompt, text: "Which letter is M?", audioText: "Which letter is M?" } };
+  const firstSession = { sessionId: "celebration-session", position: 0, length: 2, question };
+  const nextSession = { sessionId: "celebration-session", position: 1, length: 2, question: nextQuestion };
+  await page.route("**/api/curriculum/learning/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/answers")) { await route.fulfill({ json: { correct: true, explanation: question.explanation, masteryState: "learning", complete: false } }); return; }
+    if (path.endsWith("/next")) { await route.fulfill({ json: { session: nextSession } }); return; }
+    if (path.endsWith("/lesson-plans")) { await route.fulfill({ json: [] }); return; }
+    await route.fulfill({ json: firstSession });
+  });
+  await page.addInitScript(() => localStorage.setItem("mollys-learning-academy.student-session", JSON.stringify({ token: "test-token", student: { id: "test-student", username: "Test Student", grade: "K", subjects: ["ELA", "MATH"] } })));
+
+  await page.goto("/learning");
+  await page.getByRole("button", { name: "START PRACTICE" }).click();
+  await page.getByRole("button", { name: "l", exact: true }).click();
+  await page.getByRole("button", { name: "CHECK ANSWER" }).click();
+
+  await expect(page.locator(".learning-confetti-piece")).toHaveCount(28);
+  const continueButton = page.getByRole("button", { name: "Continue to the next activity" });
+  await expect(continueButton).toContainText("CONTINUE");
+  await expect(continueButton).toContainText("→");
+  await expect(continueButton).toHaveAttribute("data-auto-advance", "true");
+  await expect.poll(() => continueButton.evaluate((button) => getComputedStyle(button, "::before").animationName)).toBe("learning-continue-fill");
+  await expect(page.getByRole("heading", { name: nextQuestion.prompt.text })).toBeVisible({ timeout: 5_000 });
+});
+
+test("Take a break saves a diagnostic and resumes the exact activity after reload", async ({ page }) => {
+  await mockModelTts(page);
+  const question = {
+    schemaVersion: 1, id: "saved-diagnostic-question", templateId: "k.rf.saved", templateVersion: 1, standardIds: ["K.RF.1.d"], responseType: "singleChoice",
+    prompt: { text: "Which letter makes the l sound?", audioText: "Which letter makes the l sound?", instructions: "Choose one answer." },
+    interaction: { choices: [{ id: "l", label: "l" }, { id: "x", label: "x" }] }, explanation: "The letter l makes the l sound.",
+    accessibility: { spokenPrompt: "Which letter makes the l sound?", textAlternative: "Which letter makes the l sound?" }
+  };
+  const diagnostic = { sessionId: "saved-diagnostic", position: 4, length: 30, assessmentStage: { grade: "K", number: 1, total: 3 }, question };
+  await page.route("**/api/curriculum/learning/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/lesson-plans")) { await route.fulfill({ json: [] }); return; }
+    await route.fulfill({ json: diagnostic });
+  });
+  await page.addInitScript(() => localStorage.setItem("mollys-learning-academy.student-session", JSON.stringify({ token: "test-token", student: { id: "test-student", username: "Test Student", grade: "K", subjects: ["ELA", "MATH"] } })));
+
+  await page.goto("/learning");
+  await page.getByRole("button", { name: "START DIAGNOSTIC" }).click();
+  await expect(page.getByText("KINDERGARTEN LEARNING CHECK · ACTIVITY 5")).toBeVisible();
+  await page.getByRole("button", { name: "TAKE A BREAK" }).click();
+  await expect(page.getByRole("button", { name: "RESUME DIAGNOSTIC" })).toBeVisible();
+
+  await page.reload();
+  await page.getByRole("button", { name: "RESUME DIAGNOSTIC" }).click();
+  await expect(page.getByRole("heading", { name: question.prompt.text })).toBeVisible();
+  await expect(page.getByText("KINDERGARTEN LEARNING CHECK · ACTIVITY 5")).toBeVisible();
+});
+
 test("a completed diagnostic shows its placement and does not call checked skills not started", async ({ page }) => {
   await mockModelTts(page);
   const question = {

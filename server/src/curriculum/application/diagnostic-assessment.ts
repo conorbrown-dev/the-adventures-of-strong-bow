@@ -112,6 +112,7 @@ export interface DiagnosticState {
   gradeIndex: number;
   probes: DiagnosticProbe[];
   gradeResults: DiagnosticGradeResult[];
+  unavailableSkillIds?: string[];
   isComplete: boolean;
 }
 
@@ -235,12 +236,18 @@ export function selectNextDiagnosticSkill(state: DiagnosticState): DiagnosticSki
   const grade = state.blueprint.grades[state.gradeIndex];
   const gradeItemCount = state.probes.filter((probe) => probe.grade === grade.grade).length;
   if (gradeItemCount >= grade.maximumItems) return null;
-  const skills = orderedSkills(grade);
+  const unavailable = new Set(state.unavailableSkillIds ?? []);
+  const skills = orderedSkills(grade).filter((skill) => !unavailable.has(skill.standardId));
+  if (skills.length === 0) return null;
   for (let targetCount = 0; targetCount < Math.max(...skills.map((skill) => skill.minimumEvidence)); targetCount += 1) {
     const skill = skills.find((candidate) => evidenceForSkill(state, candidate, grade.grade).attemptCount === targetCount);
     if (skill) return skill;
   }
   return skills.find((skill) => evidenceForSkill(state, skill, grade.grade).status === "INSUFFICIENT_EVIDENCE" && evidenceForSkill(state, skill, grade.grade).attemptCount < skill.maximumEvidence) ?? null;
+}
+
+export function markDiagnosticSkillUnavailable(state: DiagnosticState, standardId: string): DiagnosticState {
+  return { ...state, unavailableSkillIds: [...new Set([...(state.unavailableSkillIds ?? []), standardId])] };
 }
 
 export function recordDiagnosticProbe(state: DiagnosticState, probe: DiagnosticProbe): DiagnosticState {

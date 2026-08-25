@@ -63,4 +63,19 @@ describe("learningApplication authentication", () => {
     expect(url).toContain("/curriculum/learning/lesson-plans");
     expect(options.headers).toEqual(expect.objectContaining({ Authorization: "Bearer student-token" }));
   });
+
+  it("keeps a paused diagnostic available at the same activity", async () => {
+    saveStudentSession({ token: "student-token", student: { id: "student-1", username: "Molly", grade: "K", subjects: ["ELA"] } });
+    const paused = { ...session, position: 3, assessmentStage: { grade: "K", number: 1, total: 3 } };
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(Response.json(session))
+      .mockResolvedValueOnce(Response.json(paused));
+    vi.stubGlobal("fetch", fetch);
+
+    await learningApplication.start("diagnostic", undefined, "K", "ELA");
+    learningApplication.pause(paused);
+
+    await expect(learningApplication.resumableAssessment()).resolves.toEqual({ session: paused, mode: "diagnostic", subject: "ELA" });
+    expect(fetch.mock.calls[1]?.[0]).toContain(`/curriculum/learning/sessions/${session.sessionId}`);
+  });
 });

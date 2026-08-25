@@ -14,12 +14,14 @@ import {
   buildDiagnosticReport,
   createDiagnosticBlueprint,
   evidenceForSkill,
+  markDiagnosticSkillUnavailable,
   recordDiagnosticProbe,
   selectNextDiagnosticSkill,
   startDiagnostic,
   type DiagnosticReport,
   type DiagnosticState
 } from "./diagnostic-assessment";
+import { diagnosticQuestionFingerprint } from "./diagnostic-question-fingerprint";
 import { ProgressService } from "./progress-service";
 import { generateQuestion } from "./question-generator";
 
@@ -27,11 +29,11 @@ type SessionPurpose = "practice" | "review" | "diagnostic" | "placement" | "proc
 type LearningSubject = "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY";
 type StoredSession = {
   id: string; learnerId: string; purpose: SessionPurpose; grade: string; diagnosticGrouping: string; seed: number; position: number; length: number;
-  templates: QuestionTemplate[]; instance: QuestionInstance; submittedInstanceIds: Set<string>; proctoredCorrect: number;
+  templates: QuestionTemplate[]; instance: QuestionInstance; submittedInstanceIds: Set<string>; diagnosticQuestionFingerprints: Set<string>; proctoredCorrect: number;
   assessmentResult?: DiagnosticPlacement; retryTemplateId?: string; diagnostic?: DiagnosticState; createdAt: Date; status: "active" | "completed";
 };
 type PersistedSessionState = {
-  grade: string; diagnosticGrouping: string; templateIds: string[]; instance: QuestionInstance; submittedInstanceIds: string[]; proctoredCorrect: number;
+  grade: string; diagnosticGrouping: string; templateIds: string[]; instance: QuestionInstance; submittedInstanceIds: string[]; diagnosticQuestionFingerprints?: string[]; proctoredCorrect: number;
   assessmentResult?: Omit<DiagnosticPlacement, "completedAt"> & { completedAt: string }; retryTemplateId?: string; diagnostic?: DiagnosticState;
 };
 
@@ -71,10 +73,11 @@ export class LearningFacadeService {
     const sessionPurpose: SessionPurpose = purpose === "practice" && mastery.some((record) => record.standardId === selected.primaryStandardId && record.state === "reviewDue") ? "review" : purpose;
     const sessionTemplates = purpose === "proctored" ? templates.filter((template) => template.primaryStandardId === selected.primaryStandardId) : activeTemplates;
     const now = new Date();
+    const instance = generateQuestion(selected, seedAt(seed, 0));
     const session: StoredSession = {
       id: randomUUID(), learnerId, purpose: sessionPurpose, grade: selected.grade, diagnosticGrouping: subjectName(subject), seed, position: 0,
       length: diagnostic ? diagnostic.blueprint.grades[0].maximumItems : purpose === "adultScored" ? 1 : purpose === "proctored" ? 5 : 10,
-      templates: sessionTemplates, instance: generateQuestion(selected, seedAt(seed, 0)), submittedInstanceIds: new Set<string>(), proctoredCorrect: 0,
+      templates: sessionTemplates, instance, submittedInstanceIds: new Set<string>(), diagnosticQuestionFingerprints: new Set(diagnostic ? [diagnosticQuestionFingerprint(instance)] : []), proctoredCorrect: 0,
       diagnostic, createdAt: now, status: "active"
     };
     this.sessions.set(session.id, session);
@@ -149,14 +152,29 @@ export class LearningFacadeService {
     const session = await this.requireSession(sessionId);
     if (session.status === "completed") return null;
     if (session.diagnostic) {
-      const previousGrade = session.grade;
-      const template = this.requireDiagnosticTemplate(session.diagnostic, session.templates);
-      session.grade = template.grade;
-      session.position = previousGrade === session.grade ? session.position + 1 : 0;
-      session.length = session.diagnostic.blueprint.grades[session.diagnostic.gradeIndex].maximumItems;
-      session.instance = this.generateUniqueDiagnosticQuestion(session, template);
+      while (!session.diagnostic.isComplete) {
+        const skill = selectNextDiagnosticSkill(session.diagnostic);
+        if (!skill) {
+          session.diagnostic = advanceDiagnostic(session.diagnostic);
+          continue;
+        }
+        const previousGrade = session.grade;
+        const question = this.generateUniqueDiagnosticQuestion(session, skill.templateIds);
+        if (!question) {
+          session.diagnostic = markDiagnosticSkillUnavailable(session.diagnostic, skill.standardId);
+          continue;
+        }
+        session.grade = session.templates.find((template) => template.id === question.templateId)?.grade ?? previousGrade;
+        session.position = previousGrade === session.grade ? session.position + 1 : 0;
+        session.length = session.diagnostic.blueprint.grades[session.diagnostic.gradeIndex].maximumItems;
+        session.instance = question;
+        session.diagnosticQuestionFingerprints.add(diagnosticQuestionFingerprint(question));
+        await this.checkpoint(session);
+        return this.view(session);
+      }
+      await this.completeDiagnostic(session);
       await this.checkpoint(session);
-      return this.view(session);
+      return null;
     }
     if (session.position + 1 >= session.length) return null;
     session.position += 1;
@@ -194,12 +212,16 @@ export class LearningFacadeService {
     return template;
   }
 
-  private generateUniqueDiagnosticQuestion(session: StoredSession, template: QuestionTemplate): QuestionInstance {
-    for (let offset = 0; offset < 20; offset += 1) {
-      const question = generateQuestion(template, seedAt(session.seed, session.diagnostic!.probes.length + session.diagnostic!.gradeIndex * 100 + offset));
-      if (!session.submittedInstanceIds.has(question.id)) return question;
+  private generateUniqueDiagnosticQuestion(session: StoredSession, templateIds: string[]): QuestionInstance | null {
+    const templates = templateIds.map((templateId) => session.templates.find((template) => template.id === templateId)).filter((template): template is QuestionTemplate => Boolean(template));
+    for (let offset = 0; offset < 100; offset += 1) {
+      for (const template of templates) {
+        const question = generateQuestion(template, `${session.seed}:${session.diagnostic!.gradeIndex}:${session.diagnostic!.probes.length}:${template.id}:${offset}`);
+        const fingerprint = diagnosticQuestionFingerprint(question);
+        if (!session.submittedInstanceIds.has(question.id) && !session.diagnosticQuestionFingerprints.has(fingerprint)) return question;
+      }
     }
-    throw new Error(`Unable to generate a fresh diagnostic question for ${template.primaryStandardId}.`);
+    return null;
   }
 
   private async completeDiagnostic(session: StoredSession): Promise<void> {
@@ -227,7 +249,8 @@ export class LearningFacadeService {
     const session: StoredSession = {
       id: record.id, learnerId: record.learnerId, purpose: record.purpose as SessionPurpose, grade: state.grade,
       diagnosticGrouping: state.diagnosticGrouping, seed: record.seed, position: record.position, length: record.length,
-      templates, instance: state.instance, submittedInstanceIds: new Set(state.submittedInstanceIds), proctoredCorrect: state.proctoredCorrect,
+      templates, instance: state.instance, submittedInstanceIds: new Set(state.submittedInstanceIds),
+      diagnosticQuestionFingerprints: new Set(state.diagnosticQuestionFingerprints ?? (state.diagnostic ? [diagnosticQuestionFingerprint(state.instance)] : [])), proctoredCorrect: state.proctoredCorrect,
       assessmentResult: state.assessmentResult ? { ...state.assessmentResult, completedAt: new Date(state.assessmentResult.completedAt) } : undefined,
       retryTemplateId: state.retryTemplateId, diagnostic: state.diagnostic, createdAt: record.createdAt, status: record.status
     };
@@ -244,7 +267,7 @@ export class LearningFacadeService {
   private async checkpoint(session: StoredSession): Promise<void> {
     const persisted: PersistedSessionState = {
       grade: session.grade, diagnosticGrouping: session.diagnosticGrouping, templateIds: session.templates.map((template) => template.id), instance: session.instance,
-      submittedInstanceIds: [...session.submittedInstanceIds], proctoredCorrect: session.proctoredCorrect,
+      submittedInstanceIds: [...session.submittedInstanceIds], diagnosticQuestionFingerprints: [...session.diagnosticQuestionFingerprints], proctoredCorrect: session.proctoredCorrect,
       assessmentResult: session.assessmentResult ? { ...session.assessmentResult, completedAt: session.assessmentResult.completedAt.toISOString() } : undefined,
       retryTemplateId: session.retryTemplateId, diagnostic: session.diagnostic
     };
