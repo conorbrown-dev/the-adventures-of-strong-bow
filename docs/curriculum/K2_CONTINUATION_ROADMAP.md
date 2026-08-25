@@ -30,6 +30,12 @@ Recent milestones:
 - `165125e` — adult observation evidence
 - `c5772fb` — same-skill practice retry
 
+## Lesson-plan work in progress
+
+- A versioned lesson-plan schema and validation/review workflow now protects the production boundary for instructional content.
+- `k.math.counting-and-quantities` is the first reviewed sequence: five instructional days covering `K.CC.A.1`, `K.CC.A.2`, and `K.CC.A.3` with adult setup, concrete materials, text recommendations, explicit modeling, guided practice, reviewed-template question banks, extensions, reteach paths, accommodations, and measurable evidence.
+- Conor Brown approved the sequence on August 25, 2026. Its content hash is stored with the review record, and the production lesson-plan loader now includes it.
+
 ## Remaining objectives
 
 ### 1. Turn standards coverage into complete instruction
@@ -67,7 +73,7 @@ Recent milestones:
 
 ## Recommended next increment
 
-Start with the K–2 Math and ELA lesson-plan layer. For each roadmap unit, add a small reviewed lesson sequence with a measurable learning objective, adult setup, model, guided practice, independent question bank, reteach activity, and mastery evidence. This is the largest gap between standards-aligned questions and a complete homeschool curriculum.
+Expose the approved Kindergarten counting sequence through the standalone Learning UI, including model-backed narration and predictable return navigation. Then use the same model to author and review the remaining Kindergarten Math and ELA roadmap units. Continue through Grades 1 and 2 only after the Kindergarten sequences and workflow are stable. This is the largest gap between standards-aligned questions and a complete homeschool curriculum.
 
 ## Verification commands
 
@@ -77,7 +83,9 @@ Run these after server curriculum changes:
 Set-Location server
 npx jest src/curriculum/application/question-generator.spec.ts --runInBand
 npx jest src/curriculum/application/learning-facade.service.spec.ts --runInBand
+npx jest src/curriculum/infrastructure/lesson-plan-catalog.spec.ts --runInBand
 npm run curriculum:content:validate
+npm run curriculum:lesson-plans:validate
 npm run build
 ```
 

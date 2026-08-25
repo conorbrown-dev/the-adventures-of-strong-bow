@@ -1,0 +1,428 @@
+{
+  "schemaVersion": 1,
+  "id": "k.math.counting-and-quantities",
+  "version": 1,
+  "grade": "K",
+  "subject": "math",
+  "unitId": "k.math.unit-1",
+  "title": "Counting and Quantities",
+  "summary": "A five-day sequence for counting to 100 by ones and tens, counting on from a given number, and connecting written numerals to quantities.",
+  "standardIds": [
+    "K.CC.A.1",
+    "K.CC.A.2",
+    "K.CC.A.3"
+  ],
+  "materials": [
+    {
+      "name": "Twenty small counters",
+      "alternatives": [
+        "buttons",
+        "blocks",
+        "dry beans"
+      ]
+    },
+    {
+      "name": "Numeral cards from 0 through 20",
+      "alternatives": [
+        "numbers written on scrap paper"
+      ]
+    },
+    {
+      "name": "A hundred chart",
+      "alternatives": [
+        "a hand-written grid showing 1 through 100"
+      ]
+    },
+    {
+      "name": "Ten bundles with ten craft sticks each",
+      "alternatives": [
+        "ten groups of ten counters",
+        "ten interlocking-cube trains of ten"
+      ]
+    },
+    {
+      "name": "Paper and a thick pencil or crayon",
+      "alternatives": [
+        "small whiteboard and marker"
+      ]
+    },
+    {
+      "name": "Two ten-frames",
+      "alternatives": [
+        "two hand-drawn grids with ten boxes each"
+      ]
+    }
+  ],
+  "days": [
+    {
+      "day": 1,
+      "title": "Count to 100 by Ones",
+      "objective": "I can say the counting sequence to 100 by ones.",
+      "standardIds": [
+        "K.CC.A.1"
+      ],
+      "adultSetup": [
+        "Place the hundred chart where both learners can point to it.",
+        "Mark the decade-ending numbers 10, 20, 30, and so on with removable notes or small objects."
+      ],
+      "textRecommendation": "Choose a short counting book from home or the library that moves beyond 20; pause at page changes so the learner can predict the next number.",
+      "warmUp": {
+        "minutes": 4,
+        "directions": [
+          "Count aloud together from 1 to 20.",
+          "Ask what number comes next and continue together to 30."
+        ]
+      },
+      "explicitModel": {
+        "minutes": 7,
+        "directions": [
+          "Point to each number on the hundred chart while counting from 1 to 30.",
+          "Pause at 29 and model that the next decade begins with 30.",
+          "Continue by pointing out the repeating 1-through-9 pattern after each decade number."
+        ]
+      },
+      "guidedPractice": {
+        "minutes": 9,
+        "directions": [
+          "Take turns leading one row of the hundred chart at a time.",
+          "Pause before 40, 50, 60, 70, 80, 90, and 100 so the learner can supply the next number.",
+          "Repeat any difficult transition, then reconnect it to the full sequence."
+        ]
+      },
+      "independentPractice": {
+        "minutes": 7,
+        "directions": [
+          "Complete five on-screen counting-order questions without an answer-revealing hint.",
+          "Treat these small-range questions as a check of the early sequence, then separately ask the learner to count aloud to 100."
+        ],
+        "templateIds": [
+          "k.cc.a.1.count-from-one",
+          "k.cc.a.1.missing-in-order",
+          "k.cc.a.1.order-small-set"
+        ],
+        "itemCount": 5
+      },
+      "extension": {
+        "minutes": 5,
+        "directions": [
+          "Begin at a decade number such as 40 and continue by ones to the next decade.",
+          "Find and describe a pattern in one column of the hundred chart."
+        ]
+      },
+      "reteach": {
+        "minutes": 7,
+        "directions": [
+          "Cover all but one row of the hundred chart.",
+          "Count that group of ten together, then reveal the next row.",
+          "Practice only one difficult decade transition before reconnecting it to a longer count."
+        ]
+      },
+      "masteryEvidence": [
+        "Counts aloud to 100 by ones with no more than two self-corrected omissions or sequence errors.",
+        "Successfully continues through at least three different decade transitions.",
+        "Answers at least four of five small-range independent items correctly without an answer-revealing hint; these items alone do not demonstrate the full standard."
+      ]
+    },
+    {
+      "day": 2,
+      "title": "Count to 100 by Tens",
+      "objective": "I can say the counting sequence to 100 by tens and connect each count to one group of ten.",
+      "standardIds": [
+        "K.CC.A.1"
+      ],
+      "adultSetup": [
+        "Lay out ten bundles or groups of ten in a row.",
+        "Keep the hundred chart visible and point out its decade-ending column."
+      ],
+      "textRecommendation": "Choose a counting text, song transcript, or classroom chart that shows groups of ten; point to each printed decade number as it is read aloud.",
+      "warmUp": {
+        "minutes": 4,
+        "directions": [
+          "Count from 1 to 20 by ones.",
+          "Circle or point to 10 and 20 on the hundred chart."
+        ]
+      },
+      "explicitModel": {
+        "minutes": 6,
+        "directions": [
+          "Touch one bundle and say 10, then touch the next bundle and say 20.",
+          "Continue through 100, explaining that each new bundle adds ten more.",
+          "Point to the matching decade number on the hundred chart after touching each bundle."
+        ]
+      },
+      "guidedPractice": {
+        "minutes": 8,
+        "directions": [
+          "Take turns adding one bundle and naming the new total by tens.",
+          "Mix the decade numeral cards and match each card to the correct number of bundles.",
+          "Count by tens from 10 to 100 once without adult speech support."
+        ]
+      },
+      "independentPractice": {
+        "minutes": 6,
+        "directions": [
+          "Complete four on-screen counting-order questions to reinforce that a fixed counting sequence has a next number.",
+          "Then count the ten bundles by tens while an adult records the oral performance separately."
+        ],
+        "templateIds": [
+          "k.cc.a.1.count-from-one",
+          "k.cc.a.1.count-from-given",
+          "k.cc.a.1.missing-in-order"
+        ],
+        "itemCount": 4
+      },
+      "extension": {
+        "minutes": 5,
+        "directions": [
+          "Start at 30 and count by tens to 100.",
+          "Explain how counting ten bundles by tens is different from counting ten individual objects by ones."
+        ]
+      },
+      "reteach": {
+        "minutes": 6,
+        "directions": [
+          "Use only three bundles and the cards 10, 20, and 30.",
+          "Match one spoken count to each whole bundle.",
+          "Add one bundle at a time until the learner can continue the decade sequence."
+        ]
+      },
+      "masteryEvidence": [
+        "Counts aloud by tens from 10 through 100 while touching one group for each number.",
+        "Matches at least five decade numerals to the corresponding number of ten-bundles.",
+        "Record the oral and concrete performance because the current on-screen item bank does not independently assess counting by tens."
+      ]
+    },
+    {
+      "day": 3,
+      "title": "Start Anywhere and Count On",
+      "objective": "I can begin with a number I am given and count forward.",
+      "standardIds": [
+        "K.CC.A.2"
+      ],
+      "adultSetup": [
+        "Arrange numeral cards 1 through 20 in a visible number path.",
+        "Keep five counters nearby for marking jumps on the path."
+      ],
+      "textRecommendation": "Choose a familiar rhyme or poem with a number sequence and invite the learner to continue the sequence after you pause.",
+      "warmUp": {
+        "minutes": 4,
+        "directions": [
+          "Count from 1 to 20 together.",
+          "Cover the cards before 6, point to 6, and count forward from there."
+        ]
+      },
+      "explicitModel": {
+        "minutes": 6,
+        "directions": [
+          "Point to 8 and say, I already know there are eight, so I start at eight.",
+          "Move a counter to 9, 10, and 11 while saying each next number.",
+          "Explain that counting on does not require returning to 1."
+        ]
+      },
+      "guidedPractice": {
+        "minutes": 8,
+        "directions": [
+          "Take turns choosing a starting card from 3 through 15.",
+          "Count forward three numbers while moving a counter along the path.",
+          "Ask, What number comes next, and how do you know?"
+        ]
+      },
+      "independentPractice": {
+        "minutes": 7,
+        "directions": [
+          "Complete five on-screen count-on questions without an answer-revealing hint.",
+          "Use the number path only when needed, then try the final item without it."
+        ],
+        "templateIds": [
+          "k.cc.a.2.after-small-number",
+          "k.cc.a.2.after-teen",
+          "k.cc.a.2.missing-next",
+          "k.cc.a.2.count-on-two"
+        ],
+        "itemCount": 5
+      },
+      "extension": {
+        "minutes": 5,
+        "directions": [
+          "Choose a starting number between 11 and 19 and count forward five numbers.",
+          "Try counting on with the number path turned face down."
+        ]
+      },
+      "reteach": {
+        "minutes": 6,
+        "directions": [
+          "Use cards 1 through 10 only.",
+          "Have the learner place a finger on the starting number before speaking.",
+          "Move one space for each next number and stop after two moves."
+        ]
+      },
+      "masteryEvidence": [
+        "Counts forward at least five numbers from three different starting numbers within 20.",
+        "Explains that the given number is the starting number.",
+        "Answers at least four of five independent items correctly without an answer-revealing hint."
+      ]
+    },
+    {
+      "day": 4,
+      "title": "Numbers Show How Many",
+      "objective": "I can write a numeral from 0 through 20 and match it to a group with that many objects.",
+      "standardIds": [
+        "K.CC.A.3"
+      ],
+      "adultSetup": [
+        "Mix numeral cards 0 through 20.",
+        "Place paper, a writing tool, counters, and ten-frames on the work surface."
+      ],
+      "textRecommendation": "Choose a numeral or counting book with clear printed digits and compare one printed numeral with the matching numeral card.",
+      "warmUp": {
+        "minutes": 4,
+        "directions": [
+          "Show numeral cards 0 through 10 in mixed order for the learner to name.",
+          "Place the cards in order together."
+        ]
+      },
+      "explicitModel": {
+        "minutes": 7,
+        "directions": [
+          "Choose the numeral 6 and say its name.",
+          "Place six counters in a ten-frame, touching each once.",
+          "Write 6 and explain that the written numeral names how many counters are in the set.",
+          "Show 0 with an empty frame and explain that zero means none."
+        ]
+      },
+      "guidedPractice": {
+        "minutes": 8,
+        "directions": [
+          "Take turns drawing a card, building its quantity, and writing the numeral.",
+          "Include 0, a number from 1 through 9, and a teen number.",
+          "Let the learner trace a large model before writing independently when needed."
+        ]
+      },
+      "independentPractice": {
+        "minutes": 7,
+        "directions": [
+          "Complete five on-screen numeral-and-quantity questions without an answer-revealing hint.",
+          "Build one selected quantity with counters to check the answer."
+        ],
+        "templateIds": [
+          "k.cc.a.3.object-count",
+          "k.cc.a.3.numeral-quantity",
+          "k.cc.a.3.numeral-name",
+          "k.cc.a.3.zero-quantity"
+        ],
+        "itemCount": 5
+      },
+      "extension": {
+        "minutes": 5,
+        "directions": [
+          "Draw a group of objects for a teen numeral, then trade papers with an adult to count and check.",
+          "Write the numeral again without looking at the card."
+        ]
+      },
+      "reteach": {
+        "minutes": 6,
+        "directions": [
+          "Work with 0 through 5 only.",
+          "Match each card to a prebuilt group before asking the learner to build a group.",
+          "Offer a large numeral to trace, then copy beside it."
+        ]
+      },
+      "masteryEvidence": [
+        "Matches numerals 0 through 20 to quantities in three different arrangements.",
+        "Writes selected numerals from 0 through 20 in a recognizable form; numeral reversals alone do not invalidate quantity understanding.",
+        "Answers at least four of five independent items correctly without an answer-revealing hint."
+      ]
+    },
+    {
+      "day": 5,
+      "title": "Counting and Quantities Checkpoint",
+      "objective": "I can use counting order, count on, and match numerals to quantities in one mixed investigation.",
+      "standardIds": [
+        "K.CC.A.1",
+        "K.CC.A.2",
+        "K.CC.A.3"
+      ],
+      "adultSetup": [
+        "Create three stations: a mixed numeral-card path, a bag of counters, and paper with a writing tool.",
+        "Choose a quiet time and plan a movement break between stations."
+      ],
+      "textRecommendation": "Reread the counting text used earlier in the sequence and invite the learner to notice a counting idea that now feels easier.",
+      "warmUp": {
+        "minutes": 4,
+        "directions": [
+          "Ask the learner to choose a favorite counting strategy from the prior days and demonstrate it."
+        ]
+      },
+      "explicitModel": {
+        "minutes": 5,
+        "directions": [
+          "Model checking work by touching each object once, comparing the final count to the numeral, and correcting a mismatch without negative language."
+        ]
+      },
+      "guidedPractice": {
+        "minutes": 8,
+        "directions": [
+          "At station one, repair a number path with two missing cards.",
+          "At station two, start at a chosen number and count on five.",
+          "At station three, build and write a quantity selected by the learner."
+        ]
+      },
+      "independentPractice": {
+        "minutes": 9,
+        "directions": [
+          "Complete six mixed on-screen questions, two for each standard, without an answer-revealing hint.",
+          "Use counters or the number path if they help show the learner's thinking."
+        ],
+        "templateIds": [
+          "k.cc.a.1.count-from-given",
+          "k.cc.a.1.missing-in-order",
+          "k.cc.a.2.missing-next",
+          "k.cc.a.2.count-on-two",
+          "k.cc.a.3.numeral-quantity",
+          "k.cc.a.3.zero-quantity"
+        ],
+        "itemCount": 6
+      },
+      "extension": {
+        "minutes": 5,
+        "directions": [
+          "Create a new counting challenge for an adult using a starting number, a quantity, and a matching numeral."
+        ]
+      },
+      "reteach": {
+        "minutes": 8,
+        "directions": [
+          "Choose the one skill that needs more support and repeat its concrete model from Day 1, 2, 3, or 4.",
+          "Reduce the range to 0 through 10 when the difficulty is counting on or matching quantities, then increase it only after a successful explanation."
+        ]
+      },
+      "masteryEvidence": [
+        "Completes one concrete task for each standard and explains the counting action used.",
+        "Answers at least five of six mixed independent items correctly without an answer-revealing hint.",
+        "Record the evidence as lesson progress only; the application mastery policy still requires repeated independent evidence across sessions and templates."
+      ]
+    }
+  ],
+  "accessibility": {
+    "audioSupported": true,
+    "requiresColor": false,
+    "reducedMotionSafe": true,
+    "accommodationNotes": [
+      "Read every direction aloud and allow the learner to replay it without penalty.",
+      "Use large, high-contrast numerals and manipulatives that can be distinguished by touch.",
+      "Accept pointing, eye gaze, spoken answers, or moving counters when writing is not the skill being observed.",
+      "Offer extra processing time and a reduced 0-through-10 range without treating the accommodation as failed evidence."
+    ]
+  },
+  "provenance": {
+    "origin": "original",
+    "license": "Project original curriculum content."
+  },
+  "review": {
+    "status": "reviewed",
+    "reviewer": "Conor Brown",
+    "reviewedAt": "2026-08-25T11:16:18.605Z",
+    "notes": "Reviewed and approved for production use.",
+    "contentHash": "78a86a1a5638f27ddaf9d86345081806d08013ed8f243e8c149c5b0759a5b2da"
+  }
+}

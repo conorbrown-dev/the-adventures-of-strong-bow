@@ -9,18 +9,34 @@ import { PrismaProgressRepository } from "../prisma-progress.repository";
 import { ProgressService } from "../../application/progress-service";
 import { planSession } from "../../application/session-planner";
 import { approveK2Template, changeK2TemplateStatus, createK2ReviewPacket, kindergartenCoverageReport, validateK2ContentCatalog } from "../k2-content-catalog";
+import { approveLessonPlan, changeLessonPlanStatus, createLessonPlanReviewPacket, validateLessonPlanCatalog } from "../lesson-plan-catalog";
 
 async function main(): Promise<void> {
   const command = process.argv[2];
   if (command === "validate") {
     const dataset = await loadAndValidateVendoredStandards();
-    const catalog = await validateK2ContentCatalog();
-    console.log(JSON.stringify({ valid: true, records: dataset.records.length, catalog, copyrightNotice: dataset.copyrightNotice }, null, 2));
+    const [catalog, lessonPlans] = await Promise.all([validateK2ContentCatalog(), validateLessonPlanCatalog()]);
+    console.log(JSON.stringify({ valid: true, records: dataset.records.length, catalog, lessonPlans, copyrightNotice: dataset.copyrightNotice }, null, 2));
     return;
   }
-  if (command === "content:validate") { console.log(JSON.stringify(await validateK2ContentCatalog(), null, 2)); return; }
+  if (command === "content:validate") {
+    const [catalog, lessonPlans] = await Promise.all([validateK2ContentCatalog(), validateLessonPlanCatalog()]);
+    console.log(JSON.stringify({ ...catalog, lessonPlans }, null, 2)); return;
+  }
   if (command === "content:coverage") { console.log(JSON.stringify(await kindergartenCoverageReport(), null, 2)); return; }
   if (command === "content:review-packet") { console.log(JSON.stringify(await createK2ReviewPacket(), null, 2)); return; }
+  if (command === "lesson-plans:validate") { console.log(JSON.stringify(await validateLessonPlanCatalog(), null, 2)); return; }
+  if (command === "lesson-plans:review-packet") { console.log(JSON.stringify(await createLessonPlanReviewPacket(), null, 2)); return; }
+  if (command === "lesson-plans:approve") {
+    const args = process.argv.slice(3); const planId = args[args.indexOf("--plan") + 1]; const reviewer = args[args.indexOf("--reviewer") + 1]; const noteIndex = args.indexOf("--note"); const note = noteIndex >= 0 ? args[noteIndex + 1] ?? "" : "";
+    if (!planId || !reviewer) throw new Error("Usage: curriculum lesson-plans:approve --plan <id> --reviewer <name> [--note <note>]");
+    console.log(JSON.stringify(await approveLessonPlan(planId, reviewer, note), null, 2)); return;
+  }
+  if (command === "lesson-plans:return-draft" || command === "lesson-plans:retire") {
+    const args = process.argv.slice(3); const planId = args[args.indexOf("--plan") + 1]; const reviewer = args[args.indexOf("--reviewer") + 1]; const noteIndex = args.indexOf("--note"); const note = noteIndex >= 0 ? args[noteIndex + 1] ?? "" : "";
+    if (!planId || !reviewer) throw new Error(`Usage: curriculum ${command} --plan <id> --reviewer <name> [--note <note>]`);
+    console.log(JSON.stringify(await changeLessonPlanStatus(planId, command === "lesson-plans:retire" ? "retired" : "draft", reviewer, note), null, 2)); return;
+  }
   if (command === "content:approve") {
     const args = process.argv.slice(3); const templateId = args[args.indexOf("--template") + 1]; const reviewer = args[args.indexOf("--reviewer") + 1]; const noteIndex = args.indexOf("--note"); const note = noteIndex >= 0 ? args[noteIndex + 1] ?? "" : "";
     if (!templateId || !reviewer) throw new Error("Usage: curriculum content:approve --template <id> --reviewer <name> [--note <note>]");
@@ -79,7 +95,7 @@ async function main(): Promise<void> {
       }, null, 2));
       return;
     }
-    throw new Error("Usage: curriculum <validate|content:validate|content:coverage|content:review-packet|content:approve|content:return-draft|content:retire|validate-templates|questions:validate|questions:generate|questions:coverage|mastery:recalculate|review:due|diagnostic|session:plan|import|report>");
+    throw new Error("Usage: curriculum <validate|content:validate|content:coverage|content:review-packet|content:approve|content:return-draft|content:retire|lesson-plans:validate|lesson-plans:review-packet|lesson-plans:approve|lesson-plans:return-draft|lesson-plans:retire|validate-templates|questions:validate|questions:generate|questions:coverage|mastery:recalculate|review:due|diagnostic|session:plan|import|report>");
   } finally {
     await prisma.onModuleDestroy();
   }

@@ -174,6 +174,7 @@ Expected schemas:
 - `question-instance.schema.json`
 - `attempt-event.schema.json`
 - `mastery-record.schema.json`
+- `lesson-plan.schema.json`
 
 Do not silently weaken schema requirements to make invalid content pass.
 
@@ -629,16 +630,15 @@ For each task:
 
 ## 21. Current next task
 
-The current priority is not Grades 3–5.
+The original six-standard Kindergarten milestone is complete, and the current K–2 catalog is documented in `docs/curriculum/K2_CONTINUATION_ROADMAP.md`.
 
-The immediate priority is:
+The immediate priority is the K–2 Math and ELA lesson-plan layer:
 
-- expand the six visible Kindergarten standards;
-- create at least 24 validated templates;
-- generate a review packet;
-- have a human approve sufficient templates;
-- reach four independent diagnostic probes per standard;
-- verify a ten-question practice session with no repeated instance;
+- create sequenced multi-day instruction with a warm-up, explicit model, guided practice, independent practice, extension, and reteach path;
+- map every independent-practice bank to existing reviewed question templates;
+- include adult setup, concrete materials, a text recommendation, accessibility notes, and measurable mastery evidence;
+- keep newly authored lesson plans at `validated` until a named human curriculum reviewer approves the unchanged content hash;
+- expose only `reviewed` lesson plans to production Learning UI;
 - keep all games unchanged.
 
-Only after this is stable should Codex proceed to full K–2 expansion.
+The first slice, `k.math.counting-and-quantities` for `K.CC.A.1` through `K.CC.A.3`, was human reviewed and approved by Conor Brown on August 25, 2026. Its approved content hash is stored with the plan, and it is eligible for the production lesson bundle. The next implementation increment is to expose this sequence through the standalone Learning UI before authoring the remaining Kindergarten units.
