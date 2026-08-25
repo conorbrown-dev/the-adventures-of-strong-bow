@@ -645,4 +645,4 @@ The immediate priority is the K–2 Math and ELA lesson-plan layer:
 - expose only `reviewed` lesson plans to production Learning UI;
 - keep all games unchanged.
 
-The first slice, `k.math.counting-and-quantities` for `K.CC.A.1` through `K.CC.A.3`, was human reviewed and approved by Conor Brown on August 25, 2026. Its approved content hash is stored with the plan, and it is eligible for the production lesson bundle. The next implementation increment is to expose this sequence through the standalone Learning UI before authoring the remaining Kindergarten units.
+The first slice, `k.math.counting-and-quantities` for `K.CC.A.1` through `K.CC.A.3`, was human reviewed and approved by Conor Brown on August 25, 2026. Its approved content hash is stored with the plan, it is eligible for the production lesson bundle, and it is exposed through the standalone Learning UI. The next implementation increment is a Kindergarten ELA lesson sequence mapped to existing reviewed templates; it must remain `validated` until a named human curriculum reviewer approves the unchanged content hash.

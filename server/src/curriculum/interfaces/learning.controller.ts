@@ -12,5 +12,6 @@ export class LearningController {
   @Post("sessions/:sessionId/answers") submit(@CurrentStudent() student: AuthenticatedStudent, @Param("sessionId") sessionId: string, @Body() body: { answer: unknown; usedHint?: boolean }) { return this.learning.submitForLearner(sessionId, student.studentId, body.answer, body.usedHint === true); }
   @Post("sessions/:sessionId/next") next(@CurrentStudent() student: AuthenticatedStudent, @Param("sessionId") sessionId: string) { return { session: this.learning.nextForLearner(sessionId, student.studentId) }; }
   @Get("sessions/:sessionId") get(@CurrentStudent() student: AuthenticatedStudent, @Param("sessionId") sessionId: string) { return this.learning.getForLearner(sessionId, student.studentId); }
+  @Get("lesson-plans") lessonPlans() { return this.learning.lessonPlans(); }
   @Get("progress") progress(@CurrentStudent() student: AuthenticatedStudent) { return this.learning.progressFor(student.studentId); }
 }

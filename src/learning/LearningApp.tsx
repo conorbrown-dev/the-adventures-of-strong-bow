@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { speak, stopSpeaking } from "../quiz/speech";
 import { normalizeAnswer } from "../quiz/quizLogic";
 import { clearStudentSession, loadStudentSession, saveStudentSession, type StudentSession } from "../game/utils/studentSession";
-import { learningApplication, type AnswerResult, type PlacementResult, type SessionView } from "./learningApplication";
+import { learningApplication, type AnswerResult, type LessonPlanActivity, type LessonPlanView, type PlacementResult, type SessionView } from "./learningApplication";
 import { coreCourseRoadmap } from "./coreCourseRoadmaps";
 
 type ProgressAttempt = { sessionId: string; primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean; purpose: string; submittedAnswer: unknown };
@@ -106,7 +106,46 @@ function SkillProgressCards({ groups, mastery, isDiagnostic = false }: { groups:
   return <div className="progress-grid">{groups.map(([standardId, attempts]) => { const correct = attempts.filter((attempt) => attempt.correct).length; const independent = attempts.filter((attempt) => attempt.independent && !attempt.usedHint).length; return <article key={standardId}><strong>{standardId}</strong><span>{attempts.length} {isDiagnostic ? "checked" : "practice"} {attempts.length === 1 ? "answer" : "answers"} · {Math.round(correct / attempts.length * 100)}% correct</span><span>{independent} independent · {attempts.length - independent} supported</span><b>{isDiagnostic ? "Diagnostic checked" : masteryLabel(mastery.find((item) => item.standardId === standardId)?.state, attempts)}</b></article>; })}</div>;
 }
 
-function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoading, proctorCode, setProctorCode, placementGrade, setPlacementGrade, start, updatePlacement, error }: {
+function LessonActivitySection({ title, activity }: { title: string; activity: LessonPlanActivity }): JSX.Element {
+  return <section className="lesson-activity">
+    <h3>{title} <span>{activity.minutes} min</span></h3>
+    <ol>{activity.directions.map((direction) => <li key={direction}>{direction}</li>)}</ol>
+  </section>;
+}
+
+function LessonPlanScreen({ plan, onBack }: { plan: LessonPlanView; onBack: () => void }): JSX.Element {
+  const spokenOverview = `${plan.title}. ${plan.summary}. This lesson has ${plan.days.length} days. Day 1: ${plan.days[0]?.objective ?? ""}`;
+  return <section className="learning-question lesson-plan">
+    <button className="secondary lesson-back" onClick={onBack}>BACK TO LEARNING</button>
+    <p className="eyebrow">GUIDED LESSON · {plan.grade === "K" ? "KINDERGARTEN" : `GRADE ${plan.grade}`} {plan.subject.toUpperCase()}</p>
+    <div className="prompt"><h1>{plan.title}</h1><button className="speaker-button" onClick={() => void speak(spokenOverview)} aria-label="Listen to lesson overview">🔊</button></div>
+    <p className="learning-card-note">{plan.summary}</p>
+    <section className="lesson-materials" aria-labelledby="lesson-materials-heading">
+      <h2 id="lesson-materials-heading">Get ready</h2>
+      <ul>{plan.materials.map((material) => <li key={material.name}><strong>{material.name}</strong>{material.alternatives.length > 0 && <span> Try: {material.alternatives.join(", ")}.</span>}</li>)}</ul>
+    </section>
+    <section aria-labelledby="lesson-days-heading">
+      <h2 id="lesson-days-heading">Your five-day plan</h2>
+      {plan.days.map((day) => <details className="lesson-day" key={day.day} open={day.day === 1}>
+        <summary><span>DAY {day.day}</span><strong>{day.title}</strong><small>{day.objective}</small></summary>
+        <div className="lesson-day-content">
+          <p><strong>Adult setup:</strong> {day.adultSetup.join(" ")}</p>
+          <p><strong>Book or text idea:</strong> {day.textRecommendation}</p>
+          <LessonActivitySection title="Warm-up" activity={day.warmUp} />
+          <LessonActivitySection title="Model it together" activity={day.explicitModel} />
+          <LessonActivitySection title="Practice together" activity={day.guidedPractice} />
+          <LessonActivitySection title={`Independent practice · ${day.independentPractice.itemCount} questions`} activity={day.independentPractice} />
+          <LessonActivitySection title="Try more" activity={day.extension} />
+          <LessonActivitySection title="If it feels tricky" activity={day.reteach} />
+          <section className="lesson-activity"><h3>Look for</h3><ul>{day.masteryEvidence.map((evidence) => <li key={evidence}>{evidence}</li>)}</ul></section>
+        </div>
+      </details>)}</section>
+    <details className="lesson-accommodations"><summary>Accessibility and accommodations</summary><ul>{plan.accessibility.accommodationNotes.map((note) => <li key={note}>{note}</li>)}</ul></details>
+    <button className="secondary lesson-back" onClick={onBack}>BACK TO LEARNING</button>
+  </section>;
+}
+
+function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoading, proctorCode, setProctorCode, placementGrade, setPlacementGrade, start, updatePlacement, lessonPlan, openLesson, error }: {
   student: StudentSession["student"] | undefined;
   selectedSubject: LearningSubject;
   setSelectedSubject: (subject: LearningSubject) => void;
@@ -117,6 +156,8 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
   setPlacementGrade: (grade: LearningLevel) => void;
   start: (purpose: LearningPurpose) => Promise<void>;
   updatePlacement: () => Promise<void>;
+  lessonPlan: LessonPlanView | null;
+  openLesson: (lessonPlanId: string) => void;
   error: string | null;
 }): JSX.Element {
   const isAdultObservedOnly = ["SCIENCE", "SOCIAL_STUDIES", "HEALTH", "PHYSICAL_EDUCATION", "FINE_ARTS", "COMPUTER_SCIENCE", "INFORMATION_LITERACY"].includes(selectedSubject);
@@ -154,6 +195,13 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
         <button className="activity-button secondary !min-h-16 !rounded-2xl" disabled={isLoading} onClick={() => void start("diagnostic")}>START DIAGNOSTIC</button>
       </div>}
     </section>
+
+    {lessonPlan && <section aria-labelledby="guided-lesson-heading" className="learning-card guided-lesson-card mb-7 rounded-3xl p-5 sm:p-7">
+      <p className="learning-step text-xs font-black tracking-[.16em]">GUIDED LESSON</p>
+      <h2 id="guided-lesson-heading" className="!mb-2 !mt-1 !text-2xl">{lessonPlan.title}</h2>
+      <p className="learning-card-note mb-5">{lessonPlan.summary}</p>
+      <button className="secondary !rounded-2xl" onClick={() => openLesson(lessonPlan.id)}>OPEN {lessonPlan.days.length}-DAY LESSON</button>
+    </section>}
 
     {roadmap && <section aria-labelledby="roadmap-heading" className="learning-card mb-7 rounded-3xl p-5 sm:p-7">
       <p className="learning-step text-xs font-black tracking-[.16em]">YOUR ROADMAP</p>
@@ -211,7 +259,11 @@ export function LearningApp(): JSX.Element {
   const [proctorCode, setProctorCode] = useState("");
   const [placementGrade, setPlacementGrade] = useState<LearningLevel>("K");
   const [progress, setProgress] = useState<Progress>({ attempts: [], mastery: [], latestDiagnosticPlacement: null, latestAssessmentSessionId: null });
+  const [lessonPlans, setLessonPlans] = useState<LessonPlanView[]>([]);
   const isQuestion = location.pathname === "/learning/practice" || location.pathname === "/learning/diagnostic" || location.pathname === "/learning/placement" || location.pathname === "/learning/proctored" || location.pathname === "/learning/adult-scored";
+  const activeLessonId = location.pathname.match(/^\/learning\/lessons\/([a-z0-9._-]+)$/)?.[1] ?? null;
+  const activeLessonPlan = activeLessonId ? lessonPlans.find((plan) => plan.id === activeLessonId) ?? null : null;
+  const selectedLessonPlan = lessonPlans.find((plan) => plan.grade === curriculumGrade && plan.subject === selectedSubject.toLowerCase()) ?? null;
   const sorting = classificationData(session);
   const sequence = sequenceData(session);
   const choices = session?.question.interaction.choices ?? [];
@@ -245,6 +297,14 @@ export function LearningApp(): JSX.Element {
       void learningApplication.progress().then(setProgress).catch(() => setError("Progress is temporarily unavailable."));
     }
   }, [hasAuthenticatedStudent, location.pathname]);
+  useEffect(() => {
+    if (!hasAuthenticatedStudent) return;
+    let isActive = true;
+    void learningApplication.lessonPlans()
+      .then((plans) => { if (isActive) setLessonPlans(plans); })
+      .catch(() => { if (isActive) setError("Guided lesson plans are temporarily unavailable."); });
+    return () => { isActive = false; };
+  }, [hasAuthenticatedStudent]);
 
   const resetQuestionState = () => { setSelectedAnswer(""); setClassification({}); setSequenceAnswer([]); setAdultChecks([]); setAdultEvidence(""); setUsedHint(false); setResult(null); setIsListening(false); };
   const start = async (purpose: "practice" | "diagnostic" | "placement" | "proctored" | "adultScored") => {
@@ -304,6 +364,8 @@ export function LearningApp(): JSX.Element {
     }
   };
   const choosePhoneme = (choice: string) => { stopSpeaking(); void submit(choice); };
+  const openLesson = (lessonPlanId: string) => { stopSpeaking(); setError(null); navigate(`/learning/lessons/${lessonPlanId}`); };
+  const returnToLearning = () => { stopSpeaking(); navigate("/learning"); };
   const scoreAdult = async (demonstrated: boolean) => {
     if (!session) return;
     try { setError(null); setResult(await learningApplication.scoreAdult(session.sessionId, demonstrated, adultEvidence)); } catch (reason) { setError(reason instanceof Error ? reason.message : "Unable to save the adult score."); }
@@ -323,7 +385,9 @@ export function LearningApp(): JSX.Element {
 
   return <main className="learning-app"><section className="learning-shell">
     <header><button className="learning-home-button" onClick={() => navigate("/")}>MOLLY'S LEARNING</button><nav aria-label="Learning navigation"><button className="learning-nav-button" onClick={() => navigate("/learning")}>LEARNING</button><button className="learning-nav-button" onClick={() => navigate("/learning/progress")}>PROGRESS</button></nav></header>
-    {location.pathname === "/learning" && <LearningDashboard student={student} selectedSubject={selectedSubject} setSelectedSubject={setSelectedSubject} isLoading={isLoadingSession} proctorCode={proctorCode} setProctorCode={setProctorCode} placementGrade={placementGrade} setPlacementGrade={setPlacementGrade} start={start} updatePlacement={updatePlacement} error={error} />}
+    {location.pathname === "/learning" && <LearningDashboard student={student} selectedSubject={selectedSubject} setSelectedSubject={setSelectedSubject} isLoading={isLoadingSession} proctorCode={proctorCode} setProctorCode={setProctorCode} placementGrade={placementGrade} setPlacementGrade={setPlacementGrade} start={start} updatePlacement={updatePlacement} lessonPlan={selectedLessonPlan} openLesson={openLesson} error={error} />}
+    {activeLessonPlan && <LessonPlanScreen plan={activeLessonPlan} onBack={returnToLearning} />}
+    {activeLessonId && !activeLessonPlan && <section className="learning-empty-state"><h1>Guided lesson unavailable</h1><p className="feedback">This lesson is not available for your account right now. Return to Learning and try again.</p><button className="secondary" onClick={returnToLearning}>BACK TO LEARNING</button></section>}
     {isQuestion && isLoadingSession && !session && <p className="feedback">Loading your learning session…</p>}
     {isQuestion && !isLoadingSession && !session && <section className="learning-empty-state"><h1>Choose a learning activity</h1><p className="feedback">{error ?? "This session is no longer available. Start a new one to continue."}</p><div className="actions"><button onClick={() => void start(location.pathname.endsWith("diagnostic") ? "diagnostic" : "practice")}>START NEW SESSION</button><Link className="secondary" to="/learning">BACK TO LEARNING</Link></div></section>}
     {isQuestion && session && <section className="learning-question">

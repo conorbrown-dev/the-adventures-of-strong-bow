@@ -196,4 +196,13 @@ describe("LearningFacadeService", () => {
     expect(retry?.question.standardIds[0]).toBe(started.question.standardIds[0]);
     expect(retry?.question.id).not.toBe(started.question.id);
   });
+
+  it("exposes only human-reviewed lesson plans to the standalone Learning UI", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository());
+
+    await expect(service.lessonPlans()).resolves.toEqual([expect.objectContaining({
+      id: "k.math.counting-and-quantities",
+      review: expect.objectContaining({ status: "reviewed", reviewer: "Conor Brown" })
+    })]);
+  });
 });

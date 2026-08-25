@@ -35,4 +35,13 @@ describe("LearningController", () => {
     controller.scoreAdult(student, "session", { demonstrated: true, evidenceNote: "Explained the answer using counters." });
     expect(learning.scoreAdultForLearner).toHaveBeenCalledWith("session", "student-1", true, "Explained the answer using counters.");
   });
+
+  it("returns only the production lesson-plan bundle", async () => {
+    const plans = [{ id: "k.math.counting-and-quantities" }];
+    const learning = { lessonPlans: jest.fn().mockResolvedValue(plans) } as unknown as LearningFacadeService;
+    const controller = new LearningController(learning);
+
+    await expect(controller.lessonPlans()).resolves.toEqual(plans);
+    expect(learning.lessonPlans).toHaveBeenCalledWith();
+  });
 });

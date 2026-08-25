@@ -267,6 +267,101 @@ canvas { display: block; touch-action: none; user-select: none; max-width: 100vw
   background: #fffefa;
   padding: 12px 14px;
 }
+
+.lesson-plan {
+  display: grid;
+  gap: 22px;
+}
+
+.lesson-back {
+  justify-self: start;
+}
+
+.lesson-materials,
+.lesson-accommodations {
+  border: 1px solid var(--learning-line);
+  border-radius: 18px;
+  background: #fffefa;
+  padding: 18px;
+}
+
+.lesson-plan h2 {
+  margin: 0 0 10px;
+  font-size: 1.3rem;
+}
+
+.lesson-materials ul,
+.lesson-activity ol,
+.lesson-activity ul,
+.lesson-accommodations ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 24px;
+}
+
+.lesson-day {
+  margin-top: 12px;
+  border: 1px solid var(--learning-line);
+  border-radius: 18px;
+  background: #fffefa;
+}
+
+.lesson-day summary {
+  display: grid;
+  gap: 4px;
+  cursor: pointer;
+  padding: 18px;
+}
+
+.lesson-day summary span {
+  color: var(--learning-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.lesson-day summary strong {
+  font-size: 1.15rem;
+}
+
+.lesson-day summary small {
+  color: var(--learning-muted);
+  font-size: 0.95rem;
+}
+
+.lesson-day-content {
+  display: grid;
+  gap: 18px;
+  border-top: 1px solid var(--learning-line);
+  padding: 18px;
+}
+
+.lesson-day-content p {
+  margin: 0;
+}
+
+.lesson-activity {
+  border-radius: 14px;
+  background: var(--learning-cream);
+  padding: 14px;
+}
+
+.lesson-activity h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.lesson-activity h3 span {
+  color: var(--learning-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lesson-accommodations summary {
+  cursor: pointer;
+  font-weight: 800;
+}
 .learning-question .prompt { align-items: center; margin-top: 12px; }
 .learning-question .prompt h1 {
   margin: 0;

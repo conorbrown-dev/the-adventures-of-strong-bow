@@ -7,6 +7,34 @@ export type SessionView = { sessionId: string; position: number; length: number;
 export type PlacementResult = { grouping: string; grade: string; learningTargetIds: string[] };
 export type AnswerResult = { correct: boolean; explanation: string; masteryState: string; complete: boolean; retry?: boolean; placement?: PlacementResult };
 export type StudentPlacement = { id: string; username: string; grade: CurriculumGrade; subjects: CurriculumSubject[]; curriculumLevels: Partial<Record<CurriculumSubject, CurriculumGrade>> };
+export type LessonPlanActivity = { minutes: number; directions: string[] };
+export type LessonPlanView = {
+  id: string;
+  version: number;
+  grade: "K" | "1" | "2";
+  subject: "math" | "ela";
+  unitId: string;
+  title: string;
+  summary: string;
+  standardIds: string[];
+  materials: Array<{ name: string; alternatives: string[] }>;
+  days: Array<{
+    day: number;
+    title: string;
+    objective: string;
+    standardIds: string[];
+    adultSetup: string[];
+    textRecommendation: string;
+    warmUp: LessonPlanActivity;
+    explicitModel: LessonPlanActivity;
+    guidedPractice: LessonPlanActivity;
+    independentPractice: LessonPlanActivity & { templateIds: string[]; itemCount: number };
+    extension: LessonPlanActivity;
+    reteach: LessonPlanActivity;
+    masteryEvidence: string[];
+  }>;
+  accessibility: { audioSupported: boolean; requiresColor: boolean; reducedMotionSafe: boolean; accommodationNotes: string[] };
+};
 const key = "molly-curriculum-active-session-v4";
 
 function authenticatedStudentId(): string {
@@ -23,5 +51,6 @@ export const learningApplication = {
   async scoreAdult(sessionId: string, demonstrated: boolean, evidenceNote?: string): Promise<AnswerResult> { return studentApi<AnswerResult>(`/curriculum/learning/sessions/${sessionId}/adult-score`, "POST", { demonstrated, ...(evidenceNote?.trim() ? { evidenceNote: evidenceNote.trim() } : {}) }); },
   async updateSubjectLevel(subject: "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY", grade: "K" | "GRADE_1" | "GRADE_2", verificationCode: string): Promise<StudentPlacement> { const studentId = authenticatedStudentId(); return studentApi<StudentPlacement>(`/students/${studentId}/subject-level`, "PUT", { subject, grade, verificationCode }); },
   async next(sessionId: string): Promise<SessionView | null> { const response = await studentApi<{ session: SessionView | null }>(`/curriculum/learning/sessions/${sessionId}/next`, "POST"); if (response.session) save(response.session); else localStorage.removeItem(key); return response.session; },
+  async lessonPlans(): Promise<LessonPlanView[]> { authenticatedStudentId(); return studentApi<LessonPlanView[]>("/curriculum/learning/lesson-plans"); },
   async progress() { authenticatedStudentId(); return studentApi<{ attempts: Array<{ sessionId: string; primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean; purpose: string; submittedAnswer: unknown }>; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: PlacementResult | null; latestAssessmentSessionId: string | null }>("/curriculum/learning/progress"); }
 };

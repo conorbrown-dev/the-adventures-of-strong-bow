@@ -52,4 +52,15 @@ describe("learningApplication authentication", () => {
     expect(fetch.mock.calls[0]?.[0]).toContain("/curriculum/learning/progress");
     expect(fetch.mock.calls[0]?.[0]).not.toContain("student-1");
   });
+
+  it("loads the production lesson-plan bundle with the student bearer token", async () => {
+    saveStudentSession({ token: "student-token", student: { id: "student-1", username: "Molly", grade: "K", subjects: ["MATH"] } });
+    const fetch = vi.fn().mockResolvedValue(Response.json([{ id: "k.math.counting-and-quantities" }]));
+    vi.stubGlobal("fetch", fetch);
+
+    await expect(learningApplication.lessonPlans()).resolves.toEqual([{ id: "k.math.counting-and-quantities" }]);
+    const [url, options] = fetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("/curriculum/learning/lesson-plans");
+    expect(options.headers).toEqual(expect.objectContaining({ Authorization: "Bearer student-token" }));
+  });
 });

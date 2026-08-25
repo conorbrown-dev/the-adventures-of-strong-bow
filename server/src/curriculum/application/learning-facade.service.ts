@@ -12,6 +12,7 @@ import { loadK2ContentCatalog } from "../infrastructure/k2-content-catalog";
 import { validateK2ContentCatalog } from "../infrastructure/k2-content-catalog";
 import { diagnosticPlacement, evaluateDiagnostic, type DiagnosticProbe } from "./diagnostic-placement";
 import { selectNextLearningTemplates } from "./curriculum-sequence";
+import { loadProductionLessonPlans } from "../infrastructure/lesson-plan-catalog";
 
 type SessionPurpose = "practice" | "review" | "diagnostic" | "placement" | "proctored" | "adultScored";
 type LearningSubject = "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY";
@@ -97,6 +98,7 @@ export class LearningFacadeService {
     const latestAssessment = attempts.filter((attempt) => attempt.purpose === "diagnostic" || attempt.purpose === "placement").sort((left, right) => right.attemptedAt.getTime() - left.attemptedAt.getTime())[0];
     return { attempts, mastery, latestDiagnosticPlacement: placements[0] ?? null, latestAssessmentSessionId: latestAssessment?.sessionId ?? null };
   }
+  async lessonPlans() { return loadProductionLessonPlans(); }
   get(sessionId: string) { return this.view(this.requireSession(sessionId)); }
   submitForLearner(sessionId: string, learnerId: string, answer: unknown, usedHint = false) { this.requireOwnedSession(sessionId, learnerId); return this.submit(sessionId, answer, usedHint); }
   scoreAdultForLearner(sessionId: string, learnerId: string, demonstrated: boolean, evidenceNote?: string) { this.requireOwnedSession(sessionId, learnerId); return this.scoreAdult(sessionId, demonstrated, evidenceNote); }
