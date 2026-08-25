@@ -52,3 +52,7 @@ See:
 ## Proctored mastery checks
 
 Set `CURRICULUM_PROCTOR_CODE` in the server environment to an adult-only code. A parent or teacher enters it before a five-question proctored check. A score of at least 4 out of 5 verifies mastery for that standard; verified standards rotate out of everyday practice until a scheduled review is due.
+
+## Student authentication
+
+Set `JWT_SECRET` in every production server environment to a long, randomly generated secret. The server refuses to start in production without it. Student-specific progress, quiz attempts, subject-level changes, and standalone Learning sessions require the bearer token issued after student creation or PIN login. The API derives the learner identity from that signed token and does not accept a caller-supplied learner ID.

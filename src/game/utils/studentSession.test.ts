@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { studentApi } from "./studentSession";
+import { loadStudentSession, saveStudentSession, studentApi } from "./studentSession";
 
 function createStorage(): Storage {
   const values = new Map<string, string>();
@@ -39,5 +39,19 @@ describe("studentApi", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ message: ["Username is required.", "PIN must have four digits."] }, { status: 400 })));
 
     await expect(studentApi("/students", "POST", {})).rejects.toThrow("Username is required. PIN must have four digits.");
+  });
+
+  it("clears an invalid login session when the API returns unauthorized", async () => {
+    saveStudentSession({ token: "expired-token", student: { id: "student-1", username: "Molly", grade: "K", subjects: ["MATH"] } });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ message: "Unauthorized" }, { status: 401 })));
+
+    await expect(studentApi("/curriculum/learning/progress")).rejects.toThrow("invalid or expired");
+    expect(loadStudentSession()).toBeNull();
+  });
+
+  it("preserves the useful credential error from a failed login", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ message: "The username or PIN is incorrect." }, { status: 401 })));
+
+    await expect(studentApi("/auth/login", "POST", { username: "Molly", pin: "0000" })).rejects.toThrow("The username or PIN is incorrect.");
   });
 });

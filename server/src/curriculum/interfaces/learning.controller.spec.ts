@@ -2,27 +2,37 @@ import type { LearningFacadeService } from "../application/learning-facade.servi
 import { LearningController } from "./learning.controller";
 
 describe("LearningController", () => {
-  it("returns an explicit JSON envelope when a session is complete", () => {
-    const learning = { next: jest.fn().mockReturnValue(null) } as unknown as LearningFacadeService;
+  const student = { studentId: "student-1", username: "molly" };
+
+  it("starts Learning with the authenticated student instead of a body-supplied learner ID", () => {
+    const learning = { start: jest.fn().mockReturnValue({ sessionId: "session" }) } as unknown as LearningFacadeService;
     const controller = new LearningController(learning);
 
-    expect(controller.next("completed-session")).toEqual({ session: null });
-    expect(learning.next).toHaveBeenCalledWith("completed-session");
+    controller.start(student, { purpose: "practice", seed: 42, learnerId: "other-student" } as never);
+    expect(learning.start).toHaveBeenCalledWith("student-1", "practice", 42, undefined, undefined, undefined);
+  });
+
+  it("returns an explicit JSON envelope when a session is complete", () => {
+    const learning = { nextForLearner: jest.fn().mockReturnValue(null) } as unknown as LearningFacadeService;
+    const controller = new LearningController(learning);
+
+    expect(controller.next(student, "completed-session")).toEqual({ session: null });
+    expect(learning.nextForLearner).toHaveBeenCalledWith("completed-session", "student-1");
   });
 
   it("forwards hint use as a boolean when an answer is submitted", () => {
-    const learning = { submit: jest.fn().mockReturnValue({ correct: true }) } as unknown as LearningFacadeService;
+    const learning = { submitForLearner: jest.fn().mockReturnValue({ correct: true }) } as unknown as LearningFacadeService;
     const controller = new LearningController(learning);
 
-    controller.submit("session", { answer: "A", usedHint: true });
-    expect(learning.submit).toHaveBeenCalledWith("session", "A", true);
+    controller.submit(student, "session", { answer: "A", usedHint: true });
+    expect(learning.submitForLearner).toHaveBeenCalledWith("session", "student-1", "A", true);
   });
 
   it("forwards an optional adult observation note", () => {
-    const learning = { scoreAdult: jest.fn().mockReturnValue({ correct: true }) } as unknown as LearningFacadeService;
+    const learning = { scoreAdultForLearner: jest.fn().mockReturnValue({ correct: true }) } as unknown as LearningFacadeService;
     const controller = new LearningController(learning);
 
-    controller.scoreAdult("session", { demonstrated: true, evidenceNote: "Explained the answer using counters." });
-    expect(learning.scoreAdult).toHaveBeenCalledWith("session", true, "Explained the answer using counters.");
+    controller.scoreAdult(student, "session", { demonstrated: true, evidenceNote: "Explained the answer using counters." });
+    expect(learning.scoreAdultForLearner).toHaveBeenCalledWith("session", "student-1", true, "Explained the answer using counters.");
   });
 });

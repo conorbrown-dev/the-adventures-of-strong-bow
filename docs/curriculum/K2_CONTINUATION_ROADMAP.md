@@ -21,6 +21,8 @@ The curriculum catalog currently has 1,210 reviewed templates. The content valid
 - Parent checklists for every K–2 adult-scored ELA activity.
 - Optional adult observation notes stored with an activity attempt and displayed on the learner progress screen.
 - An immediate same-skill retry after an incorrect practice response, with a fresh equivalent question.
+- JWT-authenticated Learning and progress APIs that derive learner identity from the signed student session, reject cross-student access, expire invalid browser sessions, and keep Demo Mode out of tracked Learning.
+- Production refuses to use the development JWT signing key when `JWT_SECRET` is missing.
 
 Recent milestones:
 

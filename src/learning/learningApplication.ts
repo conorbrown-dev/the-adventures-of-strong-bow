@@ -1,4 +1,4 @@
-import { studentApi } from "../game/utils/studentSession";
+import { loadStudentSession, studentApi } from "../game/utils/studentSession";
 import type { CurriculumGrade, CurriculumSubject } from "../game/data/commonCoreQuizzes";
 
 export type LearningMode = "practice" | "diagnostic" | "placement" | "proctored" | "adultScored";
@@ -6,14 +6,21 @@ export type QuestionView = { schemaVersion: number; id: string; templateId: stri
 export type SessionView = { sessionId: string; position: number; length: number; question: QuestionView };
 export type AnswerResult = { correct: boolean; explanation: string; masteryState: string; complete: boolean; retry?: boolean };
 export type StudentPlacement = { id: string; username: string; grade: CurriculumGrade; subjects: CurriculumSubject[]; curriculumLevels: Partial<Record<CurriculumSubject, CurriculumGrade>> };
-const key = "molly-curriculum-active-session-v3";
-const save = (session: SessionView) => localStorage.setItem(key, JSON.stringify({ sessionId: session.sessionId, position: session.position, length: session.length }));
+const key = "molly-curriculum-active-session-v4";
+
+function authenticatedStudentId(): string {
+  const session = loadStudentSession();
+  if (!session || session.demo) throw new Error("Sign in with a student account to save Learning progress.");
+  return session.student.id;
+}
+
+const save = (session: SessionView) => localStorage.setItem(key, JSON.stringify({ studentId: authenticatedStudentId(), sessionId: session.sessionId, position: session.position, length: session.length }));
 export const learningApplication = {
-  async start(learnerId: string, purpose: LearningMode, proctorCode?: string, grade = "K", subject?: "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY"): Promise<SessionView> { const session = await studentApi<SessionView>("/curriculum/learning/sessions", "POST", { learnerId, purpose, grade, ...(subject ? { subject } : {}), ...(proctorCode ? { proctorCode } : {}) }); save(session); return session; },
-  async restore(): Promise<SessionView | null> { try { const saved = JSON.parse(localStorage.getItem(key) ?? "null") as { sessionId?: string } | null; return saved?.sessionId ? await studentApi<SessionView>(`/curriculum/learning/sessions/${saved.sessionId}`) : null; } catch { localStorage.removeItem(key); return null; } },
+  async start(purpose: LearningMode, proctorCode?: string, grade = "K", subject?: "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY"): Promise<SessionView> { authenticatedStudentId(); const session = await studentApi<SessionView>("/curriculum/learning/sessions", "POST", { purpose, grade, ...(subject ? { subject } : {}), ...(proctorCode ? { proctorCode } : {}) }); save(session); return session; },
+  async restore(): Promise<SessionView | null> { try { const studentId = authenticatedStudentId(); const saved = JSON.parse(localStorage.getItem(key) ?? "null") as { studentId?: string; sessionId?: string } | null; if (!saved?.sessionId || saved.studentId !== studentId) { localStorage.removeItem(key); return null; } return await studentApi<SessionView>(`/curriculum/learning/sessions/${saved.sessionId}`); } catch { localStorage.removeItem(key); return null; } },
   async submit(sessionId: string, answer: unknown, usedHint = false): Promise<AnswerResult> { return studentApi<AnswerResult>(`/curriculum/learning/sessions/${sessionId}/answers`, "POST", { answer, usedHint }); },
   async scoreAdult(sessionId: string, demonstrated: boolean, evidenceNote?: string): Promise<AnswerResult> { return studentApi<AnswerResult>(`/curriculum/learning/sessions/${sessionId}/adult-score`, "POST", { demonstrated, ...(evidenceNote?.trim() ? { evidenceNote: evidenceNote.trim() } : {}) }); },
-  async updateSubjectLevel(studentId: string, subject: "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY", grade: "K" | "GRADE_1" | "GRADE_2", verificationCode: string): Promise<StudentPlacement> { return studentApi<StudentPlacement>(`/students/${studentId}/subject-level`, "PUT", { subject, grade, verificationCode }); },
+  async updateSubjectLevel(subject: "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY", grade: "K" | "GRADE_1" | "GRADE_2", verificationCode: string): Promise<StudentPlacement> { const studentId = authenticatedStudentId(); return studentApi<StudentPlacement>(`/students/${studentId}/subject-level`, "PUT", { subject, grade, verificationCode }); },
   async next(sessionId: string): Promise<SessionView | null> { const response = await studentApi<{ session: SessionView | null }>(`/curriculum/learning/sessions/${sessionId}/next`, "POST"); if (response.session) save(response.session); else localStorage.removeItem(key); return response.session; },
-  async progress(learnerId: string) { return studentApi<{ attempts: Array<{ primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean; purpose: string; submittedAnswer: unknown }>; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: { grouping: string; grade: string } | null }>(`/curriculum/learning/progress/${learnerId}`); }
+  async progress() { authenticatedStudentId(); return studentApi<{ attempts: Array<{ primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean; purpose: string; submittedAnswer: unknown }>; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: { grouping: string; grade: string } | null }>("/curriculum/learning/progress"); }
 };

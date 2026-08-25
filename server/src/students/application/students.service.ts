@@ -2,11 +2,12 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  ForbiddenException,
   UnauthorizedException
 } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
 import { PrismaService } from "../../prisma/prisma.service";
+import { StudentTokenService } from "../infrastructure/student-token.service";
 import {
   CreateStudentDto,
   LoginStudentDto,
@@ -16,12 +17,7 @@ import {
 
 @Injectable()
 export class StudentsService {
-  private readonly jwt = new JwtService({
-    secret: process.env.JWT_SECRET ?? "development-secret",
-    signOptions: { expiresIn: "12h" }
-  });
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly tokens: StudentTokenService) {}
 
   async createStudent(dto: CreateStudentDto) {
     const existing = await this.prisma.student.findUnique({
@@ -64,7 +60,7 @@ export class StudentsService {
 
   async updateSubjectLevel(studentId: string, dto: { subject: "ELA" | "MATH" | "SCIENCE" | "SOCIAL_STUDIES" | "HEALTH" | "PHYSICAL_EDUCATION" | "FINE_ARTS" | "COMPUTER_SCIENCE" | "INFORMATION_LITERACY"; grade: string; verificationCode: string }) {
     await this.findStudent(studentId);
-    if (!process.env.CURRICULUM_PROCTOR_CODE || dto.verificationCode !== process.env.CURRICULUM_PROCTOR_CODE) throw new UnauthorizedException("A parent or teacher verification code is required.");
+    if (!process.env.CURRICULUM_PROCTOR_CODE || dto.verificationCode !== process.env.CURRICULUM_PROCTOR_CODE) throw new ForbiddenException("A parent or teacher verification code is required.");
     const student = await this.prisma.student.findUnique({ where: { id: studentId } });
     const levels = { ...((student?.curriculumLevels as Record<string, string> | null) ?? {}), [dto.subject]: dto.grade };
     const updated = await this.prisma.student.update({ where: { id: studentId }, data: { curriculumLevels: levels } });
@@ -109,7 +105,7 @@ export class StudentsService {
 
   private toSession(student: { id: string; username: string; grade: unknown; assignedSubjects: unknown; curriculumLevels?: unknown }) {
     return {
-      token: this.jwt.sign({ sub: student.id, username: student.username }),
+      token: this.tokens.issue(student.id, student.username),
       student: this.toPublicStudent(student)
     };
   }

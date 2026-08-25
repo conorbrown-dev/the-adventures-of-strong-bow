@@ -13,22 +13,25 @@ function createPrisma() {
   } as any;
 }
 
+const tokens = { issue: jest.fn().mockReturnValue("student-token") };
+
 describe("StudentsService", () => {
   it("creates a session with a hashed PIN and public student data", async () => {
     const prisma = createPrisma();
     prisma.student.findUnique.mockResolvedValue(null);
     prisma.student.create.mockResolvedValue(baseStudent);
     jest.mocked(argon2.hash).mockResolvedValue("hashed-pin" as never);
-    const result = await new StudentsService(prisma).createStudent({ username: "molly", pin: "1234", grade: "K" as never, subjects: ["ELA", "MATH"] as never });
+    const result = await new StudentsService(prisma, tokens as never).createStudent({ username: "molly", pin: "1234", grade: "K" as never, subjects: ["ELA", "MATH"] as never });
     expect(argon2.hash).toHaveBeenCalledWith("1234");
     expect(result.student).toEqual({ id: "student-1", username: "molly", grade: "K", subjects: ["ELA", "MATH"], curriculumLevels: { ELA: "K", MATH: "K" } });
-    expect(result.token).toEqual(expect.any(String));
+    expect(result.token).toBe("student-token");
+    expect(tokens.issue).toHaveBeenCalledWith("student-1", "molly");
   });
 
   it("rejects duplicate names and invalid credentials", async () => {
     const prisma = createPrisma();
     prisma.student.findUnique.mockResolvedValueOnce(baseStudent).mockResolvedValueOnce(null);
-    const service = new StudentsService(prisma);
+    const service = new StudentsService(prisma, tokens as never);
     await expect(service.createStudent({ username: "molly", pin: "1234", grade: "K" as never, subjects: ["ELA"] as never })).rejects.toBeInstanceOf(ConflictException);
     await expect(service.login({ username: "missing", pin: "1234" })).rejects.toBeInstanceOf(UnauthorizedException);
   });
@@ -36,7 +39,7 @@ describe("StudentsService", () => {
   it("calculates progress and reports a missing student", async () => {
     const prisma = createPrisma();
     prisma.student.findUnique.mockResolvedValueOnce({ ...baseStudent, quizAttempts: [{ correctAnswers: 7, questionCount: 10 }, { correctAnswers: 2, questionCount: 2 }], wordAttempts: [{ status: "Mastered" }, { status: "Learning" }] });
-    const service = new StudentsService(prisma);
+    const service = new StudentsService(prisma, tokens as never);
     await expect(service.getProgress("student-1")).resolves.toMatchObject({ summary: { completedQuizzes: 2, accuracy: 75, masteredSightWords: 1 } });
     prisma.student.findUnique.mockResolvedValueOnce(null);
     await expect(service.getProgress("missing")).rejects.toBeInstanceOf(NotFoundException);

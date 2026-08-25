@@ -225,6 +225,10 @@ Definition of done:
 - persistence;
 - no speed requirement for mastery.
 
+#### Authentication requirement
+
+Standalone Learning and all student-specific progress operations require the bearer token issued after student creation or PIN login. The server must derive the learner ID from the signed token, never from a request body or progress URL. Restored sessions, answer submissions, adult scores, and next-question requests must verify that the session belongs to the authenticated student. Demo Mode must not create tracked Learning progress. Production startup requires an explicit `JWT_SECRET` and must never fall back to the development signing key.
+
 ### Phase 4 — Standalone Learning UI
 
 The Learning area must be outside the Games area.

@@ -49,6 +49,11 @@ export async function studentApi<T>(path: string, method = "GET", body?: object)
   const isJson = contentType.includes("application/json");
   const payload = isJson ? await response.json().catch(() => ({})) : {};
   if (!response.ok) {
+    if (response.status === 401 && session && path !== "/auth/login") {
+      clearStudentSession();
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("student-session:expired"));
+      throw new Error("Your session is invalid or expired. Sign in again.");
+    }
     if (response.status >= 500) {
       throw new Error("The learning service is temporarily unavailable. Please try again soon.");
     }

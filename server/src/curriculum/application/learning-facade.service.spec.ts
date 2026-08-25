@@ -18,6 +18,15 @@ describe("LearningFacadeService", () => {
     expect(next?.question.templateId).not.toBe(started.question.templateId);
   });
 
+  it("does not let one signed-in learner read or change another learner's session", async () => {
+    const service = new LearningFacadeService(new InMemoryProgressRepository());
+    const started = await service.start("learner-one", "practice", 42);
+
+    expect(() => service.getForLearner(started.sessionId, "learner-two")).toThrow("belongs to another student");
+    expect(() => service.nextForLearner(started.sessionId, "learner-two")).toThrow("belongs to another student");
+    expect(() => service.submitForLearner(started.sessionId, "learner-two", "answer")).toThrow("belongs to another student");
+  });
+
   it("requires an adult code before starting a proctored skill check", async () => {
     const service = new LearningFacadeService(new InMemoryProgressRepository(), "adult-code");
     await expect(service.start("learner", "proctored", 42, "wrong-code")).rejects.toThrow("verification code");

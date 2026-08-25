@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { StudentsService } from "../application/students.service";
+import type { AuthenticatedStudent } from "../infrastructure/student-token.service";
+import { CurrentStudent, StudentAuthGuard } from "./student-auth.guard";
 import {
   CreateStudentDto,
   LoginStudentDto,
@@ -23,22 +25,34 @@ export class StudentsController {
   }
 
   @Get("students/:studentId/progress")
-  getProgress(@Param("studentId") studentId: string) {
+  @UseGuards(StudentAuthGuard)
+  getProgress(@CurrentStudent() current: AuthenticatedStudent, @Param("studentId") studentId: string) {
+    this.requireOwnStudent(current, studentId);
     return this.students.getProgress(studentId);
   }
 
   @Put("students/:studentId/assignments")
-  updateAssignments(@Param("studentId") studentId: string, @Body() dto: UpdateAssignmentsDto) {
+  @UseGuards(StudentAuthGuard)
+  updateAssignments(@CurrentStudent() current: AuthenticatedStudent, @Param("studentId") studentId: string, @Body() dto: UpdateAssignmentsDto) {
+    this.requireOwnStudent(current, studentId);
     return this.students.updateAssignments(studentId, dto);
   }
 
   @Put("students/:studentId/subject-level")
-  updateSubjectLevel(@Param("studentId") studentId: string, @Body() dto: UpdateSubjectLevelDto) {
+  @UseGuards(StudentAuthGuard)
+  updateSubjectLevel(@CurrentStudent() current: AuthenticatedStudent, @Param("studentId") studentId: string, @Body() dto: UpdateSubjectLevelDto) {
+    this.requireOwnStudent(current, studentId);
     return this.students.updateSubjectLevel(studentId, dto);
   }
 
   @Post("students/:studentId/quiz-attempts")
-  recordQuizAttempt(@Param("studentId") studentId: string, @Body() dto: RecordQuizAttemptDto) {
+  @UseGuards(StudentAuthGuard)
+  recordQuizAttempt(@CurrentStudent() current: AuthenticatedStudent, @Param("studentId") studentId: string, @Body() dto: RecordQuizAttemptDto) {
+    this.requireOwnStudent(current, studentId);
     return this.students.recordQuizAttempt(studentId, dto);
+  }
+
+  private requireOwnStudent(current: AuthenticatedStudent, requestedStudentId: string): void {
+    if (current.studentId !== requestedStudentId) throw new ForbiddenException("Student progress belongs to the signed-in student.");
   }
 }

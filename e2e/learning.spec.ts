@@ -29,7 +29,7 @@ test("Learning is interactive without launching Phaser", async ({ page }) => {
       await route.fulfill({ json: { session: null } });
       return;
     }
-    if (url.pathname.includes("/progress/")) {
+    if (url.pathname.endsWith("/progress")) {
       await route.fulfill({ json: { attempts: [], mastery: [], latestDiagnosticPlacement: null } });
       return;
     }
@@ -56,4 +56,12 @@ test("Learning is interactive without launching Phaser", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Your skills" })).toBeVisible();
   await expect(page.locator("#phaser-root canvas")).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+
+test("Learning requires a real student login instead of Demo Mode", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("mollys-learning-academy.student-session", JSON.stringify({ demo: true, token: "demo-mode", student: { id: "demo-player", username: "Demo Player", grade: "K", subjects: ["ELA", "MATH"] } })));
+  await page.goto("/learning");
+
+  await expect(page.getByRole("heading", { name: "Sign in to start Learning" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "SIGN IN OR CREATE A STUDENT" })).toBeVisible();
 });

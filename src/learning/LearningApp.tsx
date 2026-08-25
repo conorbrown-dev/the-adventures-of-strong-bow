@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { speak, stopSpeaking } from "../quiz/speech";
 import { normalizeAnswer } from "../quiz/quizLogic";
-import { loadStudentSession, saveStudentSession, type StudentSession } from "../game/utils/studentSession";
+import { clearStudentSession, loadStudentSession, saveStudentSession, type StudentSession } from "../game/utils/studentSession";
 import { learningApplication, type AnswerResult, type SessionView } from "./learningApplication";
 import { coreCourseRoadmap } from "./coreCourseRoadmaps";
 
@@ -154,7 +154,7 @@ export function LearningApp(): JSX.Element {
   const navigate = useNavigate();
   const [studentSession, setStudentSession] = useState<StudentSession | null>(() => loadStudentSession());
   const student = studentSession?.student;
-  const learnerId = student?.id ?? "anonymous";
+  const hasAuthenticatedStudent = Boolean(studentSession && !studentSession.demo);
   const curriculumSubject = useState<LearningSubject>("ELA");
   const selectedSubject = curriculumSubject[0];
   const setSelectedSubject = curriculumSubject[1];
@@ -191,7 +191,7 @@ export function LearningApp(): JSX.Element {
 
   useEffect(() => () => stopSpeaking(), []);
   useEffect(() => {
-    if (!isQuestion) return;
+    if (!isQuestion || !hasAuthenticatedStudent) return;
     let isActive = true;
     setIsLoadingSession(true);
     void learningApplication.restore()
@@ -199,18 +199,18 @@ export function LearningApp(): JSX.Element {
       .catch((reason) => { if (isActive) setError(reason instanceof Error ? reason.message : "Unable to restore your learning session."); })
       .finally(() => { if (isActive) setIsLoadingSession(false); });
     return () => { isActive = false; };
-  }, [isQuestion]);
+  }, [hasAuthenticatedStudent, isQuestion]);
   useEffect(() => {
-    if (location.pathname === "/learning/progress") {
-      void learningApplication.progress(learnerId).then(setProgress).catch(() => setError("Progress is temporarily unavailable."));
+    if (location.pathname === "/learning/progress" && hasAuthenticatedStudent) {
+      void learningApplication.progress().then(setProgress).catch(() => setError("Progress is temporarily unavailable."));
     }
-  }, [learnerId, location.pathname]);
+  }, [hasAuthenticatedStudent, location.pathname]);
 
   const resetQuestionState = () => { setSelectedAnswer(""); setClassification({}); setSequenceAnswer([]); setAdultChecks([]); setAdultEvidence(""); setUsedHint(false); setResult(null); setIsListening(false); };
   const start = async (purpose: "practice" | "diagnostic" | "placement" | "proctored" | "adultScored") => {
     try {
       setIsLoadingSession(true);
-      const next = await learningApplication.start(learnerId, purpose, purpose === "proctored" || purpose === "adultScored" || purpose === "placement" ? proctorCode : undefined, curriculumGrade, selectedSubject);
+      const next = await learningApplication.start(purpose, purpose === "proctored" || purpose === "adultScored" || purpose === "placement" ? proctorCode : undefined, curriculumGrade, selectedSubject);
       setSession(next);
       resetQuestionState();
       setError(null);
@@ -269,15 +269,17 @@ export function LearningApp(): JSX.Element {
     try { setError(null); setResult(await learningApplication.scoreAdult(session.sessionId, demonstrated, adultEvidence)); } catch (reason) { setError(reason instanceof Error ? reason.message : "Unable to save the adult score."); }
   };
   const updatePlacement = async () => {
-    if (!studentSession) return;
+    if (!studentSession || studentSession.demo) return;
     try {
       setError(null);
-      const updated = await learningApplication.updateSubjectLevel(studentSession.student.id, selectedSubject, placementGrade, proctorCode);
+      const updated = await learningApplication.updateSubjectLevel(selectedSubject, placementGrade, proctorCode);
       const next = { ...studentSession, student: { ...studentSession.student, ...updated, subjects: updated.subjects as StudentSession["student"]["subjects"], curriculumLevels: updated.curriculumLevels } };
       saveStudentSession(next);
       setStudentSession(next);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Unable to update this subject level."); }
   };
+
+  if (!hasAuthenticatedStudent) return <main className="learning-app"><section className="learning-shell"><section className="learning-empty-state"><p className="eyebrow">STUDENT LOGIN REQUIRED</p><h1>Sign in to start Learning</h1><p>Your answers, skill progress, and scheduled reviews need a student account so they stay with the right learner.</p><div className="actions"><button onClick={() => { stopSpeaking(); clearStudentSession(); navigate("/lessons"); }}>SIGN IN OR CREATE A STUDENT</button><button className="secondary" onClick={() => navigate("/")}>BACK TO MAIN MENU</button></div></section></section></main>;
 
   return <main className="learning-app"><section className="learning-shell">
     <header><button className="learning-home-button" onClick={() => navigate("/")}>MOLLY'S LEARNING</button><nav aria-label="Learning navigation"><button className="learning-nav-button" onClick={() => navigate("/learning")}>LEARNING</button><button className="learning-nav-button" onClick={() => navigate("/learning/progress")}>PROGRESS</button></nav></header>
