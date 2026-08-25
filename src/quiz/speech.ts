@@ -5,6 +5,20 @@ let speechRequest = 0;
 let pendingHoverSpeech: number | undefined;
 const modelAudioCache = new Map<string, Blob>();
 const pendingModelAudio = new Map<string, Promise<Blob | undefined>>();
+export const REVIEWED_CURRICULUM_CUE_IDS = [
+  "phoneme.m.continuous",
+  "phoneme.s.continuous",
+  "phoneme.t.stop",
+  "phoneme.p.stop",
+  "phoneme.n.continuous",
+  "phoneme.k.stop",
+  "phoneme.a.short",
+] as const;
+export type ReviewedCurriculumCueId = (typeof REVIEWED_CURRICULUM_CUE_IDS)[number];
+
+// Intentionally empty until a qualified reviewer approves the seven Stage 3 recordings.
+// A missing isolated phoneme must never fall through to model or browser TTS.
+const reviewedCurriculumCueSources: Readonly<Partial<Record<ReviewedCurriculumCueId, string>>> = {};
 
 function cacheModelAudio(text: string, audio: Blob): void {
   if (modelAudioCache.size >= 100) {
@@ -103,6 +117,36 @@ export function stopSpeaking(): void {
   }
   stopActiveAudio();
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+
+export function isReviewedCurriculumCueAvailable(cueId: string): cueId is ReviewedCurriculumCueId {
+  return (REVIEWED_CURRICULUM_CUE_IDS as readonly string[]).includes(cueId) && Boolean(reviewedCurriculumCueSources[cueId as ReviewedCurriculumCueId]);
+}
+
+export async function playReviewedCurriculumCue(cueId: ReviewedCurriculumCueId): Promise<boolean> {
+  const source = reviewedCurriculumCueSources[cueId];
+  if (!source) return false;
+  stopSpeaking();
+  const request = speechRequest;
+  const audio = new Audio(source);
+  activeAudio = audio;
+  const completed = new Promise<void>((resolve) => {
+    resolveActiveAudio = resolve;
+    audio.onended = () => {
+      if (activeAudio === audio) activeAudio = undefined;
+      if (resolveActiveAudio === resolve) resolveActiveAudio = undefined;
+      resolve();
+    };
+  });
+  if (request !== speechRequest) return false;
+  try {
+    await audio.play();
+    await completed;
+    return true;
+  } catch {
+    if (activeAudio === audio) activeAudio = undefined;
+    return false;
+  }
 }
 
 function stopActiveAudio(): void {

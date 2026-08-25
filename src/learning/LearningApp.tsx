@@ -3,11 +3,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { speak, stopSpeaking } from "../quiz/speech";
 import { normalizeAnswer } from "../quiz/quizLogic";
 import { clearStudentSession, loadStudentSession, saveStudentSession, type StudentSession } from "../game/utils/studentSession";
-import { learningApplication, type AnswerResult, type LearningSubject, type LessonPlanActivity, type LessonPlanView, type PlacementResult, type ResumableAssessment, type SessionView } from "./learningApplication";
+import { learningApplication, type AnswerResult, type HintResult, type LearningSubject, type LessonPlanActivity, type LessonPlanView, type LessonSupportLevel, type PlacementResult, type ResumableLearningSession, type SessionView } from "./learningApplication";
 import { coreCourseRoadmap } from "./coreCourseRoadmaps";
+import { KindergartenLessonActivity } from "./KindergartenLessonActivity";
 
 type ProgressAttempt = { sessionId: string; primaryStandardId: string; correct: boolean; usedHint: boolean; independent: boolean; purpose: string; submittedAnswer: unknown };
-type Progress = { attempts: ProgressAttempt[]; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; latestDiagnosticPlacement: PlacementResult | null; latestAssessmentSessionId: string | null };
+type Progress = { attempts: ProgressAttempt[]; mastery: Array<{ standardId: string; state: string; nextReviewAt: string | null }>; skillProgress: Array<{ skillId: string; skillName: string; domain: string; state: string }>; latestDiagnosticPlacement: PlacementResult | null; latestAssessmentSessionId: string | null };
 type Classification = Record<string, string>;
 type BrowserRecognition = {
   lang: string;
@@ -180,7 +181,7 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
   setProctorCode: (code: string) => void;
   placementGrade: LearningLevel;
   setPlacementGrade: (grade: LearningLevel) => void;
-  resumableAssessment: ResumableAssessment | null;
+  resumableAssessment: ResumableLearningSession | null;
   resumeAssessment: () => void;
   start: (purpose: LearningPurpose) => Promise<void>;
   updatePlacement: () => Promise<void>;
@@ -219,9 +220,9 @@ function LearningDashboard({ student, selectedSubject, setSelectedSubject, isLoa
       <h2 id="activity-heading" className="!mb-2 !mt-1 !text-2xl">Start your activity</h2>
       <p className="learning-card-note mb-5">{selectedSubject === "MATH" ? "Practice follows a small set of next number skills. Hands-on activities with an adult build mathematical reasoning with real objects and drawings." : selectedSubject === "SCIENCE" ? "Oklahoma science is learned through hands-on investigations with an adult." : selectedSubject === "SOCIAL_STUDIES" ? "Oklahoma social studies is learned through conversations, maps, sources, and real-life inquiry with an adult." : selectedSubject === "HEALTH" ? "Oklahoma health is learned through safe, age-appropriate conversations and everyday healthy routines with an adult." : selectedSubject === "PHYSICAL_EDUCATION" ? "Physical education is guided movement. Choose a clear, safe space and complete each activity with an adult." : selectedSubject === "FINE_ARTS" ? "Fine arts uses making, performing, noticing, and reflecting across dance, drama, media arts, music, and visual art with an adult." : selectedSubject === "COMPUTER_SCIENCE" ? "Computer science uses safe hands-on and unplugged investigations of data, algorithms, programming, networks, and computing systems with an adult." : selectedSubject === "INFORMATION_LITERACY" ? "Information literacy uses books, people, libraries, and safe supervised digital tools to ask questions, research, organize ideas, and share learning." : "Practice follows a small set of next skills. A diagnostic finds the best place to focus next."}</p>
       {resumableAssessment && <div className="level-panel mb-5 rounded-2xl p-5" role="status">
-        <strong className="block text-lg">Your learning check is saved</strong>
+        <strong className="block text-lg">Your {resumableAssessment.mode === "practice" ? "lesson" : "learning check"} is saved</strong>
         <span className="learning-card-note mb-3 mt-1 block">Continue with activity {resumableAssessment.session.position + 1} right where you stopped.</span>
-        <button className="activity-button !rounded-2xl" disabled={isLoading} onClick={resumeAssessment}>RESUME {resumableAssessment.mode === "placement" ? "PLACEMENT" : "DIAGNOSTIC"} <span aria-hidden="true">→</span></button>
+        <button className="activity-button !rounded-2xl" disabled={isLoading} onClick={resumeAssessment}>RESUME {resumableAssessment.mode === "practice" ? "LESSON" : resumableAssessment.mode === "placement" ? "PLACEMENT" : "DIAGNOSTIC"} <span aria-hidden="true">→</span></button>
       </div>}
       {!isAdultObservedOnly && <div className="grid gap-3 sm:grid-cols-2">
         <button className="activity-button !min-h-16 !rounded-2xl" disabled={isLoading} onClick={() => void start("practice")}>START PRACTICE</button>
@@ -280,7 +281,7 @@ export function LearningApp(): JSX.Element {
   const setSelectedSubject = curriculumSubject[1];
   const curriculumGrade = learningGrade(student?.curriculumLevels?.[selectedSubject] ?? student?.grade);
   const [session, setSession] = useState<SessionView | null>(null);
-  const [resumableAssessment, setResumableAssessment] = useState<ResumableAssessment | null>(null);
+  const [resumableAssessment, setResumableAssessment] = useState<ResumableLearningSession | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [classification, setClassification] = useState<Classification>({});
   const [sequenceAnswer, setSequenceAnswer] = useState<string[]>([]);
@@ -295,7 +296,7 @@ export function LearningApp(): JSX.Element {
   const [isListening, setIsListening] = useState(false);
   const [proctorCode, setProctorCode] = useState("");
   const [placementGrade, setPlacementGrade] = useState<LearningLevel>("K");
-  const [progress, setProgress] = useState<Progress>({ attempts: [], mastery: [], latestDiagnosticPlacement: null, latestAssessmentSessionId: null });
+  const [progress, setProgress] = useState<Progress>({ attempts: [], mastery: [], skillProgress: [], latestDiagnosticPlacement: null, latestAssessmentSessionId: null });
   const [lessonPlans, setLessonPlans] = useState<LessonPlanView[]>([]);
   const isQuestion = location.pathname === "/learning/practice" || location.pathname === "/learning/diagnostic" || location.pathname === "/learning/placement" || location.pathname === "/learning/proctored" || location.pathname === "/learning/adult-scored";
   const activeLessonId = location.pathname.match(/^\/learning\/lessons\/([a-z0-9._-]+)$/)?.[1] ?? null;
@@ -332,7 +333,7 @@ export function LearningApp(): JSX.Element {
   useEffect(() => {
     if (location.pathname !== "/learning" || !hasAuthenticatedStudent) return;
     let isActive = true;
-    void learningApplication.resumableAssessment().then((saved) => {
+    void learningApplication.resumableSession().then((saved) => {
       if (!isActive) return;
       setResumableAssessment(saved);
       if (saved?.subject) setSelectedSubject(saved.subject);
@@ -424,19 +425,42 @@ export function LearningApp(): JSX.Element {
     setError(null);
     navigate(`/learning/${resumableAssessment.mode}`);
   };
-  const takeBreak = () => {
+  const takeBreak = async () => {
     if (!session) return;
     stopSpeaking();
-    learningApplication.pause(session);
-    navigate("/learning");
+    try {
+      await learningApplication.pause(session);
+      navigate("/learning");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Your progress is not saved yet. Please try again.");
+    }
   };
   useEffect(() => {
-    const canAutoAdvance = Boolean(result && !result.complete && !result.retry && !result.placement);
+    const canAutoAdvance = Boolean(!session?.activity && result && !result.complete && !result.retry && !result.placement);
     if (!canAutoAdvance) return;
     const timeoutId = window.setTimeout(() => { void advance(); }, CORRECT_ANSWER_ADVANCE_MS);
     return () => window.clearTimeout(timeoutId);
   }, [result, session?.question.id]);
   const choosePhoneme = (choice: string) => { stopSpeaking(); void submit(choice); };
+  const completeLessonActivityAndAdvance = async (): Promise<void> => {
+    if (!session?.activity) return;
+    try {
+      setIsAdvancing(true);
+      const completion = await learningApplication.completeActivity(session.sessionId, session.activity.instanceId);
+      if (completion.complete) { navigate("/learning/progress"); return; }
+      await advance();
+    } catch (reason) {
+      isAdvancingRef.current = false;
+      setIsAdvancing(false);
+      setError(reason instanceof Error ? reason.message : "Unable to save this lesson step.");
+    }
+  };
+  const requestLessonHint = async (level?: LessonSupportLevel): Promise<HintResult> => {
+    if (!session?.activity) throw new Error("This lesson step is no longer active.");
+    const hint = await learningApplication.hint(session.sessionId, session.activity.instanceId, level);
+    setSession((current) => current?.activity ? { ...current, activity: { ...current.activity, highestSupport: hint.highestSupport, evidenceMode: hint.evidenceMode } } : current);
+    return hint;
+  };
   const openLesson = (lessonPlanId: string) => { stopSpeaking(); setError(null); navigate(`/learning/lessons/${lessonPlanId}`); };
   const returnToLearning = () => { stopSpeaking(); navigate("/learning"); };
   const scoreAdult = async (demonstrated: boolean) => {
@@ -463,10 +487,15 @@ export function LearningApp(): JSX.Element {
     {activeLessonId && !activeLessonPlan && <section className="learning-empty-state"><h1>Guided lesson unavailable</h1><p className="feedback">This lesson is not available for your account right now. Return to Learning and try again.</p><button className="secondary" onClick={returnToLearning}>BACK TO LEARNING</button></section>}
     {isQuestion && isLoadingSession && !session && <p className="feedback">Loading your learning session…</p>}
     {isQuestion && !isLoadingSession && !session && <section className="learning-empty-state"><h1>Choose a learning activity</h1><p className="feedback">{error ?? "This session is no longer available. Start a new one to continue."}</p><div className="actions"><button onClick={() => void start(location.pathname.endsWith("diagnostic") ? "diagnostic" : "practice")}>START NEW SESSION</button><Link className="secondary" to="/learning">BACK TO LEARNING</Link></div></section>}
-    {isQuestion && session && <section className="learning-question">
+    {isQuestion && session?.activity && <>
+      {result?.correct && result.celebrate && <CorrectAnswerConfetti burstKey={session.activity.instanceId} />}
+      <KindergartenLessonActivity activity={session.activity} position={session.position} length={session.length} result={result} isBusy={isAdvancing} onSubmit={async (answer) => { await submit(answer); }} onCompleteAndNext={completeLessonActivityAndAdvance} onNext={async () => { await advance(); }} onHint={requestLessonHint} onTakeBreak={takeBreak} />
+      {error && <p className="feedback" role="alert">{error}</p>}
+    </>}
+    {isQuestion && session && !session.activity && <section className="learning-question">
       {result?.correct && <CorrectAnswerConfetti burstKey={session.question.id} />}
       <p className="eyebrow">{location.pathname === "/learning/adult-scored" ? selectedSubject === "MATH" ? "HANDS-ON MATH ACTIVITY" : selectedSubject === "SCIENCE" ? "SCIENCE INVESTIGATION" : selectedSubject === "SOCIAL_STUDIES" ? "SOCIAL STUDIES INQUIRY" : selectedSubject === "HEALTH" ? "HEALTH ACTIVITY" : selectedSubject === "PHYSICAL_EDUCATION" ? "MOVEMENT ACTIVITY" : selectedSubject === "FINE_ARTS" ? "FINE ARTS ACTIVITY" : selectedSubject === "COMPUTER_SCIENCE" ? "COMPUTER SCIENCE ACTIVITY" : selectedSubject === "INFORMATION_LITERACY" ? "INFORMATION LITERACY INQUIRY" : "ADULT-SCORED ELA CHECK" : session.assessmentStage ? `${placementGradeName(session.assessmentStage.grade).toUpperCase()} LEARNING CHECK · ACTIVITY ${session.position + 1}` : `QUESTION ${session.position + 1} OF ${session.length}`}</p>
-      {session.assessmentStage && !result && <button className="secondary" onClick={takeBreak}>TAKE A BREAK</button>}
+      {session.assessmentStage && !result && <button className="secondary" onClick={() => void takeBreak()}>TAKE A BREAK</button>}
       {session.question.interaction.visual && <div className="learning-visual" role="img" aria-label={`${session.question.interaction.visual.count} stars`}>
         {session.question.interaction.visual.count > 0 ? "★".repeat(session.question.interaction.visual.count) : <span className="empty-visual">No stars</span>}
       </div>}
@@ -495,6 +524,6 @@ export function LearningApp(): JSX.Element {
       {result && <><p className={result.correct ? "feedback correct" : "feedback"}>{result.explanation}</p>{result.placement && <PlacementSummary placement={result.placement} title={location.pathname === "/learning/placement" ? "Placement complete" : "Diagnostic complete"} />}{!result.complete && !result.retry && !result.placement ? <button className="learning-continue-button" data-auto-advance="true" disabled={isAdvancing} onClick={() => void advance()} aria-label="Continue to the next activity"><span>CONTINUE</span><span className="continue-arrow" aria-hidden="true">→</span></button> : <button disabled={isAdvancing} onClick={() => void advance()}>{result.complete && result.placement ? "VIEW SKILLS PROGRESS" : result.complete ? "FINISH SESSION" : "TRY ANOTHER ONE"}</button>}</>}
       {error && <p className="feedback">{error}</p>}
     </section>}
-    {location.pathname === "/learning/progress" && <section className="learning-progress"><p className="eyebrow">LEARNING PROGRESS</p><h1>Your skills</h1><p className="learning-card-note">Your latest diagnostic is kept separate from earlier practice so its results are clear.</p>{progress.latestDiagnosticPlacement && <PlacementSummary placement={progress.latestDiagnosticPlacement} title="Latest diagnostic" />}{latestDiagnosticProgress.length > 0 && <section aria-labelledby="diagnostic-skills-heading"><h2 id="diagnostic-skills-heading">Latest diagnostic skills</h2><SkillProgressCards groups={latestDiagnosticProgress} mastery={progress.mastery} isDiagnostic /></section>}{practiceProgress.length > 0 && <section aria-labelledby="practice-progress-heading"><h2 id="practice-progress-heading">Ongoing practice progress</h2><SkillProgressCards groups={practiceProgress} mastery={progress.mastery} /></section>}{!progress.attempts.length && <p>Start a practice or diagnostic session to see learning activity here.</p>}{latestDiagnosticProgress.length > 0 && <p className="learning-card-note mt-5">A diagnostic records what was checked and recommends where to begin. Skills move into Learning and Mastered states through practice or a verified check.</p>}{adultObservationNotes.length > 0 && <section className="adult-observation-notes"><h2>Adult observation notes</h2><ul>{adultObservationNotes.map((observation, index) => <li key={`${observation.standardId}-${index}`}><strong>{observation.standardId}</strong><span>{observation.note}</span></li>)}</ul></section>}</section>}
+    {location.pathname === "/learning/progress" && <section className="learning-progress"><p className="eyebrow">LEARNING PROGRESS</p><h1>Your skills</h1><p className="learning-card-note">Your latest diagnostic is kept separate from earlier practice so its results are clear.</p>{progress.skillProgress.length > 0 && <section aria-labelledby="foundational-skills-heading"><h2 id="foundational-skills-heading">Foundational reading path</h2><div className="progress-grid">{progress.skillProgress.map((skill) => <article key={skill.skillId}><strong>{skill.skillName}</strong><span>{skill.domain}</span><b>{skill.state.toLowerCase().split("_").join(" ")}</b></article>)}</div></section>}{progress.latestDiagnosticPlacement && <PlacementSummary placement={progress.latestDiagnosticPlacement} title="Latest diagnostic" />}{latestDiagnosticProgress.length > 0 && <section aria-labelledby="diagnostic-skills-heading"><h2 id="diagnostic-skills-heading">Latest diagnostic skills</h2><SkillProgressCards groups={latestDiagnosticProgress} mastery={progress.mastery} isDiagnostic /></section>}{practiceProgress.length > 0 && <section aria-labelledby="practice-progress-heading"><h2 id="practice-progress-heading">Ongoing practice progress</h2><SkillProgressCards groups={practiceProgress} mastery={progress.mastery} /></section>}{!progress.attempts.length && <p>Start a practice or diagnostic session to see learning activity here.</p>}{latestDiagnosticProgress.length > 0 && <p className="learning-card-note mt-5">A diagnostic records what was checked and recommends where to begin. Skills move into Learning and Mastered states through practice or a verified check.</p>}{adultObservationNotes.length > 0 && <section className="adult-observation-notes"><h2>Adult observation notes</h2><ul>{adultObservationNotes.map((observation, index) => <li key={`${observation.standardId}-${index}`}><strong>{observation.standardId}</strong><span>{observation.note}</span></li>)}</ul></section>}</section>}
   </section></main>;
 }

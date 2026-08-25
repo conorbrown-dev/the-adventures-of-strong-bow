@@ -40,6 +40,7 @@
     "curriculum:session:plan": "npm run build && node dist/curriculum/infrastructure/cli/curriculum.js session:plan",
     "curriculum:import": "npm run build && node dist/curriculum/infrastructure/cli/curriculum.js import",
     "curriculum:coverage": "npm run build && node dist/curriculum/infrastructure/cli/curriculum.js report",
+    "curriculum:kindergarten:simulate": "ts-node src/curriculum/infrastructure/cli/kindergarten-ela-simulation.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy"

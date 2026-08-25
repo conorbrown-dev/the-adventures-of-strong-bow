@@ -1,4 +1,5 @@
 import type { AttemptEvent, DiagnosticPlacement, LearningSessionRecord, LearningTarget, MasteryRecord, PrerequisiteLink } from "./progress";
+import type { SkillEvidenceEvent, SkillProgressRecord } from "./skill-progress";
 
 export interface ProgressRepository {
   addAttempt(attempt: AttemptEvent): Promise<void>;
@@ -13,4 +14,9 @@ export interface ProgressRepository {
   listDiagnosticPlacements(learnerId: string): Promise<DiagnosticPlacement[]>;
   saveLearningSession(session: LearningSessionRecord): Promise<void>;
   findLearningSession(sessionId: string): Promise<LearningSessionRecord | null>;
+  addSkillEvidence(event: SkillEvidenceEvent): Promise<SkillEvidenceEvent>;
+  listSkillEvidence(learnerId: string, skillId?: string): Promise<SkillEvidenceEvent[]>;
+  saveSkillProgress(record: SkillProgressRecord): Promise<void>;
+  getSkillProgress(learnerId: string, skillId: string, skillVersion: number): Promise<SkillProgressRecord | null>;
+  listSkillProgress(learnerId: string): Promise<SkillProgressRecord[]>;
 }

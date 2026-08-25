@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { saveStudentSession } from "../game/utils/studentSession";
 import { learningApplication, type SessionView } from "./learningApplication";
+import { REVIEWED_CURRICULUM_CUE_IDS, isReviewedCurriculumCueAvailable } from "../quiz/speech";
 
 function createStorage(): Storage {
   const values = new Map<string, string>();
@@ -53,6 +54,12 @@ describe("learningApplication authentication", () => {
     expect(fetch.mock.calls[0]?.[0]).not.toContain("student-1");
   });
 
+  it("does not send pending isolated phonemes through model or browser speech", () => {
+    expect(REVIEWED_CURRICULUM_CUE_IDS).toHaveLength(7);
+    expect(REVIEWED_CURRICULUM_CUE_IDS.every((cueId) => !isReviewedCurriculumCueAvailable(cueId))).toBe(true);
+    expect(isReviewedCurriculumCueAvailable("phoneme.not-reviewed")).toBe(false);
+  });
+
   it("loads the production lesson-plan bundle with the student bearer token", async () => {
     saveStudentSession({ token: "student-token", student: { id: "student-1", username: "Molly", grade: "K", subjects: ["MATH"] } });
     const fetch = vi.fn().mockResolvedValue(Response.json([{ id: "k.math.counting-and-quantities" }]));
@@ -69,13 +76,15 @@ describe("learningApplication authentication", () => {
     const paused = { ...session, position: 3, assessmentStage: { grade: "K", number: 1, total: 3 } };
     const fetch = vi.fn()
       .mockResolvedValueOnce(Response.json(session))
+      .mockResolvedValueOnce(Response.json(paused))
       .mockResolvedValueOnce(Response.json(paused));
     vi.stubGlobal("fetch", fetch);
 
     await learningApplication.start("diagnostic", undefined, "K", "ELA");
-    learningApplication.pause(paused);
+    await learningApplication.pause(paused);
 
-    await expect(learningApplication.resumableAssessment()).resolves.toEqual({ session: paused, mode: "diagnostic", subject: "ELA" });
-    expect(fetch.mock.calls[1]?.[0]).toContain(`/curriculum/learning/sessions/${session.sessionId}`);
+    await expect(learningApplication.resumableSession()).resolves.toEqual({ session: paused, mode: "diagnostic", subject: "ELA" });
+    expect(fetch.mock.calls[1]?.[0]).toContain(`/curriculum/learning/sessions/${session.sessionId}/pause`);
+    expect(fetch.mock.calls[2]?.[0]).toContain(`/curriculum/learning/sessions/${session.sessionId}`);
   });
 });

@@ -130,9 +130,51 @@ model CurriculumAttemptEvent {
   responseDurationMs    Int?
   responseType          String
   attemptedAt           DateTime
+  activityId            String?
+  activityVersion       Int?
+  primarySkillId        String?
+  supportingSkillIds    Json     @default("[]")
+  evidenceMode          String?
+  supportEvents         Json     @default("[]")
 
   @@index([learnerId, primaryStandardId, attemptedAt])
   @@unique([learnerId, sessionId, questionInstanceId, purpose])
+}
+
+model CurriculumSkillProgress {
+  learnerId               String
+  skillId                 String
+  skillVersion            Int
+  state                   String
+  highestCompletedPhase   String?
+  independentAttemptCount Int      @default(0)
+  masteryAchievedAt       DateTime?
+  reviewStage             Int?
+  nextReviewAt            DateTime?
+  updatedAt               DateTime
+
+  @@id([learnerId, skillId, skillVersion])
+  @@index([learnerId, state, nextReviewAt])
+}
+
+model CurriculumSkillEvidenceEvent {
+  id                    String   @id
+  learnerId             String
+  sessionId             String
+  activityInstanceId    String
+  activityId            String
+  activityVersion       Int
+  primarySkillId        String
+  supportingSkillIds    Json     @default("[]")
+  purpose               String
+  evidenceMode          String
+  supportEvents         Json     @default("[]")
+  successful            Boolean
+  response              Json
+  attemptedAt           DateTime
+
+  @@index([learnerId, primarySkillId, attemptedAt])
+  @@unique([learnerId, sessionId, activityInstanceId, purpose])
 }
 
 model CurriculumLearningSession {

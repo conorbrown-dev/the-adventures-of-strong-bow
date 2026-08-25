@@ -11,6 +11,8 @@ export interface AttemptEvent {
   primaryStandardId: string; supportingStandardIds: string[]; submittedAnswer: unknown; correct: boolean;
   usedHint: boolean; independent: boolean; purpose: AttemptPurpose; deliveryContext: string | null;
   responseDurationMs: number | null; attemptedAt: Date; responseType: QuestionResponseType;
+  activityId?: string | null; activityVersion?: number | null; primarySkillId?: string | null; supportingSkillIds?: string[];
+  evidenceMode?: string | null; supportEvents?: string[];
 }
 export interface MasteryRecord {
   learnerId: string; standardId: string; state: MasteryState; scoredAttemptCount: number; masteryAchievedAt: Date | null;

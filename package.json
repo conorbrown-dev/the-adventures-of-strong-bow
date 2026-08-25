@@ -41,6 +41,7 @@
     "curriculum:session:plan": "npm --prefix server run curriculum:session:plan",
     "curriculum:import": "npm --prefix server run curriculum:import",
     "curriculum:coverage": "npm --prefix server run curriculum:coverage",
+    "curriculum:kindergarten:simulate": "npm --prefix server run curriculum:kindergarten:simulate",
     "test:curriculum": "npm --prefix server run test:curriculum",
     "start": "node server.mjs",
     "start:api": "npm --prefix server run start",
