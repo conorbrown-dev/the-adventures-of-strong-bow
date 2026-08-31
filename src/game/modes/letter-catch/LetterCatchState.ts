@@ -11,6 +11,7 @@ export class LetterCatchState {
 
   registerIncorrectCatch(): void {
     this.incorrectCaught += 1;
+    this.correctCaught = Math.max(0, this.correctCaught - 1);
   }
 
   registerMissedTarget(): void {

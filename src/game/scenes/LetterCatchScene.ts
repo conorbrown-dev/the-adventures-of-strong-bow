@@ -390,6 +390,7 @@ export class LetterCatchScene extends Phaser.Scene {
       "#9b2c2c"
     );
     fallingLetter.fadeAndDestroy();
+    this.updateHud();
   }
 
   private cleanupOffscreenLetters(): void {
