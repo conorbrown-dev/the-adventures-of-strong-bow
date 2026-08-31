@@ -24,7 +24,7 @@ export const kindergartenLanguageVariants: Record<string, KindergartenLanguageVa
   "K.RF.2.c": [{ question: "Blend these sounds: /s/ /u/ /n/. What word do they make?", answer: "sun", choices: ["sun", "sin", "sat"], explanation: "The sounds blend to make sun." }],
   "K.RF.2.e": [{ question: "Change the first sound in pig from /p/ to /d/. What word do you make?", answer: "dig", choices: ["dig", "dog", "pig"], explanation: "Changing /p/ to /d/ makes dig." }],
   "K.RF.3.a": [{ question: "What sound does the letter s make?", answer: "/s/", choices: ["/s/", "/m/", "/t/"], explanation: "The letter s usually spells the /s/ sound." }],
-  "K.RF.3.b": [{ question: "Which letter makes the first sound in moon?", answer: "m", choices: ["m", "s", "t"], explanation: "Moon begins with /m/." }],
-  "K.RF.3.c": [{ question: "Which word can you sound out: /p/ /i/ /g/?", answer: "pig", choices: ["pig", "peg", "pin"], explanation: "The sounds /p/ /i/ /g/ make pig." }],
-  "K.RF.3.d": [{ question: "Which is a common word to know by heart?", answer: "is", choices: ["is", "xylophone", "triceratops"], explanation: "Is is a very common word readers learn to recognize." }]
+  "K.RF.3.b": [{ question: "Which word has the short i sound spelled with i?", answer: "pig", choices: ["pig", "peg", "pug"], explanation: "The letter i spells the short vowel sound in pig." }],
+  "K.RF.3.c": [{ question: "Find the high-frequency word readers learn to recognize by sight.", answer: "is", choices: ["is", "xylophone", "triceratops"], explanation: "Is is a common high-frequency word readers learn to recognize by sight." }],
+  "K.RF.3.d": [{ question: "Sit and sat are spelled almost the same. Which part changes?", answer: "the middle sound, i to a", choices: ["the middle sound, i to a", "the first sound, s to m", "the last sound, t to p"], explanation: "Sit has i in the middle, and sat has a in the middle." }]
 };

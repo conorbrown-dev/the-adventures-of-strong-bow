@@ -348,7 +348,7 @@ describe("reviewed deterministic question engine", () => {
 
   it("varies Kindergarten language and foundational-reading prompts while keeping an answer in every choice set", () => {
     const byId = new Map(kindergartenElaTemplates.map((template) => [template.id, template]));
-    for (const templateId of ["k.l.1.b.nouns-verbs", "k.l.4.b.word-parts", "k.rf.3.c.decode-cvc"]) {
+    for (const templateId of ["k.l.1.b.nouns-verbs", "k.l.4.b.word-parts", "k.rf.3.b.vowel-sounds", "k.rf.3.c.high-frequency-words", "k.rf.3.d.similar-words"]) {
       const template = catalogTemplateToQuestionTemplate(byId.get(templateId)!);
       const questions = Array.from({ length: 30 }, (_, seed) => generateQuestion(template, seed));
       expect(new Set(questions.map((question) => question.prompt.text)).size).toBeGreaterThan(1);

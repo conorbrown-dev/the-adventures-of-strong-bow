@@ -42,7 +42,10 @@ Recent milestones:
 - `k.math.operations-and-number-bonds` adds five validated days of concrete addition, subtraction, decomposition, make-ten work, and fluency within five.
 - `1.math.addition-and-subtraction-strategies` adds five validated Grade 1 days covering story problems, related facts, counting strategies, unknowns, and equation meaning.
 - `1.ela.sound-spelling-and-word-reading` adds five validated, adult-supported Grade 1 days covering oral phoneme work, digraphs, one-syllable decoding, short/long vowel contrasts, syllables, endings, irregular words, and controlled-text reading.
-- The lesson-plan catalog now contains five plans and 25 instructional days: one reviewed production plan and four validated drafts. The generated HTML/JSON review packet contains all five plans, while the production API continues to expose only the reviewed plan.
+- `k.ela.short-vowels-and-cvc-sounds` adds five validated, adult-supported days for short-vowel listening, phoneme isolation, oral blending and segmenting, sound substitution, and CVC spelling. The executable `K.RF.3.b` through `K.RF.3.d` checks were realigned to vowel spellings, high-frequency words, and similarly spelled words instead of the prior shifted mappings.
+- `k.math.shapes-measurement-and-data` adds five validated days for positions, flat and solid shapes, shape construction and composition, direct measurement comparison, classification, counting, and category comparison.
+- `1.math.place-value-and-two-digit-strategies` adds five validated days for counting to 120, tens and ones, teen and decade numbers, two-digit comparison, addition within 100, ten more or less, and subtracting tens.
+- The lesson-plan catalog now contains eight plans and 40 instructional days: one reviewed production plan and seven validated drafts. The generated HTML/JSON review packet contains all eight plans, while the production API continues to expose only the reviewed plan.
 
 ## Remaining objectives
 
@@ -81,7 +84,7 @@ Recent milestones:
 
 ## Recommended next increment
 
-Review the four validated sequences as one K–1 packet and approve only those whose unchanged content hashes pass named human review. The next authoring tranche should complete Kindergarten shapes/measurement/data, add the remaining short-vowel and controlled-text scope to the executable ELA engine, and build Grade 1 place-value instruction. Continue to treat reviewed question coverage and complete instructional coverage as separate claims.
+Review the seven validated sequences as one K–1 packet and approve only those whose unchanged content hashes pass named human review. The next authoring tranche should expand the executable Kindergarten ELA engine with correctly aligned short-vowel item banks and adult-inspected controlled text, then build Grade 1 measurement/geometry and comprehension/writing sequences. Continue to treat reviewed question coverage, multi-day instruction, and complete grade-level curriculum as separate claims.
 
 ## Verification commands
 

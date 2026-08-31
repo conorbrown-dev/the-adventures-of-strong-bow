@@ -7,7 +7,7 @@ import { getCurriculumPaths } from "./vendored-standards.validator";
 
 describe("lesson-plan catalog", () => {
   it("validates a complete multi-day Kindergarten counting sequence", async () => {
-    await expect(validateLessonPlanCatalog()).resolves.toEqual({ total: 5, draft: 0, validated: 4, reviewed: 1, retired: 0, days: 25 });
+    await expect(validateLessonPlanCatalog()).resolves.toEqual({ total: 8, draft: 0, validated: 7, reviewed: 1, retired: 0, days: 40 });
     const plans = await loadLessonPlanCatalog();
     const plan = plans.find((item) => item.id === "k.math.counting-and-quantities");
     expect(plan).toBeDefined();
@@ -21,17 +21,20 @@ describe("lesson-plan catalog", () => {
     const plan = plans.find((item) => item.id === "k.ela.print-and-early-reading");
     expect(plan).toEqual(expect.objectContaining({ grade: "K", subject: "ela", review: expect.objectContaining({ status: "validated" }) }));
     expect(plan?.days).toHaveLength(5);
-    expect(plan?.days.flatMap((day) => day.independentPractice.templateIds)).toContain("k.rf.3.c.decode-cvc");
+    expect(plan?.days.flatMap((day) => day.independentPractice.templateIds)).toEqual(expect.arrayContaining(["k.rf.2.c.blending-segmenting", "k.rf.3.c.high-frequency-words", "k.rf.3.d.similar-words"]));
   });
 
-  it("includes validated K-1 operations and Grade 1 word-reading sequences outside production", async () => {
+  it("includes validated K-1 instructional sequences outside production", async () => {
     const plans = await loadLessonPlanCatalog();
     const validatedPlans = plans.filter((plan) => plan.review.status === "validated");
     expect(validatedPlans.map((plan) => plan.id)).toEqual([
       "1.ela.sound-spelling-and-word-reading",
       "1.math.addition-and-subtraction-strategies",
+      "1.math.place-value-and-two-digit-strategies",
       "k.ela.print-and-early-reading",
+      "k.ela.short-vowels-and-cvc-sounds",
       "k.math.operations-and-number-bonds",
+      "k.math.shapes-measurement-and-data",
     ]);
     expect(validatedPlans.every((plan) => plan.days.length === 5)).toBe(true);
     expect(validatedPlans.every((plan) => plan.days.every((day) => day.independentPractice.templateIds.length >= 2))).toBe(true);
@@ -45,6 +48,17 @@ describe("lesson-plan catalog", () => {
     const gradeOneReading = validatedPlans.find((plan) => plan.id === "1.ela.sound-spelling-and-word-reading");
     expect(gradeOneReading?.days.flatMap((day) => day.independentPractice.templateIds)).toEqual(expect.arrayContaining(["1.rf.3.a.digraphs", "1.rf.3.g.irregular-words"]));
     expect(JSON.stringify(gradeOneReading)).toContain("controlled text");
+
+    const kindergartenSoundWork = validatedPlans.find((plan) => plan.id === "k.ela.short-vowels-and-cvc-sounds");
+    const kindergartenSoundTemplates = kindergartenSoundWork?.days.flatMap((day) => day.independentPractice.templateIds);
+    expect(kindergartenSoundTemplates).toEqual(expect.arrayContaining(["k.rf.2.d.medial-vowel", "k.l.2.c.cvc-spelling"]));
+    expect(kindergartenSoundTemplates).toContain("k.rf.3.b.vowel-sounds");
+
+    const kindergartenShapes = validatedPlans.find((plan) => plan.id === "k.math.shapes-measurement-and-data");
+    expect(kindergartenShapes?.days.flatMap((day) => day.independentPractice.templateIds)).toEqual(expect.arrayContaining(["k.g.b.6.compose-shapes", "k.md.b.3.sort-and-count"]));
+
+    const gradeOnePlaceValue = validatedPlans.find((plan) => plan.id === "1.math.place-value-and-two-digit-strategies");
+    expect(gradeOnePlaceValue?.days.flatMap((day) => day.independentPractice.templateIds)).toEqual(expect.arrayContaining(["1.nbt.a.1.count-to-120", "1.nbt.c.6.subtract-tens"]));
   });
 
   it("includes only the human-reviewed sequence in the production bundle", async () => {

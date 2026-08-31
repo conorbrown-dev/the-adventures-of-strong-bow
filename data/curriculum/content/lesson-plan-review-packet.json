@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T21:50:57.948Z",
+  "generatedAt": "2026-08-31T22:23:19.643Z",
   "plans": [
     {
       "schemaVersion": 1,
@@ -865,6 +865,419 @@
     },
     {
       "schemaVersion": 1,
+      "id": "1.math.place-value-and-two-digit-strategies",
+      "version": 1,
+      "grade": "1",
+      "subject": "math",
+      "unitId": "1.math.unit-2",
+      "title": "Place Value and Two-Digit Strategies",
+      "summary": "A five-day sequence for counting to 120, composing tens and ones, comparing two-digit numbers, adding with place-value strategies, and finding ten more or less.",
+      "standardIds": [
+        "1.NBT.A.1",
+        "1.NBT.B.2.a",
+        "1.NBT.B.2.b",
+        "1.NBT.B.2.c",
+        "1.NBT.B.3",
+        "1.NBT.C.4",
+        "1.NBT.C.5",
+        "1.NBT.C.6"
+      ],
+      "materials": [
+        {
+          "name": "At least 120 countable objects",
+          "alternatives": [
+            "bundled craft sticks",
+            "connecting cubes grouped in tens"
+          ]
+        },
+        {
+          "name": "Tens-and-ones mat",
+          "alternatives": [
+            "two columns labeled tens and ones on paper"
+          ]
+        },
+        {
+          "name": "Hundred chart extended to 120",
+          "alternatives": [
+            "number cards from 0 through 120"
+          ]
+        },
+        {
+          "name": "Base-ten blocks",
+          "alternatives": [
+            "bundles of ten sticks and single sticks",
+            "drawn tens rods and ones dots"
+          ]
+        },
+        {
+          "name": "Paper and pencil",
+          "alternatives": [
+            "a small whiteboard and marker"
+          ]
+        }
+      ],
+      "days": [
+        {
+          "day": 1,
+          "title": "Count, Read, and Bundle to 120",
+          "objective": "I can count, read, and write numbers to 120 and show that one ten is ten ones.",
+          "standardIds": [
+            "1.NBT.A.1",
+            "1.NBT.B.2.a"
+          ],
+          "adultSetup": [
+            "Prepare a collection that can be grouped into bundles of ten plus singles.",
+            "Mark several missing numbers on the chart, including numbers greater than 100."
+          ],
+          "textRecommendation": "Choose a counting or collection book that shows objects organized in groups rather than only isolated numerals.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Count forward from a number other than one and stop at a named target.",
+              "Fill two missing numbers on the chart and explain the pattern."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Count ten single objects, bundle them, and state that one ten is the same quantity as ten ones.",
+              "Continue counting bundles and singles while matching the quantity to written numerals.",
+              "Model reading and writing a number greater than 100 without treating the chart as the counted quantity."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Build several quantities with bundles and singles and count them together.",
+              "Start at different numbers and count forward across a decade and across 100.",
+              "Match spoken number names, written numerals, and represented quantities."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen count-to-120 and ten-as-ones checks.",
+              "Build one adult-named number with bundles and singles and write its numeral without copying."
+            ],
+            "templateIds": [
+              "1.nbt.a.1.count-to-120",
+              "1.nbt.b.2.a.ten-ones"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Choose a starting number below 120, count forward ten numbers, and write the sequence."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Use one bundle and ten singles and pair each single with one stick in the bundle.",
+              "Count within a smaller range, then cross only one decade after the representation is secure."
+            ]
+          },
+          "masteryEvidence": [
+            "Counts forward within 120 from at least two non-one starting numbers.",
+            "Represents and explains one ten as ten ones and matches a quantity to its written numeral."
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Teens and Decade Numbers",
+          "objective": "I can show teen numbers and decade numbers as tens and ones.",
+          "standardIds": [
+            "1.NBT.B.2.a",
+            "1.NBT.B.2.b",
+            "1.NBT.B.2.c"
+          ],
+          "adultSetup": [
+            "Prepare bundles of ten, single objects, and numeral cards for 10 through 19 and 20 through 90 by tens.",
+            "Lay out the tens-and-ones mat."
+          ],
+          "textRecommendation": "Choose a counting book or visual collection that organizes quantities in rows or groups of ten.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Trade ten singles for one bundle and explain why the quantity stays the same.",
+              "Count by tens to ninety using bundles."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Build fourteen as one ten and four ones, connecting each digit to its place.",
+              "Build forty as four tens and zero ones and contrast 14 with 40.",
+              "Read each number aloud after checking the model rather than relying on digit order alone."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Build and record several teen numbers.",
+              "Build and record several decade numbers with zero ones.",
+              "Sort numeral cards into teen numbers and decade numbers, then justify each placement with tens and ones."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen ten-ones, teen-number, and decade-number checks.",
+              "Represent one teen number and one decade number and explain what each digit means."
+            ],
+            "templateIds": [
+              "1.nbt.b.2.a.ten-ones",
+              "1.nbt.b.2.b.teen-tens",
+              "1.nbt.b.2.c.tens"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Write a pair such as 16 and 60, draw each with tens and ones, and explain why the same digits have different values."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Contrast one teen number with one decade number using physical bundles.",
+              "Say tens and ones before writing each digit into its labeled column."
+            ]
+          },
+          "masteryEvidence": [
+            "Represents a teen number as one ten and the correct number of ones.",
+            "Represents a decade number as the correct number of tens and zero ones."
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Compare Two-Digit Numbers",
+          "objective": "I can compare two two-digit numbers by looking at tens first and ones second.",
+          "standardIds": [
+            "1.NBT.B.2.a",
+            "1.NBT.B.3"
+          ],
+          "adultSetup": [
+            "Prepare base-ten materials, two tens-and-ones mats, numeral cards, and greater-than, less-than, and equals symbols.",
+            "Include comparison pairs with different tens, equal tens, and equal values."
+          ],
+          "textRecommendation": "Choose a story or picture showing two collections and discuss how organization into tens makes comparison easier.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Compare two single-digit quantities with more, less, or equal language.",
+              "Build two tens in two different ways and confirm both represent twenty."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Build 34 and 28 and compare the tens before the ones.",
+              "Build 34 and 37 and explain why the ones decide when the tens are equal.",
+              "Place the comparison symbol between numerals only after stating the relationship in words."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Build and compare three pairs of two-digit numbers.",
+              "For each pair, point to the first place that determines the comparison.",
+              "Include an equal pair represented with different-looking materials to separate quantity from arrangement."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen tens-and-ones and comparison checks.",
+              "Build or draw one comparison and explain why the chosen symbol is true."
+            ],
+            "templateIds": [
+              "1.nbt.b.2.a.ten-ones",
+              "1.nbt.b.3.compare"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Order three two-digit numeral cards from least to greatest and justify both comparison steps."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Use pairs with clearly different tens and cover the ones column.",
+              "Pair tens rods one-to-one before naming more or less, then uncover ones only when tens match."
+            ]
+          },
+          "masteryEvidence": [
+            "Compares two-digit numbers using tens and ones rather than an unrelated cue.",
+            "Uses greater than, less than, or equal language and matches it to the correct symbol."
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Add with Tens and Ones",
+          "objective": "I can add within 100 by combining tens and ones and explain when ten ones become a new ten.",
+          "standardIds": [
+            "1.NBT.B.2.a",
+            "1.NBT.C.4",
+            "1.NBT.C.5"
+          ],
+          "adultSetup": [
+            "Prepare base-ten materials and two tens-and-ones mats.",
+            "Choose examples that include adding a two-digit number and one-digit number, adding two two-digit numbers, and making a new ten."
+          ],
+          "textRecommendation": "Choose a short joining story involving grouped objects, such as boxes of ten crayons plus single crayons.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Build a two-digit number and state its tens and ones.",
+              "Add ten without recounting the ones and describe what changes."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 9,
+            "directions": [
+              "Model 32 plus 5 by combining ones while keeping tens organized.",
+              "Model 38 plus 7, trade ten ones for one ten, and recount by place value.",
+              "Write an equation and explain that adding tens to tens and ones to ones preserves each unit's value."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 11,
+            "directions": [
+              "Solve one example without composing a new ten and one example that does.",
+              "Connect the blocks to a drawing of tens and ones and then to an equation.",
+              "Estimate whether the result should be greater than the starting number and check the written answer against the model."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete six on-screen addition and ten-more-or-less checks.",
+              "Solve one adult-given addition problem with a model or drawing and explain the place-value steps."
+            ],
+            "templateIds": [
+              "1.nbt.c.4.add-within-100",
+              "1.nbt.c.5.ten-more-less"
+            ],
+            "itemCount": 6
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Solve the same addition with blocks and a drawing, then explain how each part corresponds."
+            ]
+          },
+          "reteach": {
+            "minutes": 8,
+            "directions": [
+              "Use a two-digit number plus one or two ones without composing a ten.",
+              "Keep tens and ones in labeled columns, then introduce a trade only after separate-place addition is secure."
+            ]
+          },
+          "masteryEvidence": [
+            "Adds within 100 using a concrete model or drawing aligned by place value.",
+            "Explains that ten ones can be composed into one ten when needed."
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Ten More, Ten Less, and Subtract Tens",
+          "objective": "I can find ten more or ten less and subtract groups of ten from a two-digit number.",
+          "standardIds": [
+            "1.NBT.B.3",
+            "1.NBT.C.4",
+            "1.NBT.C.5",
+            "1.NBT.C.6"
+          ],
+          "adultSetup": [
+            "Prepare the number chart, base-ten materials, and cards showing plus ten and minus ten.",
+            "Choose subtraction examples using multiples of ten whose answers stay at or above zero."
+          ],
+          "textRecommendation": "Choose a short story about adding or removing full packages of ten while single items remain unchanged.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Find a number on the chart, then move one row down and one row up.",
+              "Use bundles to explain why those moves change the number by ten."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 9,
+            "directions": [
+              "Build 54, add one ten, and explain why the ones digit stays four.",
+              "Return to 54, remove one ten, and connect the model to ten less.",
+              "Model 70 minus 30 as seven tens minus three tens and check the result by adding thirty back."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 11,
+            "directions": [
+              "Find ten more and ten less for numbers with and without zero ones.",
+              "Subtract multiples of ten with bundles, drawings, and equations.",
+              "Compare the starting number and answer and explain which place changed."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete six on-screen comparison, addition, ten-more-or-less, and subtract-tens checks.",
+              "Solve one subtract-tens example with a representation and verify it using addition."
+            ],
+            "templateIds": [
+              "1.nbt.b.3.compare",
+              "1.nbt.c.4.add-within-100",
+              "1.nbt.c.5.ten-more-less",
+              "1.nbt.c.6.subtract-tens"
+            ],
+            "itemCount": 6
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Create a three-step chain using ten more or ten less and ask an adult to predict and verify the ending number."
+            ]
+          },
+          "reteach": {
+            "minutes": 8,
+            "directions": [
+              "Use only full bundles and subtract one bundle at a time while counting tens aloud.",
+              "Return to a two-digit number with unchanged ones and physically remove or add exactly one tens rod."
+            ]
+          },
+          "masteryEvidence": [
+            "Finds ten more and ten less for varied two-digit numbers and explains the place-value change.",
+            "Subtracts multiples of ten from multiples of ten using a tens-based strategy.",
+            "Uses comparison or inverse addition to check whether a result is reasonable."
+          ]
+        }
+      ],
+      "accessibility": {
+        "audioSupported": true,
+        "requiresColor": false,
+        "reducedMotionSafe": true,
+        "accommodationNotes": [
+          "Read directions and story contexts aloud and allow replay without penalty.",
+          "Use tactile bundles, labeled place-value columns, and high-contrast numerals rather than color as the only grouping cue.",
+          "Accept object placement, pointing, eye gaze, drawing, signing, or spoken explanation when writing is not assessed.",
+          "Reduce the number range temporarily while preserving the same place-value relationship, then rebuild the range after success."
+        ]
+      },
+      "provenance": {
+        "origin": "original",
+        "license": "Project original curriculum content."
+      },
+      "review": {
+        "status": "validated",
+        "notes": "Machine-validated instructional draft. It requires named human curriculum review before production use."
+      }
+    },
+    {
+      "schemaVersion": 1,
       "id": "k.ela.print-and-early-reading",
       "version": 1,
       "grade": "K",
@@ -876,6 +1289,8 @@
         "K.RF.1.a",
         "K.RF.1.b",
         "K.RF.1.c",
+        "K.RF.2.c",
+        "K.RF.2.d",
         "K.RF.3.a",
         "K.RF.3.b",
         "K.RF.3.c",
@@ -1045,8 +1460,8 @@
           "title": "Letters Connect to Sounds",
           "objective": "I can name a letter and connect it to a sound in a familiar word.",
           "standardIds": [
-            "K.RF.3.a",
-            "K.RF.3.b"
+            "K.RF.2.d",
+            "K.RF.3.a"
           ],
           "adultSetup": [
             "Choose four known letter cards and four picture or object examples.",
@@ -1078,12 +1493,12 @@
           "independentPractice": {
             "minutes": 6,
             "directions": [
-              "Complete three reviewed letter-and-sound items without an answer-revealing hint.",
+              "Complete three reviewed initial-sound and letter-sound items without an answer-revealing hint.",
               "Keep directions spoken, but do not pronounce an assessed answer choice."
             ],
             "templateIds": [
-              "k.rf.3.a.letter-sounds",
-              "k.rf.3.b.common-sounds"
+              "k.rf.2.d.initial-sound",
+              "k.rf.3.a.letter-sounds"
             ],
             "itemCount": 3
           },
@@ -1110,8 +1525,10 @@
           "title": "Slide Sounds Into a Word",
           "objective": "I can use letter sounds to read a simple three-sound word.",
           "standardIds": [
-            "K.RF.3.b",
-            "K.RF.3.c"
+            "K.RF.2.c",
+            "K.RF.2.d",
+            "K.RF.3.a",
+            "K.RF.3.b"
           ],
           "adultSetup": [
             "Prepare letter cards for two short consonant-vowel-consonant words such as map and sat.",
@@ -1136,19 +1553,21 @@
             "minutes": 8,
             "directions": [
               "Build one word together, touching each card in order.",
-              "Change one card and notice how the word changes.",
-              "Use a picture choice to check the blended word."
+              "Name the vowel letter and connect it to its short sound in the word.",
+              "Blend the word and use a picture choice to check it."
             ]
           },
           "independentPractice": {
             "minutes": 6,
             "directions": [
-              "Complete three reviewed word-reading items without an answer-revealing hint.",
-              "Record whether the learner read independently or used adult support."
+              "Complete three reviewed blending, medial-sound, and vowel-spelling items without an answer-revealing hint.",
+              "Record whether the learner blended independently or used adult support."
             ],
             "templateIds": [
-              "k.rf.3.b.common-sounds",
-              "k.rf.3.c.decode-cvc"
+              "k.rf.2.c.blending-segmenting",
+              "k.rf.2.d.medial-vowel",
+              "k.rf.3.a.letter-sounds",
+              "k.rf.3.b.vowel-sounds"
             ],
             "itemCount": 3
           },
@@ -1178,6 +1597,8 @@
             "K.RF.1.a",
             "K.RF.1.b",
             "K.RF.1.c",
+            "K.RF.2.c",
+            "K.RF.2.d",
             "K.RF.3.a",
             "K.RF.3.b",
             "K.RF.3.c",
@@ -1198,16 +1619,16 @@
           "explicitModel": {
             "minutes": 6,
             "directions": [
-              "Model starting at the correct side, tracking each word, blending the decodable word, and recognizing the familiar word.",
-              "Explain that readers can use more than one helpful thing they know."
+              "Model starting at the correct side, tracking each word, blending a regular word, and recognizing a high-frequency word by sight.",
+              "Compare one similar word pair, such as map and mop, and identify the different middle letters and sounds."
             ]
           },
           "guidedPractice": {
             "minutes": 8,
             "directions": [
               "Read the controlled sentence together twice.",
-              "Pause before one word for the learner to use a letter-sound or word-memory strategy.",
-              "Celebrate strategy use, including pointing, rather than speed."
+              "Pause before one word for the learner to use a letter-sound or sight-word strategy.",
+              "Compare a similar word pair and point to the letter and sound that change."
             ]
           },
           "independentPractice": {
@@ -1220,10 +1641,12 @@
               "k.rf.1.a.book-parts",
               "k.rf.1.b.print-direction",
               "k.rf.1.c.words-and-sentences",
+              "k.rf.2.c.blending-segmenting",
+              "k.rf.2.d.medial-vowel",
               "k.rf.3.a.letter-sounds",
-              "k.rf.3.b.common-sounds",
-              "k.rf.3.c.decode-cvc",
-              "k.rf.3.d.high-frequency-words"
+              "k.rf.3.b.vowel-sounds",
+              "k.rf.3.c.high-frequency-words",
+              "k.rf.3.d.similar-words"
             ],
             "itemCount": 4
           },
@@ -1265,6 +1688,419 @@
       "review": {
         "status": "validated",
         "notes": "Machine-validated instructional draft. It requires named human curriculum review before production use."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "k.ela.short-vowels-and-cvc-sounds",
+      "version": 1,
+      "grade": "K",
+      "subject": "ela",
+      "unitId": "k.ela.unit-2",
+      "title": "Short Vowels and CVC Sound Work",
+      "summary": "A five-day, adult-supported sequence for hearing short vowels, isolating phonemes, blending and segmenting consonant-vowel-consonant words, changing sounds, and spelling simple words.",
+      "standardIds": [
+        "K.L.2.c",
+        "K.RF.2.c",
+        "K.RF.2.d",
+        "K.RF.2.e",
+        "K.RF.3.a",
+        "K.RF.3.b"
+      ],
+      "materials": [
+        {
+          "name": "Lowercase letter cards for common consonants and vowels",
+          "alternatives": [
+            "letters written on paper squares",
+            "magnetic letters"
+          ]
+        },
+        {
+          "name": "Three sound boxes and counters",
+          "alternatives": [
+            "three circles drawn on paper and small blocks"
+          ]
+        },
+        {
+          "name": "Picture cards or familiar objects for simple CVC words",
+          "alternatives": [
+            "adult-drawn pictures",
+            "objects found around the home"
+          ]
+        },
+        {
+          "name": "Paper and a thick pencil or crayon",
+          "alternatives": [
+            "a small whiteboard and marker"
+          ]
+        }
+      ],
+      "days": [
+        {
+          "day": 1,
+          "title": "Hear Short A and Short I",
+          "objective": "I can hear the middle sound in a simple word and tell whether it is short a or short i.",
+          "standardIds": [
+            "K.RF.2.d",
+            "K.RF.3.b"
+          ],
+          "adultSetup": [
+            "Prepare pictures or objects for map, cat, fish, and pig plus the lowercase a and i cards.",
+            "Use an adult's natural voice or a reviewed phoneme recording for isolated sounds; ordinary text-to-speech must not model the assessed phoneme."
+          ],
+          "textRecommendation": "Choose an alphabet or rhyming book with several clear short-a and short-i words; use the book for listening, not as an independent decoding demand.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Say two familiar words that begin with the same sound and notice the first sound together.",
+              "Move one counter for the first, middle, and last sounds in map."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Stretch map without adding an extra vowel after either consonant and identify the middle sound.",
+              "Place the a card in the middle sound box, then repeat with fish and the i card.",
+              "Contrast map and mip as spoken forms so the learner hears that changing the vowel changes the word."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Sort pictured words by the short-a or short-i middle sound.",
+              "For each word, move three counters while saying the sounds with the learner.",
+              "Ask the learner to point to the vowel card and explain the choice by repeating the middle sound."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 6,
+            "directions": [
+              "Complete four on-screen initial-, medial-, and vowel-sound checks without answer-revealing speech.",
+              "Then say and segment one pictured word for the adult; the on-screen checks support but do not replace this oral evidence."
+            ],
+            "templateIds": [
+              "k.rf.2.d.initial-sound",
+              "k.rf.2.d.medial-vowel",
+              "k.rf.3.b.vowel-sounds"
+            ],
+            "itemCount": 4
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Find or draw one more short-a word and one more short-i word, then identify each middle sound."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Use only two pictured words with the same beginning and ending, such as map and mip.",
+              "Say each word slowly, point to the middle box, and let the learner imitate before choosing a vowel card."
+            ]
+          },
+          "masteryEvidence": [
+            "Correctly isolates the medial sound in at least three CVC examples with adult-recorded support level.",
+            "Distinguishes short a from short i in at least three of four spoken examples."
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Hear Short O, Short E, and Short U",
+          "objective": "I can listen for short o, short e, and short u in the middle of simple words.",
+          "standardIds": [
+            "K.RF.2.d",
+            "K.RF.3.b"
+          ],
+          "adultSetup": [
+            "Prepare pictures or objects for sun, cup, dog, log, hen, and net plus lowercase o, e, and u cards.",
+            "Preview every word and replace any picture the learner cannot readily name."
+          ],
+          "textRecommendation": "Choose a playful read-aloud containing familiar CVC words; pause to notice only a few target words so meaning remains central.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Review one short-a and one short-i example from Day 1.",
+              "Say sun, dog, and hen while the learner taps once for each sound."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Model stretching sun and listening in the middle, then place u in the middle sound box.",
+              "Repeat with dog and hen, keeping each vowel sound brief and natural.",
+              "Explain that the vowel is the middle letter in these three-sound words."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Sort six pictures under o, e, or u.",
+              "Check each choice by segmenting the word into three sounds together.",
+              "Mix in one short-a and one short-i picture for cumulative comparison."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 6,
+            "directions": [
+              "Complete four on-screen medial-vowel, final-sound, and vowel-spelling checks.",
+              "Keep assessed choices silent; use an adult's natural voice only for the target word when the item requires listening."
+            ],
+            "templateIds": [
+              "k.rf.2.d.medial-vowel",
+              "k.rf.2.d.final-sound",
+              "k.rf.3.b.vowel-sounds"
+            ],
+            "itemCount": 4
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Make five vowel headings and place one practiced picture under each heading."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Contrast only two vowels at a time using words with matching consonants when possible.",
+              "Let the learner watch the adult's mouth, repeat the word, and touch the middle sound box before choosing."
+            ]
+          },
+          "masteryEvidence": [
+            "Sorts familiar CVC words by two or more target short-vowel sounds.",
+            "Isolates the middle sound rather than naming a picture or guessing from its first letter."
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Stretch, Tap, and Blend",
+          "objective": "I can separate three sounds in a CVC word and blend them back into the word.",
+          "standardIds": [
+            "K.RF.2.c",
+            "K.RF.2.d",
+            "K.RF.3.a"
+          ],
+          "adultSetup": [
+            "Prepare three sound boxes, counters, and letter cards for map, sit, sun, and log.",
+            "Plan to accept pointing or counter movement when speech production is difficult, while still checking sound awareness separately from articulation."
+          ],
+          "textRecommendation": "Use a short oral wordplay rhyme with clear one-syllable words; this day's primary text is spoken language rather than connected print.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Push one counter for each sound in a practiced word.",
+              "Sweep a finger under the counters and say the whole word without pausing."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Say map, stretch it into three phonemes, and move one counter per sound.",
+              "Replace each counter with its lowercase letter while repeating the same sound sequence.",
+              "Slide a finger under the letters and blend the sounds into map."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Segment and blend three words together using counters before letters.",
+              "Ask which sound is first, middle, and last in different examples.",
+              "Have the learner choose the matching lowercase letters after the oral sound work succeeds."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen blending, medial-vowel, and letter-sound checks without answer-revealing narration.",
+              "Orally segment and blend one new adult-selected CVC word; record whether it was independent, prompted, or modeled."
+            ],
+            "templateIds": [
+              "k.rf.2.c.blending-segmenting",
+              "k.rf.2.d.medial-vowel",
+              "k.rf.3.a.letter-sounds"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Draw a three-box sound train and teach an adult how to ride each sound into the whole word."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Blend two parts first by holding the first two sounds close together, then add the final sound.",
+              "Return to counters without print if letter naming competes with listening."
+            ]
+          },
+          "masteryEvidence": [
+            "Segments at least two CVC words into three ordered phonemes using voice, counters, or another accessible response.",
+            "Blends at least two modeled sound sequences into recognizable words."
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Change a Sound and Spell a Word",
+          "objective": "I can change one sound in a CVC word and write the letters that match the sounds.",
+          "standardIds": [
+            "K.L.2.c",
+            "K.RF.2.d",
+            "K.RF.2.e",
+            "K.RF.3.a"
+          ],
+          "adultSetup": [
+            "Prepare letter cards that can build map, mop, top, tip, and sit.",
+            "Provide pencil support or movable letters so handwriting effort does not hide phoneme knowledge."
+          ],
+          "textRecommendation": "Choose a simple word-family poem for an adult read-aloud, then compare its rhyming words by sound and letter.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Build map with letter cards and touch each sound.",
+              "Ask which card is in the middle and which sound it represents."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Change map to mop by replacing a with o and say both words.",
+              "Change mop to top by replacing the first letter and identify the changed phoneme.",
+              "Segment top and write one letter for each sound, saying the sound before writing its letter."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Make a short word chain by changing only one sound at a time.",
+              "Before moving a card, ask whether the changed sound is first, middle, or last.",
+              "Dictate one familiar CVC word for the learner to build or write, then read it back together."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen sound-substitution, sound-position, letter-sound, and spelling checks.",
+              "Spell one adult-dictated CVC word with movable letters or writing without showing the answer first."
+            ],
+            "templateIds": [
+              "k.rf.2.e.sound-substitution",
+              "k.rf.2.d.medial-vowel",
+              "k.rf.3.a.letter-sounds",
+              "k.l.2.c.cvc-spelling"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Create a two-step word chain and challenge an adult to name the sound that changed each time."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Keep two letters fixed and offer only two cards for the changing position.",
+              "Say both resulting words and move a counter for the changed sound before returning to letters."
+            ]
+          },
+          "masteryEvidence": [
+            "Adds or substitutes one phoneme to make a new spoken CVC word.",
+            "Represents most sounds in at least two familiar CVC words with plausible letters."
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Use Every Sound in a CVC Word",
+          "objective": "I can listen, segment, blend, change, and spell simple words with short vowels.",
+          "standardIds": [
+            "K.L.2.c",
+            "K.RF.2.c",
+            "K.RF.2.d",
+            "K.RF.2.e",
+            "K.RF.3.a",
+            "K.RF.3.b"
+          ],
+          "adultSetup": [
+            "Prepare six previously practiced pictures and letter cards plus one new regular CVC word.",
+            "Choose target words whose pronunciations are familiar in the learner's home dialect and record support without penalizing dialect difference."
+          ],
+          "textRecommendation": "Use a very short adult-checked controlled sentence containing only practiced sound patterns and familiar words; inspect every word before presenting it.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Review all five lowercase vowel cards and say one familiar short-vowel word for each.",
+              "Let the learner choose two words to segment with counters."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Model a full routine with one word: listen, repeat, segment, choose letters, blend, and check meaning.",
+              "Show how to return to the sound boxes when the spelling or blended word does not match."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Complete the full routine together for two words with different short vowels.",
+              "Read the adult-checked controlled sentence together and locate a practiced CVC word.",
+              "Change one sound in that word and decide whether the result is a real word."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete six mixed on-screen checks without answer-revealing narration.",
+              "Independently segment, build, and blend one familiar word; use the on-screen score only as supporting evidence."
+            ],
+            "templateIds": [
+              "k.rf.2.c.blending-segmenting",
+              "k.rf.2.d.medial-vowel",
+              "k.rf.2.e.sound-substitution",
+              "k.rf.3.a.letter-sounds",
+              "k.rf.3.b.vowel-sounds",
+              "k.l.2.c.cvc-spelling"
+            ],
+            "itemCount": 6
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Make a tiny word book with one practiced word and picture per page, then read it to an adult."
+            ]
+          },
+          "reteach": {
+            "minutes": 8,
+            "directions": [
+              "Choose the strongest word from the week and complete one step at a time with counters and letters.",
+              "Remove answer choices, reduce the number of sounds being compared, and rebuild only after a successful oral response."
+            ]
+          },
+          "masteryEvidence": [
+            "Segments and blends a familiar CVC word without an answer choice supplying the word.",
+            "Selects or writes a plausible letter for each phoneme in a familiar CVC word.",
+            "Treats digital question results as supporting checks rather than proof of independent oral phoneme performance."
+          ]
+        }
+      ],
+      "accessibility": {
+        "audioSupported": true,
+        "requiresColor": false,
+        "reducedMotionSafe": true,
+        "accommodationNotes": [
+          "Read directions aloud but keep assessed phoneme and answer choices from being revealed by narration.",
+          "Use an adult's natural voice or reviewed isolated-phoneme recording; ordinary text-to-speech is not a phoneme model.",
+          "Accept counters, pointing, eye gaze, signing, or letter selection when speech or handwriting is not the assessed skill.",
+          "Teach fewer sound contrasts at once, allow extra processing time, and record support level without treating an accommodation as failure."
+        ]
+      },
+      "provenance": {
+        "origin": "original",
+        "license": "Project original curriculum content."
+      },
+      "review": {
+        "status": "validated",
+        "notes": "Machine-validated instructional draft. It requires named human curriculum review and controlled-text inspection before production use."
       }
     },
     {
@@ -2099,6 +2935,421 @@
           "Use tactile or larger counters and high-contrast mats when helpful.",
           "Accept pointing, moving objects, eye gaze, signing, drawing, or speech when handwriting is not the target.",
           "Reduce the total quantity while preserving the operation when working-memory or motor demands interfere."
+        ]
+      },
+      "provenance": {
+        "origin": "original",
+        "license": "Project original curriculum content."
+      },
+      "review": {
+        "status": "validated",
+        "notes": "Machine-validated instructional draft. It requires named human curriculum review before production use."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "k.math.shapes-measurement-and-data",
+      "version": 1,
+      "grade": "K",
+      "subject": "math",
+      "unitId": "k.math.unit-3",
+      "title": "Shapes, Measurement, and Data",
+      "summary": "A five-day hands-on sequence for describing positions and shapes, comparing and composing shapes, measuring attributes directly, and sorting and counting objects.",
+      "standardIds": [
+        "K.G.A.1",
+        "K.G.A.2",
+        "K.G.A.3",
+        "K.G.B.4",
+        "K.G.B.5",
+        "K.G.B.6",
+        "K.MD.A.1",
+        "K.MD.A.2",
+        "K.MD.B.3"
+      ],
+      "materials": [
+        {
+          "name": "Flat shape cutouts in varied sizes and orientations",
+          "alternatives": [
+            "hand-drawn paper shapes",
+            "household objects with traceable faces"
+          ]
+        },
+        {
+          "name": "Solid objects such as a ball, box, can, and cone",
+          "alternatives": [
+            "building blocks",
+            "safe food containers"
+          ]
+        },
+        {
+          "name": "Building sticks and modeling dough",
+          "alternatives": [
+            "straws and reusable adhesive",
+            "craft sticks and string"
+          ]
+        },
+        {
+          "name": "Objects to compare and sort",
+          "alternatives": [
+            "socks, spoons, or blocks",
+            "paper picture cards"
+          ]
+        },
+        {
+          "name": "Paper and a thick pencil or crayon",
+          "alternatives": [
+            "a small whiteboard and marker"
+          ]
+        }
+      ],
+      "days": [
+        {
+          "day": 1,
+          "title": "Shapes Around and Beside Us",
+          "objective": "I can name a flat shape and describe where it is.",
+          "standardIds": [
+            "K.G.A.1",
+            "K.G.A.2"
+          ],
+          "adultSetup": [
+            "Place circles, triangles, rectangles, squares, and hexagons in varied sizes and rotations around a small play area.",
+            "Do not organize or identify shapes by color because color is not the defining attribute."
+          ],
+          "textRecommendation": "Choose a shape-search picture book that shows shapes in multiple orientations and everyday settings.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Use a toy to act out above, below, beside, in front of, and behind.",
+              "Let the learner copy each position and say or point to the matching word."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Name a triangle by its three straight sides and corners even when it points sideways.",
+              "Describe its location using a complete position phrase, such as beside the box.",
+              "Rotate the triangle and explain why its name does not change."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Find and name shapes in several positions around the play area.",
+              "Ask the learner to place a named shape above, beside, or behind an object.",
+              "Compare a large and small example to confirm size does not change the shape name."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 6,
+            "directions": [
+              "Complete four on-screen position and shape-name checks.",
+              "Then follow one adult direction that combines a shape and a position without a visual answer choice."
+            ],
+            "templateIds": [
+              "k.g.a.1.positions-and-shapes",
+              "k.g.a.2.name-shapes"
+            ],
+            "itemCount": 4
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Give an adult two shape-and-position directions to follow, then check the result."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Use one shape and two contrasting positions at a time.",
+              "Trace the shape's sides and corners before naming it, then physically move it to each position."
+            ]
+          },
+          "masteryEvidence": [
+            "Names common flat shapes across more than one size or orientation.",
+            "Accurately follows or gives at least two directions using position words."
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Flat Shapes and Solid Shapes",
+          "objective": "I can tell whether a shape is flat or solid and compare its parts.",
+          "standardIds": [
+            "K.G.A.2",
+            "K.G.A.3",
+            "K.G.B.4"
+          ],
+          "adultSetup": [
+            "Pair flat shape cutouts with safe solid objects, such as a circle and ball or rectangle and box.",
+            "Include examples that differ in color, size, and orientation."
+          ],
+          "textRecommendation": "Choose an illustrated book about building or objects in a town and notice flat faces and solid forms in the pictures and environment.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Review two flat shapes by tracing their boundaries.",
+              "Roll a ball and slide a box, then describe what happened."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Model that a paper circle is flat while a ball is solid and can be held from different sides.",
+              "Compare a square and rectangle by counting sides and corners and noticing what is alike and different.",
+              "Turn each example to show that orientation does not change its attributes."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Sort objects into flat-shape pictures and solid objects using touch and sight.",
+              "Compare two flat shapes by sides and corners.",
+              "Compare two solid objects by whether they roll, stack, or have flat faces without using behavior as the only definition."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 6,
+            "directions": [
+              "Complete four on-screen shape-name, flat-or-solid, and shape-comparison checks.",
+              "Explain one answer using a side, corner, face, or solid-versus-flat attribute."
+            ],
+            "templateIds": [
+              "k.g.a.2.name-shapes",
+              "k.g.a.3.flat-and-solid",
+              "k.g.b.4.compare-shapes"
+            ],
+            "itemCount": 4
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Find one solid household object and sketch one of its flat faces."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Contrast one flat cutout with one solid object the learner can handle.",
+              "Trace around the flat shape, then turn the solid object and feel more than one face or surface."
+            ]
+          },
+          "masteryEvidence": [
+            "Classifies familiar examples as flat shapes or solid shapes.",
+            "Compares two shapes using at least one defining attribute rather than color or size alone."
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Build and Compose Shapes",
+          "objective": "I can build a shape and combine smaller shapes to make a larger shape.",
+          "standardIds": [
+            "K.G.B.4",
+            "K.G.B.5",
+            "K.G.B.6"
+          ],
+          "adultSetup": [
+            "Prepare building sticks, dough connectors, shape cutouts, and a clear workspace.",
+            "Create one model triangle and one picture made from two or more shapes."
+          ],
+          "textRecommendation": "Choose a picture book with buildings, quilts, mosaics, or tangram-like illustrations that invite noticing shapes within larger pictures.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Trace and count the sides of a triangle and rectangle.",
+              "Choose which sticks might build each outline."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Build a triangle from three sticks and connect each endpoint.",
+              "Join two triangles to make a larger shape and trace the new outside boundary.",
+              "Name both the small component shapes and the composed shape when it has a familiar name."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Build a square or rectangle from sticks and check its sides and corners.",
+              "Combine two or more cutouts to match a simple silhouette.",
+              "Separate the composition and find a different arrangement using the same pieces."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen comparison, building, and composing checks.",
+              "Build or draw one named shape and make one larger picture from at least two shapes without copying the adult model exactly."
+            ],
+            "templateIds": [
+              "k.g.b.4.compare-shapes",
+              "k.g.b.5.build-shapes",
+              "k.g.b.6.compose-shapes"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Design a shape creature or building and tell which shapes were combined."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Place sticks directly over a printed outline before building without the outline.",
+              "Use only two large cutouts and rotate one at a time until their edges meet."
+            ]
+          },
+          "masteryEvidence": [
+            "Builds or draws a recognizable flat shape from its attributes.",
+            "Combines at least two simple shapes and identifies the parts within the composition."
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Describe and Compare Measurements",
+          "objective": "I can describe measurable attributes and directly compare two objects.",
+          "standardIds": [
+            "K.MD.A.1",
+            "K.MD.A.2"
+          ],
+          "adultSetup": [
+            "Choose pairs of objects that can be aligned for length, lifted safely for weight, or visibly compared for capacity.",
+            "Avoid pairs whose difference is too subtle to judge directly."
+          ],
+          "textRecommendation": "Choose a read-aloud about size, growth, cooking, or construction and notice words such as longer, shorter, heavier, lighter, and holds more.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Name two measurable attributes of a familiar object, such as length and weight.",
+              "Act out long and short with arm movements without assigning numbers."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Align two pencils at one endpoint before deciding which is longer.",
+              "Compare two safe objects by holding one in each hand and describing which feels heavier.",
+              "Explain that fair comparison uses the same attribute and a direct method."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Compare three object pairs for length after aligning their endpoints.",
+              "Compare one pair for weight and one pair for capacity using safe direct methods.",
+              "Ask the learner to state the attribute and comparison word for each result."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen attribute and direct-comparison checks.",
+              "Choose two new objects, select one shared attribute, compare them directly, and explain the result."
+            ],
+            "templateIds": [
+              "k.md.a.1.measurable-attributes",
+              "k.md.a.2.compare-measurement"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Order three objects from shortest to longest by repeating pairwise direct comparisons."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Compare only length with two clearly different objects.",
+              "Align endpoints together and trace from the shared start to each endpoint before using longer or shorter."
+            ]
+          },
+          "masteryEvidence": [
+            "Names at least one measurable attribute for a familiar object.",
+            "Directly compares two objects sharing that attribute and uses an accurate comparison word."
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Sort, Count, and Describe Data",
+          "objective": "I can sort objects into categories, count each group, and compare the groups.",
+          "standardIds": [
+            "K.MD.A.1",
+            "K.MD.A.2",
+            "K.MD.B.3"
+          ],
+          "adultSetup": [
+            "Prepare ten to fifteen objects with at least two observable sorting attributes.",
+            "Make category labels with words and simple symbols so categories do not depend on color alone."
+          ],
+          "textRecommendation": "Choose an information book with pictured categories, such as animals, foods, or vehicles, and discuss how the author groups information.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Describe two attributes of one object.",
+              "Sort three sample objects into two adult-named categories and explain the rule."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Choose one clear sorting rule and place every object into exactly one category.",
+              "Count each category by touching each object once and record the totals with numerals or marks.",
+              "Compare the category counts using more, fewer, or the same number."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Sort a mixed collection together and let the learner name the category rule.",
+              "Recount after arranging each category in a line to check accuracy.",
+              "Resort the same objects by a different attribute and discuss how the data changed."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete six on-screen attribute, comparison, and sorting-and-counting checks.",
+              "Independently sort a small set, count each category, and state which has more, fewer, or the same number."
+            ],
+            "templateIds": [
+              "k.md.a.1.measurable-attributes",
+              "k.md.a.2.compare-measurement",
+              "k.md.b.3.sort-and-count"
+            ],
+            "itemCount": 6
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Draw a simple picture record with one mark per object in each category and ask an adult a comparison question."
+            ]
+          },
+          "reteach": {
+            "minutes": 8,
+            "directions": [
+              "Use six objects and two categories with an obvious rule.",
+              "Place category symbols above two rows, touch-count each row, and pair objects across rows before comparing totals."
+            ]
+          },
+          "masteryEvidence": [
+            "Classifies a collection into named categories using a consistent rule.",
+            "Counts each category accurately and compares the category totals with appropriate language.",
+            "Explains that a new sorting attribute can organize the same objects differently."
+          ]
+        }
+      ],
+      "accessibility": {
+        "audioSupported": true,
+        "requiresColor": false,
+        "reducedMotionSafe": true,
+        "accommodationNotes": [
+          "Use spoken and visible labels for position, shape, attribute, and category words.",
+          "Provide large tactile shapes and safe easy-grip objects when helpful.",
+          "Accept pointing, eye gaze, object placement, signing, or spoken explanation when drawing or handwriting is not assessed.",
+          "Use size, texture, symbol, or position in addition to color so no task requires color discrimination."
         ]
       },
       "provenance": {
