@@ -7,11 +7,21 @@ import { getCurriculumPaths } from "./vendored-standards.validator";
 
 describe("lesson-plan catalog", () => {
   it("validates a complete multi-day Kindergarten counting sequence", async () => {
-    await expect(validateLessonPlanCatalog()).resolves.toEqual({ total: 1, draft: 0, validated: 0, reviewed: 1, retired: 0, days: 5 });
-    const [plan] = await loadLessonPlanCatalog();
-    expect(plan.standardIds).toEqual(["K.CC.A.1", "K.CC.A.2", "K.CC.A.3"]);
-    expect(plan.days).toHaveLength(5);
-    expect(plan.days.every((day) => day.adultSetup.length > 0 && day.independentPractice.templateIds.length >= 2 && day.reteach.directions.length > 0)).toBe(true);
+    await expect(validateLessonPlanCatalog()).resolves.toEqual({ total: 2, draft: 0, validated: 1, reviewed: 1, retired: 0, days: 10 });
+    const plans = await loadLessonPlanCatalog();
+    const plan = plans.find((item) => item.id === "k.math.counting-and-quantities");
+    expect(plan).toBeDefined();
+    expect(plan?.standardIds).toEqual(["K.CC.A.1", "K.CC.A.2", "K.CC.A.3"]);
+    expect(plan?.days).toHaveLength(5);
+    expect(plan?.days.every((day) => day.adultSetup.length > 0 && day.independentPractice.templateIds.length >= 2 && day.reteach.directions.length > 0)).toBe(true);
+  });
+
+  it("includes a validated Kindergarten ELA instructional sequence outside production", async () => {
+    const plans = await loadLessonPlanCatalog();
+    const plan = plans.find((item) => item.id === "k.ela.print-and-early-reading");
+    expect(plan).toEqual(expect.objectContaining({ grade: "K", subject: "ela", review: expect.objectContaining({ status: "validated" }) }));
+    expect(plan?.days).toHaveLength(5);
+    expect(plan?.days.flatMap((day) => day.independentPractice.templateIds)).toContain("k.rf.3.c.decode-cvc");
   });
 
   it("includes only the human-reviewed sequence in the production bundle", async () => {
@@ -21,7 +31,10 @@ describe("lesson-plan catalog", () => {
   });
 
   it("teaches the full K.CC.A.1 count-to-100 requirement beyond the small-range digital probes", async () => {
-    const [plan] = await loadLessonPlanCatalog();
+    const plans = await loadLessonPlanCatalog();
+    const plan = plans.find((item) => item.id === "k.math.counting-and-quantities");
+    expect(plan).toBeDefined();
+    if (!plan) throw new Error("Expected the Kindergarten counting lesson plan.");
     const countSequenceDays = plan.days.filter((day) => day.standardIds.includes("K.CC.A.1"));
     const authoredText = JSON.stringify(countSequenceDays);
     expect(authoredText).toContain("100 by ones");

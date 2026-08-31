@@ -38,6 +38,7 @@ Recent milestones:
 - `k.math.counting-and-quantities` is the first reviewed sequence: five instructional days covering `K.CC.A.1`, `K.CC.A.2`, and `K.CC.A.3` with adult setup, concrete materials, text recommendations, explicit modeling, guided practice, reviewed-template question banks, extensions, reteach paths, accommodations, and measurable evidence.
 - Conor Brown approved the sequence on August 25, 2026. Its content hash is stored with the review record, and the production lesson-plan loader now includes it.
 - The standalone Learning dashboard now shows the approved plan at the learner's selected grade and subject. The dedicated guided-lesson screen includes every day, materials, text recommendation, independent-practice mapping, reteach path, accommodations, replayable model-backed overview narration, and predictable return navigation. The authenticated endpoint exposes only reviewed lesson plans.
+- `k.ela.print-and-early-reading` is a machine-validated five-day Kindergarten ELA instructional draft. It teaches print concepts, letter-sound connections, and early word reading using existing reviewed templates, and remains outside the production bundle until named human review.
 
 ## Remaining objectives
 
@@ -76,7 +77,7 @@ Recent milestones:
 
 ## Recommended next increment
 
-Use the working lesson-plan model to author the next Kindergarten ELA sequence, mapped only to existing reviewed templates and kept `validated` until a named human curriculum reviewer approves its unchanged content hash. Then author and review the remaining Kindergarten Math and ELA roadmap units. Continue through Grades 1 and 2 only after the Kindergarten sequences and workflow are stable. This is the largest gap between standards-aligned questions and a complete homeschool curriculum.
+Submit the validated Kindergarten ELA sequence for named human curriculum review, then author the remaining Kindergarten Math and ELA roadmap units from existing reviewed templates. Continue through Grades 1 and 2 only after the Kindergarten sequences and workflow are stable. This is the largest gap between standards-aligned questions and a complete homeschool curriculum.
 
 ## Verification commands
 
