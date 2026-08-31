@@ -39,6 +39,10 @@ Recent milestones:
 - Conor Brown approved the sequence on August 25, 2026. Its content hash is stored with the review record, and the production lesson-plan loader now includes it.
 - The standalone Learning dashboard now shows the approved plan at the learner's selected grade and subject. The dedicated guided-lesson screen includes every day, materials, text recommendation, independent-practice mapping, reteach path, accommodations, replayable model-backed overview narration, and predictable return navigation. The authenticated endpoint exposes only reviewed lesson plans.
 - `k.ela.print-and-early-reading` is a machine-validated five-day Kindergarten ELA instructional draft. It teaches print concepts, letter-sound connections, and early word reading using existing reviewed templates, and remains outside the production bundle until named human review.
+- `k.math.operations-and-number-bonds` adds five validated days of concrete addition, subtraction, decomposition, make-ten work, and fluency within five.
+- `1.math.addition-and-subtraction-strategies` adds five validated Grade 1 days covering story problems, related facts, counting strategies, unknowns, and equation meaning.
+- `1.ela.sound-spelling-and-word-reading` adds five validated, adult-supported Grade 1 days covering oral phoneme work, digraphs, one-syllable decoding, short/long vowel contrasts, syllables, endings, irregular words, and controlled-text reading.
+- The lesson-plan catalog now contains five plans and 25 instructional days: one reviewed production plan and four validated drafts. The generated HTML/JSON review packet contains all five plans, while the production API continues to expose only the reviewed plan.
 
 ## Remaining objectives
 
@@ -77,7 +81,7 @@ Recent milestones:
 
 ## Recommended next increment
 
-Submit the validated Kindergarten ELA sequence for named human curriculum review, then author the remaining Kindergarten Math and ELA roadmap units from existing reviewed templates. Continue through Grades 1 and 2 only after the Kindergarten sequences and workflow are stable. This is the largest gap between standards-aligned questions and a complete homeschool curriculum.
+Review the four validated sequences as one K–1 packet and approve only those whose unchanged content hashes pass named human review. The next authoring tranche should complete Kindergarten shapes/measurement/data, add the remaining short-vowel and controlled-text scope to the executable ELA engine, and build Grade 1 place-value instruction. Continue to treat reviewed question coverage and complete instructional coverage as separate claims.
 
 ## Verification commands
 

@@ -1,6 +1,1272 @@
 {
-  "generatedAt": "2026-08-25T11:16:51.643Z",
+  "generatedAt": "2026-08-31T21:50:57.948Z",
   "plans": [
+    {
+      "schemaVersion": 1,
+      "id": "1.ela.sound-spelling-and-word-reading",
+      "version": 1,
+      "grade": "1",
+      "subject": "ela",
+      "unitId": "1.ela.unit-1",
+      "title": "Sound-Spelling and Word Reading",
+      "summary": "A five-day, adult-supported bridge from phoneme work and short-vowel words into digraphs, long-vowel patterns, two-syllable words, endings, and irregular words.",
+      "standardIds": [
+        "1.RF.2.a",
+        "1.RF.2.b",
+        "1.RF.2.c",
+        "1.RF.2.d",
+        "1.RF.3.a",
+        "1.RF.3.b",
+        "1.RF.3.c",
+        "1.RF.3.d",
+        "1.RF.3.e",
+        "1.RF.3.f",
+        "1.RF.3.g"
+      ],
+      "materials": [
+        {
+          "name": "Letter cards including common digraphs",
+          "alternatives": [
+            "letters and digraphs written on paper squares",
+            "magnetic letters"
+          ]
+        },
+        {
+          "name": "Three to six small sound counters",
+          "alternatives": [
+            "buttons",
+            "coins",
+            "small blocks"
+          ]
+        },
+        {
+          "name": "Word cards for the patterns being taught",
+          "alternatives": [
+            "words written in large print on paper strips"
+          ]
+        },
+        {
+          "name": "Paper and pencil",
+          "alternatives": [
+            "a small whiteboard and marker"
+          ]
+        },
+        {
+          "name": "A short controlled text limited to taught patterns",
+          "alternatives": [
+            "adult-written controlled sentences checked word by word"
+          ]
+        }
+      ],
+      "days": [
+        {
+          "day": 1,
+          "title": "Hear, Blend, and Segment Every Sound",
+          "objective": "I can blend a spoken word and separate it into phonemes in order.",
+          "standardIds": [
+            "1.RF.2.a",
+            "1.RF.2.b",
+            "1.RF.2.c",
+            "1.RF.2.d"
+          ],
+          "adultSetup": [
+            "Choose five familiar one-syllable words with three or four phonemes.",
+            "Use a natural adult voice for isolated phonemes and avoid adding an extra vowel to consonant sounds."
+          ],
+          "textRecommendation": "Use a playful rhyme or poem as an oral-language warm-up, then select only familiar words for explicit sound work.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Say two rhyming words and notice the shared ending.",
+              "Stretch one continuous sound and contrast it with one quick stop sound."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Push one counter for each sound in a word without showing letters first.",
+              "Sweep beneath the counters while blending the sounds back into the word.",
+              "Identify the first, last, and vowel sound after the whole word is known."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Blend two adult-segmented words.",
+              "Segment two words with counters and check by blending them again.",
+              "Correct order errors by returning to the spoken word rather than spelling from memory."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete five reviewed phoneme and vowel-sound items with spoken adult support for isolated sounds.",
+              "Do not let text-to-speech pronunciation of slash notation replace the adult sound model."
+            ],
+            "templateIds": [
+              "1.rf.2.a.vowel-sounds",
+              "1.rf.2.b.blending",
+              "1.rf.2.c.isolate-phonemes",
+              "1.rf.2.d.segment-phonemes"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Change one sound in a practiced word and blend the new word."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Use two- or three-phoneme words and one counter per sound.",
+              "Model and copy one word before asking for an independent response.",
+              "Avoid printed letters until the oral sequence is stable."
+            ]
+          },
+          "masteryEvidence": [
+            "Blends and segments at least three familiar one-syllable words in order.",
+            "Identifies a requested beginning, ending, or vowel sound without relying on printed choices alone."
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Read Digraphs and Consonant Clusters",
+          "objective": "I can recognize common digraphs and blend them in one-syllable words.",
+          "standardIds": [
+            "1.RF.2.b",
+            "1.RF.2.c",
+            "1.RF.3.a",
+            "1.RF.3.b"
+          ],
+          "adultSetup": [
+            "Prepare cards for sh, ch, th, wh, ng, and ck plus known single letters.",
+            "Choose controlled words that use known short vowels and only one new consonant pattern at a time."
+          ],
+          "textRecommendation": "Choose a decodable passage or adult-written sentences limited to known short vowels and the digraphs explicitly taught that day.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Review two known CVC words.",
+              "Place s and h together and explain that the pair represents one sound in the target words."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Build a word such as ship and mark sh as one sound-spelling unit.",
+              "Blend from left to right without separating the digraph.",
+              "Contrast a word with a digraph and a word with two separately pronounced consonants."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Sort words by their beginning or ending digraph.",
+              "Build and blend several controlled words with letter cards.",
+              "Read one controlled sentence and point to the taught pattern."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete five reviewed blending, phoneme, digraph, and one-syllable word items.",
+              "Read each target word before using a picture or meaning check."
+            ],
+            "templateIds": [
+              "1.rf.2.b.blending",
+              "1.rf.2.c.isolate-phonemes",
+              "1.rf.3.a.digraphs",
+              "1.rf.3.b.one-syllable-decode"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Find taught digraphs in a familiar book without requiring every surrounding word to be read."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Teach one digraph with two contrasting word choices.",
+              "Underline or connect the two letters so they move as one unit.",
+              "Return to oral blending before asking for sentence reading."
+            ]
+          },
+          "masteryEvidence": [
+            "Reads controlled one-syllable words containing at least two taught digraphs.",
+            "Keeps the digraph together as one sound-spelling unit while blending."
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Compare Short and Long Vowel Patterns",
+          "objective": "I can compare short- and long-vowel words and use a taught pattern to read them.",
+          "standardIds": [
+            "1.RF.2.a",
+            "1.RF.3.b",
+            "1.RF.3.c"
+          ],
+          "adultSetup": [
+            "Prepare a small set of reviewed final-e word pairs such as cap and cape or kit and kite.",
+            "Prepare cards for the common vowel teams oa and ee, and keep the controlled text limited to the final-e and vowel-team patterns explicitly taught."
+          ],
+          "textRecommendation": "Use a short controlled text that contrasts reviewed short-vowel words with explicitly taught final-e, oa, and ee words; preteach any essential irregular word.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Read two known short-vowel words.",
+              "Listen to one short and one long vowel sound in familiar words and name what changes."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Build a short-vowel word, read it, then add final e and reread.",
+              "Model oa in boat and ee in seed as two-letter teams that represent a long vowel sound.",
+              "Check each pronunciation by matching the letters to the taught pattern and asking whether it makes a recognizable word."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Transform reviewed final-e word pairs with letter cards.",
+              "Sort a small set into short-vowel, final-e, oa, and ee patterns.",
+              "Read controlled phrases and explain which spelling pattern helped."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete five reviewed vowel-sound, one-syllable decoding, and long-vowel items.",
+              "Read the whole target before selecting an answer and avoid untaught vowel teams in adult-created examples."
+            ],
+            "templateIds": [
+              "1.rf.2.a.vowel-sounds",
+              "1.rf.3.b.one-syllable-decode",
+              "1.rf.3.c.long-vowels"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Make and illustrate two related short/long word pairs from reviewed patterns."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Use one word pair and color-independent marks under the vowel positions.",
+              "Read each word after every card change.",
+              "Do not introduce a second long-vowel spelling until the first contrast is reliable."
+            ]
+          },
+          "masteryEvidence": [
+            "Reads several reviewed short/long contrast words using their spelling patterns.",
+            "Explains the relevant difference without overgeneralizing the pattern to every word."
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Use Syllables and Endings",
+          "objective": "I can break a word into syllables and use a familiar ending to help read it.",
+          "standardIds": [
+            "1.RF.3.d",
+            "1.RF.3.e",
+            "1.RF.3.f"
+          ],
+          "adultSetup": [
+            "Prepare familiar compound and two-syllable word cards.",
+            "Prepare base-word cards with reviewed endings such as s, ed, and ing."
+          ],
+          "textRecommendation": "Choose several controlled sentences containing only reviewed two-syllable words and endings; avoid presenting syllable labels as a substitute for decoding.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Clap the syllables in several familiar names and objects.",
+              "Read a known base word and then the same word with s or ing."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Mark the spoken syllables in a familiar two-syllable word and connect them to printed parts.",
+              "Read a base word first, then attach and read its ending.",
+              "Explain how an ending can change meaning or time while the base remains recognizable."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Divide and blend several familiar two-syllable words.",
+              "Build base-word and ending combinations, reading each complete word.",
+              "Use the resulting words in short oral or printed sentences."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete five reviewed syllable, two-syllable decoding, and ending items.",
+              "For one word, cover the ending, read the base, uncover the ending, and reread."
+            ],
+            "templateIds": [
+              "1.rf.3.d.syllables",
+              "1.rf.3.e.two-syllable-decode",
+              "1.rf.3.f.inflectional-endings"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Make a small word family chart from one base word and several reviewed endings."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Use a familiar compound whose two parts are independently readable.",
+              "Say, mark, and read each part before blending the whole.",
+              "Teach one ending at a time and compare it with the unchanged base."
+            ]
+          },
+          "masteryEvidence": [
+            "Uses a meaningful division to read familiar two-syllable words.",
+            "Reads a known base word with at least two reviewed endings and explains one meaning change."
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Read Regular and Irregular Words in Text",
+          "objective": "I can use sound-spelling patterns and remembered irregular parts to read a controlled text.",
+          "standardIds": [
+            "1.RF.2.b",
+            "1.RF.2.d",
+            "1.RF.3.a",
+            "1.RF.3.b",
+            "1.RF.3.c",
+            "1.RF.3.e",
+            "1.RF.3.f",
+            "1.RF.3.g"
+          ],
+          "adultSetup": [
+            "Prepare a short controlled text using patterns taught during the week.",
+            "Choose no more than two essential irregular words and mark their regular and unexpected parts."
+          ],
+          "textRecommendation": "Use four to eight connected sentences whose sound-spelling demands have been checked against the learner's taught scope; reread the same text for accuracy before fluency.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Review one word from each taught pattern.",
+              "Analyze one irregular word by identifying the parts that work as expected and the part to remember."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Read the first controlled sentence from left to right and model solving one unfamiliar regular word.",
+              "Model recognizing an explicitly taught irregular word without pretending every part is decodable.",
+              "Reread the sentence smoothly only after it is accurate."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Alternate sentences with the learner and discuss one decoding choice per sentence.",
+              "Prompt self-correction when a pronunciation does not fit the letters or sentence meaning.",
+              "Reread a short section with less adult support."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 9,
+            "directions": [
+              "Complete six cumulative reviewed phonics and word-recognition items.",
+              "Then read the controlled text independently while the adult records patterns used, self-corrections, and any supplied words."
+            ],
+            "templateIds": [
+              "1.rf.2.b.blending",
+              "1.rf.2.d.segment-phonemes",
+              "1.rf.3.a.digraphs",
+              "1.rf.3.b.one-syllable-decode",
+              "1.rf.3.c.long-vowels",
+              "1.rf.3.e.two-syllable-decode",
+              "1.rf.3.f.inflectional-endings",
+              "1.rf.3.g.irregular-words"
+            ],
+            "itemCount": 6
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Illustrate the controlled text and write or dictate one additional sentence using reviewed patterns."
+            ]
+          },
+          "reteach": {
+            "minutes": 8,
+            "directions": [
+              "Return to one error pattern and a word-card model.",
+              "Practice two parallel words, then reread only the sentence containing that pattern.",
+              "Supply untaught words directly rather than turning them into an unplanned decoding test."
+            ]
+          },
+          "masteryEvidence": [
+            "Reads a short controlled text with accurate use of taught patterns and recorded support level.",
+            "Distinguishes pattern-based decoding from the explicitly remembered part of an irregular word.",
+            "Self-corrects at least one mismatch when appropriate; speed is not used as the sole mastery criterion."
+          ]
+        }
+      ],
+      "accessibility": {
+        "audioSupported": true,
+        "requiresColor": false,
+        "reducedMotionSafe": true,
+        "accommodationNotes": [
+          "Read directions aloud and provide replay without penalty, but do not use ordinary TTS as an isolated-phoneme model.",
+          "Use large high-contrast print, tactile letters, and sound counters when helpful.",
+          "Accept pointing, moving cards, eye gaze, signing, or speech when handwriting is not being assessed.",
+          "Teach fewer patterns at once and provide additional accurate rereading without treating the accommodation as failed mastery."
+        ]
+      },
+      "provenance": {
+        "origin": "original",
+        "license": "Project original curriculum content."
+      },
+      "review": {
+        "status": "validated",
+        "notes": "Machine-validated instructional draft. It requires named human curriculum review and controlled-text inspection before production use."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "1.math.addition-and-subtraction-strategies",
+      "version": 1,
+      "grade": "1",
+      "subject": "math",
+      "unitId": "1.math.unit-1",
+      "title": "Addition and Subtraction Strategies",
+      "summary": "A five-day sequence for solving addition and subtraction situations, using properties and counting strategies, finding unknowns, and reasoning about equations.",
+      "standardIds": [
+        "1.OA.A.1",
+        "1.OA.A.2",
+        "1.OA.B.3",
+        "1.OA.B.4",
+        "1.OA.C.5",
+        "1.OA.C.6",
+        "1.OA.D.7",
+        "1.OA.D.8"
+      ],
+      "materials": [
+        {
+          "name": "Twenty counters",
+          "alternatives": [
+            "buttons",
+            "blocks",
+            "dry beans"
+          ]
+        },
+        {
+          "name": "Two ten-frames",
+          "alternatives": [
+            "two hand-drawn grids with ten boxes each"
+          ]
+        },
+        {
+          "name": "A number path from 0 through 20",
+          "alternatives": [
+            "numeral cards arranged in order"
+          ]
+        },
+        {
+          "name": "Number and operation-symbol cards",
+          "alternatives": [
+            "numbers and symbols written on paper squares"
+          ]
+        },
+        {
+          "name": "Paper and pencil",
+          "alternatives": [
+            "a small whiteboard and marker"
+          ]
+        }
+      ],
+      "days": [
+        {
+          "day": 1,
+          "title": "Represent Story Problems",
+          "objective": "I can represent and solve addition and subtraction stories with one, two, or three groups.",
+          "standardIds": [
+            "1.OA.A.1",
+            "1.OA.A.2"
+          ],
+          "adultSetup": [
+            "Prepare counters and ten-frames.",
+            "Write one joining, one separating, and one three-group story without equations."
+          ],
+          "textRecommendation": "Choose a short story or daily situation involving collections that grow, shrink, or combine; ask what mathematical question could be answered.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Show eight as two parts on a ten-frame.",
+              "Recombine the parts and explain why the total remains eight."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Read a story, identify what is known and unknown, and model the action with counters.",
+              "Draw or write an equation that matches the action.",
+              "Solve and check the answer against the original story rather than the equation alone."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Solve a joining story and a separating story together.",
+              "Represent a three-addend story by combining one group at a time.",
+              "Compare two valid representations and discuss what each part means."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete five on-screen story and three-addend problems.",
+              "Use a drawing or counters for at least one problem and explain the matching equation."
+            ],
+            "templateIds": [
+              "1.oa.a.1.word-problem",
+              "1.oa.a.2.three-addends"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Write or dictate a story with three addends for an adult to solve."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Use one action and a total within ten.",
+              "Build the starting amount before reading what changes.",
+              "Retell the story after solving to reconnect every number to its meaning."
+            ]
+          },
+          "masteryEvidence": [
+            "Represents and solves at least one joining and one separating situation.",
+            "Solves a three-addend situation using a defensible grouping strategy."
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Use Known Facts to Find Unknown Parts",
+          "objective": "I can change the order or use subtraction to find an unknown addend.",
+          "standardIds": [
+            "1.OA.B.3",
+            "1.OA.B.4"
+          ],
+          "adultSetup": [
+            "Prepare two colors of counters and number cards through 20.",
+            "Keep plus, minus, and equals cards available."
+          ],
+          "textRecommendation": "Use a picture or story with two groups that can switch positions without changing the total.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Build three red and five blue counters, then switch the group order.",
+              "Count each arrangement and compare the totals."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Model 3 + 5 and 5 + 3 as two arrangements of the same whole.",
+              "Model 8 - 3 as a way to answer 3 + blank = 8.",
+              "Connect the counters, addition equation, and subtraction equation."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Create related facts for two different counter groups.",
+              "Cover one part and use the whole and known part to find it.",
+              "Ask whether changing addend order changes the sum and why."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete five on-screen property and unknown-addend items.",
+              "For one unknown, draw the whole and both parts before answering."
+            ],
+            "templateIds": [
+              "1.oa.b.3.properties",
+              "1.oa.b.4.unknown-addend"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Write a fact family for two parts and their whole, then tell what stays the same in every equation."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Use a whole within ten and uncover the hidden part after each prediction.",
+              "Keep the same counters while changing only their order.",
+              "Record words before symbols if the equations obscure the relationship."
+            ]
+          },
+          "masteryEvidence": [
+            "Uses addend order to produce an equivalent addition fact.",
+            "Finds an unknown addend by relating addition and subtraction and explains the parts and whole."
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Count On and Build Fluency",
+          "objective": "I can use counting on and known combinations to add and subtract within twenty.",
+          "standardIds": [
+            "1.OA.C.5",
+            "1.OA.C.6"
+          ],
+          "adultSetup": [
+            "Lay out the number path and two ten-frames.",
+            "Prepare cards for plus one, plus two, make ten, and doubles."
+          ],
+          "textRecommendation": "Choose a counting rhyme or number story that starts from a number other than one and changes by a small amount.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Start at several numbers and count on one, two, or three.",
+              "Show ten on a ten-frame and name combinations that complete it."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Solve 8 + 5 by making ten: move two from five to fill ten, then add the remaining three.",
+              "Solve a near-double by connecting it to a known double.",
+              "Check both strategies with counters and explain why they preserve the total."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Sort examples by a useful strategy: count on, make ten, or use a double.",
+              "Solve each with a representation before recording an equation.",
+              "Compare two strategies for one example and choose the clearer one."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete six on-screen counting-on and fluency items.",
+              "Pause after each group of three to explain one strategy; accuracy comes before speed."
+            ],
+            "templateIds": [
+              "1.oa.c.5.counting-on",
+              "1.oa.c.6.fluency"
+            ],
+            "itemCount": 6
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Create a strategy card showing one helpful example and when to use it."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Limit the change to plus one or plus two on the number path.",
+              "Say the starting number once and move one space per count.",
+              "Return to counters when the sequence and quantity no longer match."
+            ]
+          },
+          "masteryEvidence": [
+            "Selects and correctly uses a counting-on or known-fact strategy.",
+            "Solves varied addition or subtraction examples within twenty accurately without relying on answer choices alone."
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Understand the Equal Sign and Missing Numbers",
+          "objective": "I can decide whether an equation is true and find a missing number in any position.",
+          "standardIds": [
+            "1.OA.D.7",
+            "1.OA.D.8"
+          ],
+          "adultSetup": [
+            "Prepare operation, equals, and number cards.",
+            "Draw a balance scale or place two mats side by side to represent both sides of an equation."
+          ],
+          "textRecommendation": "Use a balance-themed picture or everyday comparison and discuss what it means for two amounts to be the same.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Build five counters on each mat and state that the amounts are equal.",
+              "Change one side and explain why the comparison is no longer equal."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 8,
+            "directions": [
+              "Model the equals sign as meaning both sides have the same value.",
+              "Evaluate 4 + 3 = 5 + 2 by building both sides.",
+              "Find the missing number in 6 + blank = 10 and then in blank + 4 = 10."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Sort equation cards into true and not true, verifying with a representation.",
+              "Move the unknown to different positions and name what information is known.",
+              "Correct one false equation by changing a single number."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete five on-screen true-equation and missing-number items.",
+              "For one item, compute both sides separately before choosing."
+            ],
+            "templateIds": [
+              "1.oa.d.7.equal-sign",
+              "1.oa.d.8.unknown-equation"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Create an equation with addition on both sides that an adult must test."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Replace symbols with two physical groups and the words is the same as.",
+              "Keep totals within ten.",
+              "Return to the equals sign only after the learner can verify sameness with objects."
+            ]
+          },
+          "masteryEvidence": [
+            "Determines whether several equations are true by comparing both sides.",
+            "Finds a missing number in more than one equation position and verifies the result."
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Choose and Explain a Strategy",
+          "objective": "I can solve mixed addition and subtraction problems and explain why my strategy works.",
+          "standardIds": [
+            "1.OA.A.1",
+            "1.OA.A.2",
+            "1.OA.B.3",
+            "1.OA.B.4",
+            "1.OA.C.5",
+            "1.OA.C.6",
+            "1.OA.D.7",
+            "1.OA.D.8"
+          ],
+          "adultSetup": [
+            "Arrange counters, ten-frames, number path, and equation cards as optional tools.",
+            "Plan a short break between guided and independent work."
+          ],
+          "textRecommendation": "Revisit a favorite mathematics story from the week and identify a second strategy that reaches the same result.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Name the strategies practiced this week.",
+              "Match one example to counting on, making ten, related facts, or checking both sides."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Read a mixed problem and think aloud about which strategy fits.",
+              "Solve, represent, and check it in a second way.",
+              "Explain that an efficient strategy must still produce an accurate, explainable answer."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 10,
+            "directions": [
+              "Solve one story, one unknown-addend problem, and one equation comparison together.",
+              "Have the learner select tools and justify each selection.",
+              "Respond to an error by identifying whether the story, representation, computation, or equation caused it."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 9,
+            "directions": [
+              "Complete seven mixed on-screen operations items.",
+              "Choose one result to prove with a drawing, objects, or a related equation."
+            ],
+            "templateIds": [
+              "1.oa.a.1.word-problem",
+              "1.oa.a.2.three-addends",
+              "1.oa.b.3.properties",
+              "1.oa.b.4.unknown-addend",
+              "1.oa.c.5.counting-on",
+              "1.oa.c.6.fluency",
+              "1.oa.d.7.equal-sign",
+              "1.oa.d.8.unknown-equation"
+            ],
+            "itemCount": 7
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Write a problem that can be solved in two different ways and compare the strategies."
+            ]
+          },
+          "reteach": {
+            "minutes": 8,
+            "directions": [
+              "Use the error type from guided or independent work to select one concrete model.",
+              "Work one example together and one parallel example with less help.",
+              "Return to mixed work only after the learner explains the corrected relationship."
+            ]
+          },
+          "masteryEvidence": [
+            "Solves mixed operation situations with appropriate strategies and accurate results.",
+            "Explains or represents why at least two solutions work.",
+            "Uses an error check rather than changing an answer without reasoning."
+          ]
+        }
+      ],
+      "accessibility": {
+        "audioSupported": true,
+        "requiresColor": false,
+        "reducedMotionSafe": true,
+        "accommodationNotes": [
+          "Read stories and choices aloud and permit replay without penalty.",
+          "Use tactile counters, larger print, and uncluttered work mats when helpful.",
+          "Accept object movement, pointing, drawing, signing, eye gaze, or speech when written notation is not the target.",
+          "Reduce the number of simultaneous representations while preserving the mathematical relationship."
+        ]
+      },
+      "provenance": {
+        "origin": "original",
+        "license": "Project original curriculum content."
+      },
+      "review": {
+        "status": "validated",
+        "notes": "Machine-validated instructional draft. It requires named human curriculum review before production use."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "k.ela.print-and-early-reading",
+      "version": 1,
+      "grade": "K",
+      "subject": "ela",
+      "unitId": "k.ela.unit-1",
+      "title": "Print, Letters, and Early Reading",
+      "summary": "A five-day, adult-supported introduction to book handling, print direction, words and sentences, letter sounds, and early word reading.",
+      "standardIds": [
+        "K.RF.1.a",
+        "K.RF.1.b",
+        "K.RF.1.c",
+        "K.RF.3.a",
+        "K.RF.3.b",
+        "K.RF.3.c",
+        "K.RF.3.d"
+      ],
+      "materials": [
+        {
+          "name": "A favorite picture book with clear print",
+          "alternatives": [
+            "a library book",
+            "a short printed poem"
+          ]
+        },
+        {
+          "name": "Letter cards",
+          "alternatives": [
+            "letters written on paper squares",
+            "magnetic letters"
+          ]
+        },
+        {
+          "name": "A pointer or finger puppet",
+          "alternatives": [
+            "a clean finger"
+          ]
+        },
+        {
+          "name": "Paper and a thick pencil or crayon",
+          "alternatives": [
+            "a small whiteboard and marker"
+          ]
+        }
+      ],
+      "days": [
+        {
+          "day": 1,
+          "title": "Books Have Parts and Print Has a Job",
+          "objective": "I can show where a book starts and where the words are.",
+          "standardIds": [
+            "K.RF.1.a",
+            "K.RF.1.b"
+          ],
+          "adultSetup": [
+            "Place the book face down and keep the letter cards out of sight until practice.",
+            "Sit beside the learner so both can point to the same page."
+          ],
+          "textRecommendation": "Use a familiar picture book with a clear front cover, title, author name, and one short line of print on each page.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Invite the learner to choose the front of the book.",
+              "Name the cover, pages, and words together."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 6,
+            "directions": [
+              "Model opening a book at the front and turning pages one at a time.",
+              "Point beneath a line of print and explain that readers begin on this side and move across the page."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 8,
+            "directions": [
+              "Take turns showing the cover, title, and a page with words.",
+              "Read one short line while the learner moves the pointer underneath from left to right.",
+              "Gently return to the starting side when the pointer moves the other way."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 6,
+            "directions": [
+              "Complete three short on-screen print-concept items without answer-revealing hints.",
+              "Then show an adult where to begin reading on a new page."
+            ],
+            "templateIds": [
+              "k.rf.1.a.book-parts",
+              "k.rf.1.b.print-direction"
+            ],
+            "itemCount": 3
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Let the learner be the book helper and tell an adult what each book part is for."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Use only the cover and one inside page.",
+              "Give a choice of two places to start, then model and repeat the correct routine."
+            ]
+          },
+          "masteryEvidence": [
+            "Identifies the front cover and a page containing print.",
+            "Tracks one short line from left to right with a finger or pointer."
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Words Make Sentences",
+          "objective": "I can find a word and tell where a sentence begins and ends.",
+          "standardIds": [
+            "K.RF.1.b",
+            "K.RF.1.c"
+          ],
+          "adultSetup": [
+            "Write one short sentence in large print, such as Sam sat.",
+            "Prepare three paper strips: one word, two words, and the full sentence."
+          ],
+          "textRecommendation": "Choose a repetitive read-aloud so the learner can notice the same printed sentence more than once.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Reread one line from Day 1 while pointing under each word.",
+              "Clap once for each word in the line."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 6,
+            "directions": [
+              "Model leaving a small space between written words.",
+              "Point to the capital letter at the beginning and the punctuation at the end of the sample sentence."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 8,
+            "directions": [
+              "Build the sample sentence from word strips together.",
+              "Ask the learner to point to one word, then the first and last parts of the sentence.",
+              "Read the completed sentence together while sweeping under each word."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 6,
+            "directions": [
+              "Complete three on-screen items about print direction, words, and sentences.",
+              "Ask the learner to explain one choice using pointing or speech."
+            ],
+            "templateIds": [
+              "k.rf.1.b.print-direction",
+              "k.rf.1.c.words-and-sentences"
+            ],
+            "itemCount": 3
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Cut apart a familiar three-word sentence and rebuild it in order."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Use a two-word sentence and cover all but one word at a time.",
+              "Read, point, and rebuild before adding another word."
+            ]
+          },
+          "masteryEvidence": [
+            "Distinguishes a word from a whole sentence in two examples.",
+            "Tracks the words in one familiar short sentence in order."
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Letters Connect to Sounds",
+          "objective": "I can name a letter and connect it to a sound in a familiar word.",
+          "standardIds": [
+            "K.RF.3.a",
+            "K.RF.3.b"
+          ],
+          "adultSetup": [
+            "Choose four known letter cards and four picture or object examples.",
+            "Use only reviewed recordings or an adult's natural voice for isolated phonemes."
+          ],
+          "textRecommendation": "Choose an alphabet book that gives one concrete picture for each letter; pause for only the letters the learner is ready to study.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Sing or say the names of the four chosen letters.",
+              "Invite the learner to match one card to its picture."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 6,
+            "directions": [
+              "Name one letter, point to it, and say the first sound in a familiar word.",
+              "Explain that the picture word begins with that sound without asking the learner to read it."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 8,
+            "directions": [
+              "Sort two letter cards at a time with adult speech support.",
+              "Ask which letter matches the first sound in each pictured word.",
+              "Repeat a correct match with the letter name and a word example."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 6,
+            "directions": [
+              "Complete three reviewed letter-and-sound items without an answer-revealing hint.",
+              "Keep directions spoken, but do not pronounce an assessed answer choice."
+            ],
+            "templateIds": [
+              "k.rf.3.a.letter-sounds",
+              "k.rf.3.b.common-sounds"
+            ],
+            "itemCount": 3
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Find one chosen letter in the picture book and name it."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Work with one letter and two picture choices.",
+              "Use the same concrete word several times before introducing another letter."
+            ]
+          },
+          "masteryEvidence": [
+            "Names at least three studied letters.",
+            "Matches each of those letters to a familiar beginning-sound example with appropriate support recorded."
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Slide Sounds Into a Word",
+          "objective": "I can use letter sounds to read a simple three-sound word.",
+          "standardIds": [
+            "K.RF.3.b",
+            "K.RF.3.c"
+          ],
+          "adultSetup": [
+            "Prepare letter cards for two short consonant-vowel-consonant words such as map and sat.",
+            "Do not use synthesized isolated phonemes; use reviewed cues or adult modeling."
+          ],
+          "textRecommendation": "Use a short controlled-text sentence only after the learner has practiced the matching word with letter cards.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Review two letter-sound matches from Day 3.",
+              "Place three letter cards in a row and name the letters together."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 6,
+            "directions": [
+              "Touch each letter card, say its sound, then slide a finger under the whole word.",
+              "Model blending the sounds into one spoken word and matching it to a picture."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 8,
+            "directions": [
+              "Build one word together, touching each card in order.",
+              "Change one card and notice how the word changes.",
+              "Use a picture choice to check the blended word."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 6,
+            "directions": [
+              "Complete three reviewed word-reading items without an answer-revealing hint.",
+              "Record whether the learner read independently or used adult support."
+            ],
+            "templateIds": [
+              "k.rf.3.b.common-sounds",
+              "k.rf.3.c.decode-cvc"
+            ],
+            "itemCount": 3
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Build a new CVC word by changing one letter and draw a quick picture for it."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Return to two letter cards and blend them slowly.",
+              "Add the final card only after the learner can repeat the first two sounds."
+            ]
+          },
+          "masteryEvidence": [
+            "Blends two practiced CVC words with letter cards.",
+            "Completes at least two independent items without answer-revealing audio."
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Read and Notice Familiar Words",
+          "objective": "I can use print skills, letter sounds, and familiar words while reading a short controlled sentence.",
+          "standardIds": [
+            "K.RF.1.a",
+            "K.RF.1.b",
+            "K.RF.1.c",
+            "K.RF.3.a",
+            "K.RF.3.b",
+            "K.RF.3.c",
+            "K.RF.3.d"
+          ],
+          "adultSetup": [
+            "Prepare one short controlled sentence and the matching word cards.",
+            "Plan a short movement or drawing break between the model and independent work."
+          ],
+          "textRecommendation": "Choose a decodable or controlled sentence that uses the practiced sound pattern and one familiar high-frequency word.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Review the book-start routine and point under a familiar short sentence.",
+              "Name one known letter and one known word."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 6,
+            "directions": [
+              "Model starting at the correct side, tracking each word, blending the decodable word, and recognizing the familiar word.",
+              "Explain that readers can use more than one helpful thing they know."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 8,
+            "directions": [
+              "Read the controlled sentence together twice.",
+              "Pause before one word for the learner to use a letter-sound or word-memory strategy.",
+              "Celebrate strategy use, including pointing, rather than speed."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete four mixed print and early-reading items without answer-revealing hints.",
+              "Offer a break before the final item if needed."
+            ],
+            "templateIds": [
+              "k.rf.1.a.book-parts",
+              "k.rf.1.b.print-direction",
+              "k.rf.1.c.words-and-sentences",
+              "k.rf.3.a.letter-sounds",
+              "k.rf.3.b.common-sounds",
+              "k.rf.3.c.decode-cvc",
+              "k.rf.3.d.high-frequency-words"
+            ],
+            "itemCount": 4
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Make a mini page with one drawing and one dictated or copied controlled sentence."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Choose one success from the week and repeat the concrete model.",
+              "Reduce the sentence to one word or one sound-to-letter match, then build back up after success."
+            ]
+          },
+          "masteryEvidence": [
+            "Uses correct book and print direction routines.",
+            "Shows a letter-sound, word-building, or familiar-word strategy on a controlled sentence.",
+            "Treat this as instructional evidence; repeated independent practice is still required for application mastery."
+          ]
+        }
+      ],
+      "accessibility": {
+        "audioSupported": true,
+        "requiresColor": false,
+        "reducedMotionSafe": true,
+        "accommodationNotes": [
+          "Read directions aloud and permit replay without penalty.",
+          "Use large high-contrast print and tactile letter cards when helpful.",
+          "Accept pointing, eye gaze, signing, or spoken response when handwriting is not being assessed.",
+          "Provide extra wait time and teach fewer letter-sound relationships at once without treating the accommodation as a failure."
+        ]
+      },
+      "provenance": {
+        "origin": "original",
+        "license": "Project original curriculum content."
+      },
+      "review": {
+        "status": "validated",
+        "notes": "Machine-validated instructional draft. It requires named human curriculum review before production use."
+      }
+    },
     {
       "schemaVersion": 1,
       "id": "k.math.counting-and-quantities",
@@ -427,6 +1693,421 @@
         "reviewedAt": "2026-08-25T11:16:18.605Z",
         "notes": "Reviewed and approved for production use.",
         "contentHash": "78a86a1a5638f27ddaf9d86345081806d08013ed8f243e8c149c5b0759a5b2da"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "k.math.operations-and-number-bonds",
+      "version": 1,
+      "grade": "K",
+      "subject": "math",
+      "unitId": "k.math.unit-2",
+      "title": "Putting Together and Taking Apart",
+      "summary": "A five-day, hands-on sequence for representing addition and subtraction, solving stories, decomposing numbers, making ten, and building fluency within five.",
+      "standardIds": [
+        "K.OA.A.1",
+        "K.OA.A.2",
+        "K.OA.A.3",
+        "K.OA.A.4",
+        "K.OA.A.5"
+      ],
+      "materials": [
+        {
+          "name": "Ten small counters in two visibly different groups",
+          "alternatives": [
+            "buttons and beans",
+            "two colors of blocks",
+            "coins and small toys"
+          ]
+        },
+        {
+          "name": "Two paper plates or work mats",
+          "alternatives": [
+            "two sheets of paper",
+            "two shallow containers"
+          ]
+        },
+        {
+          "name": "Numeral cards from 0 through 10",
+          "alternatives": [
+            "numbers written on scrap paper"
+          ]
+        },
+        {
+          "name": "A ten-frame",
+          "alternatives": [
+            "a hand-drawn grid with ten boxes"
+          ]
+        },
+        {
+          "name": "Paper and a thick pencil or crayon",
+          "alternatives": [
+            "a small whiteboard and marker"
+          ]
+        }
+      ],
+      "days": [
+        {
+          "day": 1,
+          "title": "Show Putting Together and Taking Apart",
+          "objective": "I can use objects, drawings, and words to show addition and subtraction.",
+          "standardIds": [
+            "K.OA.A.1",
+            "K.OA.A.2"
+          ],
+          "adultSetup": [
+            "Place four counters on one mat and three on the other.",
+            "Keep the remaining counters out of sight until the subtraction model."
+          ],
+          "textRecommendation": "Choose a short picture book in which objects join a group or leave a group; pause before the result and act it out with counters.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Count each group of counters separately.",
+              "Move the groups together and count the combined group."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Tell a joining story while moving two groups together and draw a quick picture of the action.",
+              "Tell a taking-away story while moving counters away and cross out the counters that left.",
+              "Name addition as putting together and subtraction as taking apart or taking away."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Invite the learner to act out one joining story and one taking-away story.",
+              "Ask the learner to explain what changed before counting the result.",
+              "Match each story to a simple drawing together."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete four on-screen joining and taking-away story items.",
+              "Use counters if needed, but let the learner decide whether the story joins or separates groups."
+            ],
+            "templateIds": [
+              "k.oa.a.1.represent-operations",
+              "k.oa.a.2.word-problems"
+            ],
+            "itemCount": 4
+          },
+          "extension": {
+            "minutes": 4,
+            "directions": [
+              "Create a new story for five counters and ask an adult to act it out."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Use no more than three counters.",
+              "Say show me together or show me take away before adding numbers to the story.",
+              "Repeat the same action with a drawing after the objects are clear."
+            ]
+          },
+          "masteryEvidence": [
+            "Represents one addition and one subtraction situation with objects or drawings.",
+            "Explains whether a story puts together or takes apart before finding the result."
+          ]
+        },
+        {
+          "day": 2,
+          "title": "Solve Number Stories",
+          "objective": "I can solve addition and subtraction stories within ten.",
+          "standardIds": [
+            "K.OA.A.1",
+            "K.OA.A.2"
+          ],
+          "adultSetup": [
+            "Prepare ten counters and two mats.",
+            "Write simple story starters such as had, got more, gave away, and left."
+          ],
+          "textRecommendation": "Use a familiar story or daily event with a small number of objects, such as setting out snacks or putting toys away.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Act out two plus one with counters.",
+              "Act out three minus one with the same counters."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Read a story once without moving anything and name what is known.",
+              "Read it again while modeling the action with counters.",
+              "Count the result and check that the answer makes sense in the story."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Solve one joining story and one separating story together.",
+              "Have the learner choose the action and the adult record a picture or equation.",
+              "Retell each story using the final answer."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen word problems.",
+              "After each answer, briefly say what happened to the group."
+            ],
+            "templateIds": [
+              "k.oa.a.1.represent-operations",
+              "k.oa.a.2.word-problems"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Make two different stories that both have the answer five."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Shorten the story to one sentence.",
+              "Place the starting counters before reading the action word.",
+              "Ask only did the group grow or get smaller before solving."
+            ]
+          },
+          "masteryEvidence": [
+            "Solves at least one addition and one subtraction story using a self-chosen representation.",
+            "Connects the numerical answer back to the objects in the story."
+          ]
+        },
+        {
+          "day": 3,
+          "title": "Break Numbers Into Parts",
+          "objective": "I can show a number as two smaller parts in more than one way.",
+          "standardIds": [
+            "K.OA.A.1",
+            "K.OA.A.3"
+          ],
+          "adultSetup": [
+            "Place six counters where the learner can reach them.",
+            "Put one paper plate on each side of the work area."
+          ],
+          "textRecommendation": "Choose a counting book with groups that can be rearranged, then notice that moving objects does not change how many there are.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Count five counters.",
+              "Move some counters to each plate and count the total again."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Split five into one and four, then record 1 + 4.",
+              "Recombine the counters and split five into two and three.",
+              "Explain that both pairs are parts of the same whole."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Choose a whole from four through eight.",
+              "Find two different ways to split it between the plates.",
+              "Record each split with a drawing or number cards and verify by recombining."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete four on-screen items about joining groups and pairs that make a whole.",
+              "Use the plates only if a mental image is not enough."
+            ],
+            "templateIds": [
+              "k.oa.a.1.represent-operations",
+              "k.oa.a.3.decompose-numbers"
+            ],
+            "itemCount": 4
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Find every two-part split for six and arrange the recordings in order."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Use a whole of three or four.",
+              "Keep one part fixed and move one counter at a time to the other plate.",
+              "Recount the whole after every move."
+            ]
+          },
+          "masteryEvidence": [
+            "Decomposes a number within ten into two parts in at least two ways.",
+            "Recombines the parts and confirms that the whole is unchanged."
+          ]
+        },
+        {
+          "day": 4,
+          "title": "Find the Part That Makes Ten",
+          "objective": "I can find the number that goes with another number to make ten.",
+          "standardIds": [
+            "K.OA.A.3",
+            "K.OA.A.4"
+          ],
+          "adultSetup": [
+            "Place a ten-frame and ten counters on the table.",
+            "Prepare numeral cards 0 through 10."
+          ],
+          "textRecommendation": "Use a counting text organized in groups of ten and notice how many spaces or objects complete each group.",
+          "warmUp": {
+            "minutes": 4,
+            "directions": [
+              "Fill one row of the ten-frame and count five.",
+              "Fill the second row and count ten."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 7,
+            "directions": [
+              "Place six counters in the ten-frame and count the four empty spaces.",
+              "State that six and four make ten, then verify by filling the spaces.",
+              "Record the relationship with cards, a drawing, or 6 + 4 = 10."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Build three different starting numbers in the ten-frame.",
+              "Predict the missing part, fill the spaces, and recount ten.",
+              "Compare two combinations and notice that every completed frame has the same whole."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 7,
+            "directions": [
+              "Complete five on-screen number-part and make-ten items.",
+              "Try the final two items without placing counters first."
+            ],
+            "templateIds": [
+              "k.oa.a.3.decompose-numbers",
+              "k.oa.a.4.make-ten"
+            ],
+            "itemCount": 5
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Make a set of matching cards for all pairs that make ten."
+            ]
+          },
+          "reteach": {
+            "minutes": 6,
+            "directions": [
+              "Keep the ten-frame visible and use a starting number of eight or nine.",
+              "Count empty spaces one at a time before naming the missing part.",
+              "Repeat with one fewer starting counter."
+            ]
+          },
+          "masteryEvidence": [
+            "Finds the missing part for at least four different make-ten combinations.",
+            "Explains that the filled spaces and empty spaces together total ten."
+          ]
+        },
+        {
+          "day": 5,
+          "title": "Use What You Know Within Five",
+          "objective": "I can solve addition and subtraction within five accurately and explain a strategy.",
+          "standardIds": [
+            "K.OA.A.1",
+            "K.OA.A.2",
+            "K.OA.A.3",
+            "K.OA.A.4",
+            "K.OA.A.5"
+          ],
+          "adultSetup": [
+            "Prepare five counters, numeral cards 0 through 5, and the two mats.",
+            "Plan a brief movement break before the mixed independent practice."
+          ],
+          "textRecommendation": "Revisit a favorite joining or taking-away story from the week and invite the learner to explain the mathematics in the pictures.",
+          "warmUp": {
+            "minutes": 5,
+            "directions": [
+              "Show each number from zero through five with fingers or counters.",
+              "Say one more and one less for several starting numbers."
+            ]
+          },
+          "explicitModel": {
+            "minutes": 6,
+            "directions": [
+              "Solve three plus two by recognizing parts that make five.",
+              "Check the answer with counters, then solve five minus two by removing one known part.",
+              "Explain that accuracy matters more than speed."
+            ]
+          },
+          "guidedPractice": {
+            "minutes": 9,
+            "directions": [
+              "Mix joining, separating, missing-part, and make-five examples.",
+              "Ask the learner to choose counters, fingers, a drawing, or a known fact.",
+              "Discuss why the chosen strategy fits each example."
+            ]
+          },
+          "independentPractice": {
+            "minutes": 8,
+            "directions": [
+              "Complete six mixed on-screen operations items within the taught range.",
+              "After the final item, explain one answer using objects, a drawing, or words."
+            ],
+            "templateIds": [
+              "k.oa.a.1.represent-operations",
+              "k.oa.a.2.word-problems",
+              "k.oa.a.3.decompose-numbers",
+              "k.oa.a.4.make-ten",
+              "k.oa.a.5.fluency-within-five"
+            ],
+            "itemCount": 6
+          },
+          "extension": {
+            "minutes": 5,
+            "directions": [
+              "Invent a small number story, record it with a picture, and ask an adult to solve it."
+            ]
+          },
+          "reteach": {
+            "minutes": 7,
+            "directions": [
+              "Return to one operation and a maximum whole of three.",
+              "Model the action, then have the learner copy it with a new example.",
+              "Increase the whole only after two accurate explanations."
+            ]
+          },
+          "masteryEvidence": [
+            "Solves a varied set of addition and subtraction situations within five accurately.",
+            "Explains at least one solution using a representation or relationship rather than an unsupported guess.",
+            "Treat speed as observational information, not a requirement for success."
+          ]
+        }
+      ],
+      "accessibility": {
+        "audioSupported": true,
+        "requiresColor": false,
+        "reducedMotionSafe": true,
+        "accommodationNotes": [
+          "Read every story aloud and permit replay without penalty.",
+          "Use tactile or larger counters and high-contrast mats when helpful.",
+          "Accept pointing, moving objects, eye gaze, signing, drawing, or speech when handwriting is not the target.",
+          "Reduce the total quantity while preserving the operation when working-memory or motor demands interfere."
+        ]
+      },
+      "provenance": {
+        "origin": "original",
+        "license": "Project original curriculum content."
+      },
+      "review": {
+        "status": "validated",
+        "notes": "Machine-validated instructional draft. It requires named human curriculum review before production use."
       }
     }
   ]
