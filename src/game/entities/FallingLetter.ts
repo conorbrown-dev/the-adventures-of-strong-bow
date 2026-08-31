@@ -55,7 +55,7 @@ export class FallingLetter extends Phaser.Physics.Arcade.Sprite {
     );
 
     this.labelText = scene.add
-      .text(x, y + 1, letterData.displayText, {
+      .text(x, y + 1, letterData.displayText.toLowerCase(), {
         fontFamily: "Trebuchet MS",
         fontSize: `${Math.round(this.yarnDisplaySize * 0.44)}px`,
         fontStyle: "bold",
