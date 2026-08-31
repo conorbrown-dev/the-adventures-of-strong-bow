@@ -2,9 +2,9 @@
 
 **Stage:** 3 implementation and automated verification
 
-**Date:** 2026-08-25
+**Date:** 2026-08-25; provisional-audio update verified 2026-08-31
 
-**Production status:** Code-complete behind a disabled feature flag; production enablement is blocked until the seven isolated-phoneme recordings receive qualified review and are added to the reviewed cue catalogs.
+**Production status:** Code-complete behind a disabled feature flag. Seven licensed provisional recordings support an explicit private-preview mode; production enablement remains blocked until qualified audio review.
 
 ## 1. Architecture implemented
 
@@ -133,9 +133,11 @@ Whole-language prompts, directions, choices, hints, and feedback use `speak`/`st
 
 Independent decoding directions are spoken, but the assessed word is silent. Requesting controlled-sentence narration records `L4_MODEL` on the server before playback and changes the response to `SUPPORTED_READING`, which cannot satisfy unsupported independent mastery.
 
-The required isolated cues are `/m/`, `/s/`, `/t/`, `/p/`, `/n/`, `/k/`, and short `/a/`. They are registered with version and review metadata, but their asset paths remain null and `PENDING_QUALIFIED_REVIEW`. The centralized client resolver therefore disables those controls and never falls back to Piper or browser synthesis for a phoneme. The server's production composition gate stays closed even if the vertical-slice feature flag is set.
+The required cues are `/m/`, `/s/`, `/t/`, `/p/`, `/n/`, `/k/`, and short `/a/`. Licensed Wikimedia Commons IPA samples now provide all seven paths with `PROVISIONAL` status, source links, license IDs, and checksums. The centralized client resolver plays only these local assets and never falls back to Piper or browser synthesis for a phoneme.
 
-To clear the gate, a qualified reviewer must approve seven recordings, add content-hashed assets to the neutral curriculum-audio catalog, mark both server and client cue entries reviewed, inspect playback/blend timing, and rerun this document's verification commands.
+Private preview requires both `KINDERGARTEN_ELA_VERTICAL_SLICE_ENABLED=true` and `KINDERGARTEN_ELA_ALLOW_PROVISIONAL_AUDIO=true`. Production-ready composition still requires all seven entries to be `REVIEWED`; provisional status never satisfies that check. The assets and attribution are documented in `src/game/assets/audio/phonemes/ATTRIBUTION.md`.
+
+To clear the production gate, a qualified reviewer must inspect or replace all seven recordings, approve their phonics accuracy and accent suitability, mark the approved server entries reviewed, inspect playback/blend timing on the target device, and rerun this document's verification commands.
 
 ## 10. Verification executed
 
@@ -153,11 +155,13 @@ Verified commands and outcomes:
 
 | Command | Outcome |
 | --- | --- |
-| `npm test` | 5 Vitest files, 20 tests passed |
+| `npm test` | 6 Vitest files, 22 tests passed |
 | `npm run build` | client TypeScript and Vite production build passed |
-| `npm --prefix server test` | 19 Jest suites, 141 tests passed |
+| `npm run test:curriculum` | 15 Jest suites, 131 tests passed |
 | `npm --prefix server run typecheck` | passed |
 | `npm --prefix server run build` | passed |
+| `npm run curriculum:lesson-plans:validate` | 2 plans, 10 instructional days; passed |
+| `sha256sum -c src/game/assets/audio/phonemes/SHA256SUMS` | all seven provisional audio files passed |
 | `npx prisma validate` from `server/` | schema valid |
 | `npm run curriculum:kindergarten:simulate -- 10` | five JSON profile sequences generated and inspected |
 | 20-selection harness used by Jest | 100 selections across Profiles A–E passed sequence invariants |
@@ -165,7 +169,7 @@ Verified commands and outcomes:
 ## 11. Limitations
 
 - Qualified phoneme audio review and real-device listening inspection cannot be automated and remain the production blocker.
-- The slice is intentionally disabled in normal runtime composition until that blocker is cleared.
+- The slice remains disabled by default. The two explicit environment flags above permit private preview without misrepresenting the audio as reviewed.
 - Pointer/keyboard semantics are implemented with native buttons and fieldsets, but a browser-based assistive-technology/manual primary-flow check is still required with the real audio assets.
 - Current hints preserve evidence safety and specific misconception feedback, but do not yet animate every `L1`–`L3` visual transformation described in Stage 2B.
 - A game handoff is omitted because no current game can enforce the short-`a` reviewed example scope. The design explicitly permits no game offer in that case.
@@ -178,4 +182,4 @@ Stage 4 should begin only after the audio gate and manual primary-flow review ar
 
 ## Stage completion answer
 
-With reviewed phoneme assets installed, yes: a five-year-old can begin with narrated spoken-word and sound activities, receive explicit instruction and modeling, move through guided and independent CVC work, and reach controlled text without first being required to read. Without those reviewed assets, the safe answer is no, so production remains deliberately gated rather than substituting inaccurate synthesized phonemes.
+For private preview, the provisional assets let a five-year-old begin the narrated sound activities while the adult listens alongside her. The public-readiness answer remains no until a qualified reviewer approves or replaces each cue; the app keeps that distinction explicit rather than treating general IPA samples as reviewed curriculum audio.

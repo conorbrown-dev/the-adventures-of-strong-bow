@@ -4,7 +4,7 @@
 
 **Branch:** `main`
 
-**Stage status:** Stage 3 code and automated verification complete; production gate still closed; Stage 4 not started.
+**Stage status:** Stage 3 code and automated verification complete; licensed private-preview audio installed; production review gate still closed; Stage 4 not started.
 
 This file is the short entry point for resuming the curriculum work on another machine. Read it together with `00_WORK_ORDER.md` and `../KINDERGARTEN_VERTICAL_SLICE_RESULTS.md`.
 
@@ -60,7 +60,7 @@ npx prisma validate
 
 ## 3. Production blocker: seven reviewed phoneme cues
 
-Do not enable the vertical slice in production yet. The feature flag is `KINDERGARTEN_ELA_VERTICAL_SLICE_ENABLED`, defaults to off, and the server also requires every isolated cue to be production-ready. Setting only the flag to `true` deliberately fails the gate.
+Do not enable the vertical slice in production yet. The feature flag is `KINDERGARTEN_ELA_VERTICAL_SLICE_ENABLED` and defaults to off. Seven licensed IPA samples are present with `PROVISIONAL` status. A private preview additionally requires `KINDERGARTEN_ELA_ALLOW_PROVISIONAL_AUDIO=true`; production-ready status still requires every cue to be qualified and marked `REVIEWED`.
 
 The seven cue IDs are:
 
@@ -74,14 +74,14 @@ The seven cue IDs are:
 | `phoneme.k.stop` | `/k/`, represented by `c` as in *cat* |
 | `phoneme.a.short` | short `/a/` (`/æ/`) as in *map* |
 
-These must be clean, individually reviewed recordings. Do not substitute Piper, browser TTS, a letter name, an example word, or a consonant pronounced with an added schwa. The continuous sounds may be sustained; `/t/`, `/p/`, and `/k/` must remain clean stop sounds.
+The provisional files are general IPA samples, and some contain surrounding vowel context. They are acceptable only for supervised private preview. Final assets must be clean, individually reviewed recordings. Do not substitute Piper, browser TTS, a letter name, an example word, or a consonant pronounced with an added schwa. The continuous sounds may be sustained; `/t/`, `/p/`, and `/k/` must remain clean stop sounds.
 
 To clear the gate:
 
-1. Obtain qualified approval for all seven recordings and preserve their license/provenance.
-2. Add content-hashed audio assets to the repository's neutral curriculum-audio location.
-3. In `server/src/curriculum/infrastructure/kindergarten-ela-catalog.ts`, add each asset path and change its metadata from `PENDING_QUALIFIED_REVIEW` to `REVIEWED`.
-4. In `src/quiz/speech.ts`, populate the reviewed cue source map for the same seven IDs. Keep ordinary model/browser speech unavailable as a fallback for isolated phonemes.
+1. Have a qualified reviewer inspect the seven provisional recordings and preserve the decision evidence.
+2. Replace any unsuitable sample while preserving license/provenance and updating its checksum.
+3. In `server/src/curriculum/infrastructure/kindergarten-ela-catalog.ts`, change only approved entries from `PROVISIONAL` to `REVIEWED`.
+4. Keep ordinary model/browser speech unavailable as a fallback for isolated phonemes.
 5. Inspect each cue alone and in CVC blending order on a real device. Confirm consistent volume, no clipping, no overlap, usable replay controls, and accurate stop/continuous timing.
 6. Run the complete verification list above and manually check boot, hub navigation, `/learning`, narration replacement/cancellation, pointer and keyboard use, focus visibility, activity completion, and return navigation.
 7. Update `../KINDERGARTEN_VERTICAL_SLICE_RESULTS.md` with the asset review evidence and only then consider enabling the feature flag.

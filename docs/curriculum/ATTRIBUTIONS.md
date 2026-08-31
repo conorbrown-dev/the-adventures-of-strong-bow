@@ -38,3 +38,15 @@ by the curriculum's general license.
 
 Attribution may not be legally required for verified CC0 material, but the project
 should still retain source provenance for auditability and educational review.
+
+## Provisional phoneme recordings
+
+The seven Kindergarten phoneme files in
+`src/game/assets/audio/phonemes/` are unmodified Wikimedia Commons IPA samples
+licensed under CC BY-SA 3.0 and GFDL. Their per-file creators, source links, and
+SHA-256 checksums are preserved in that directory's `ATTRIBUTION.md`.
+
+These samples are approved only as a private-preview bridge. They are not
+qualified-review evidence for a public U.S. Kindergarten curriculum-readiness
+claim. Preserve the attribution and license when redistributing them, and
+indicate any audio edits as changes.

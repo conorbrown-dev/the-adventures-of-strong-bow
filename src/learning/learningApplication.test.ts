@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { saveStudentSession } from "../game/utils/studentSession";
 import { learningApplication, type SessionView } from "./learningApplication";
-import { REVIEWED_CURRICULUM_CUE_IDS, isReviewedCurriculumCueAvailable } from "../quiz/speech";
+import { CURRICULUM_CUE_IDS, isCurriculumCueAvailable } from "../quiz/speech";
 
 function createStorage(): Storage {
   const values = new Map<string, string>();
@@ -54,10 +54,10 @@ describe("learningApplication authentication", () => {
     expect(fetch.mock.calls[0]?.[0]).not.toContain("student-1");
   });
 
-  it("does not send pending isolated phonemes through model or browser speech", () => {
-    expect(REVIEWED_CURRICULUM_CUE_IDS).toHaveLength(7);
-    expect(REVIEWED_CURRICULUM_CUE_IDS.every((cueId) => !isReviewedCurriculumCueAvailable(cueId))).toBe(true);
-    expect(isReviewedCurriculumCueAvailable("phoneme.not-reviewed")).toBe(false);
+  it("resolves the seven provisional phoneme recordings without accepting unknown cues", () => {
+    expect(CURRICULUM_CUE_IDS).toHaveLength(7);
+    expect(CURRICULUM_CUE_IDS.every(isCurriculumCueAvailable)).toBe(true);
+    expect(isCurriculumCueAvailable("phoneme.not-reviewed")).toBe(false);
   });
 
   it("loads the production lesson-plan bundle with the student bearer token", async () => {

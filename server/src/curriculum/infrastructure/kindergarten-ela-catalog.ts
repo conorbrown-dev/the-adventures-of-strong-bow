@@ -410,20 +410,61 @@ export const KINDERGARTEN_AUDIO_CUES = ["phoneme.m.continuous", "phoneme.s.conti
 export interface KindergartenAudioCueDefinition {
   id: (typeof KINDERGARTEN_AUDIO_CUES)[number];
   version: number;
-  reviewStatus: "PENDING_QUALIFIED_REVIEW" | "REVIEWED";
+  reviewStatus: "PENDING_QUALIFIED_REVIEW" | "PROVISIONAL" | "REVIEWED";
   assetPath: string | null;
+  sourcePage: string | null;
+  licenseId: string | null;
+  sha256: string | null;
   notes: string;
 }
-export const KINDERGARTEN_AUDIO_CUE_CATALOG: readonly KindergartenAudioCueDefinition[] = KINDERGARTEN_AUDIO_CUES.map((id) => ({
-  id,
-  version: 1,
-  reviewStatus: "PENDING_QUALIFIED_REVIEW" as const,
-  assetPath: null,
-  notes: "Autonomous phoneme playback remains disabled until a qualified reviewer approves a recording.",
-}));
+export const KINDERGARTEN_AUDIO_CUE_CATALOG: readonly KindergartenAudioCueDefinition[] = [
+  {
+    id: "phoneme.m.continuous", version: 1, reviewStatus: "PROVISIONAL", assetPath: "src/game/assets/audio/phonemes/m-bilabial-nasal.ogg",
+    sourcePage: "https://commons.wikimedia.org/wiki/File:Bilabial_nasal.ogg", licenseId: "CC-BY-SA-3.0", sha256: "91092606944ea851ffc5c67d485fb26bae8ec5f4adaf86e58a1a7b4bfeb4d9be",
+    notes: "Private-use IPA sample; not yet reviewed as a U.S. Kindergarten phonics recording.",
+  },
+  {
+    id: "phoneme.s.continuous", version: 1, reviewStatus: "PROVISIONAL", assetPath: "src/game/assets/audio/phonemes/s-voiceless-alveolar-sibilant.ogg",
+    sourcePage: "https://commons.wikimedia.org/wiki/File:Voiceless_alveolar_sibilant.ogg", licenseId: "CC-BY-SA-3.0", sha256: "8e2922dcfaa4c99bd613fbba331398f696d42ae2b774a7f7deccb9903a5ad580",
+    notes: "Private-use IPA sample with vowel context; not yet reviewed as an isolated U.S. Kindergarten phonics recording.",
+  },
+  {
+    id: "phoneme.t.stop", version: 1, reviewStatus: "PROVISIONAL", assetPath: "src/game/assets/audio/phonemes/t-voiceless-alveolar-plosive.ogg",
+    sourcePage: "https://commons.wikimedia.org/wiki/File:Voiceless_alveolar_plosive.ogg", licenseId: "CC-BY-SA-3.0", sha256: "b67b7ae2c801ce37bc399c68473341ba6eba1e92e9a828a40583c46594f3d0c6",
+    notes: "Private-use IPA sample; articulation and stop timing still need qualified review.",
+  },
+  {
+    id: "phoneme.p.stop", version: 1, reviewStatus: "PROVISIONAL", assetPath: "src/game/assets/audio/phonemes/p-voiceless-bilabial-plosive.ogg",
+    sourcePage: "https://commons.wikimedia.org/wiki/File:Voiceless_bilabial_plosive.ogg", licenseId: "CC-BY-SA-3.0", sha256: "576ae283995962f746a390fbc4461c01f6ce1e296c831d7beb9e1907acffa936",
+    notes: "Private-use IPA sample; articulation and stop timing still need qualified review.",
+  },
+  {
+    id: "phoneme.n.continuous", version: 1, reviewStatus: "PROVISIONAL", assetPath: "src/game/assets/audio/phonemes/n-alveolar-nasal.ogg",
+    sourcePage: "https://commons.wikimedia.org/wiki/File:Alveolar_nasal.ogg", licenseId: "CC-BY-SA-3.0", sha256: "ada5d9e78502373e5e7108beee59d8fd74b88cb0c67798050ebd1df01b4f9c03",
+    notes: "Private-use IPA sample with vowel context; not yet reviewed as an isolated U.S. Kindergarten phonics recording.",
+  },
+  {
+    id: "phoneme.k.stop", version: 1, reviewStatus: "PROVISIONAL", assetPath: "src/game/assets/audio/phonemes/k-voiceless-velar-plosive.ogg",
+    sourcePage: "https://commons.wikimedia.org/wiki/File:Voiceless_velar_plosive.ogg", licenseId: "CC-BY-SA-3.0", sha256: "5285ace1a53693315f32ad2c5faa9f87efe8690396685562877309a93dd9ecec",
+    notes: "Private-use IPA sample with vowel context; articulation and stop timing still need qualified review.",
+  },
+  {
+    id: "phoneme.a.short", version: 1, reviewStatus: "PROVISIONAL", assetPath: "src/game/assets/audio/phonemes/a-near-open-front-unrounded-vowel.ogg",
+    sourcePage: "https://commons.wikimedia.org/wiki/File:Near-open_front_unrounded_vowel.ogg", licenseId: "CC-BY-SA-3.0", sha256: "f95bf6b3f9ad1daba7c056d46e5fb1920885ddccb68cb4af19eb19ca36d033d7",
+    notes: "Private-use IPA /ae/ sample; accent suitability still needs qualified review.",
+  },
+];
 
 export function hasProductionReadyKindergartenAudio(): boolean {
   return KINDERGARTEN_AUDIO_CUE_CATALOG.every((cue) => cue.reviewStatus === "REVIEWED" && Boolean(cue.assetPath));
+}
+
+export function hasPrivatePreviewKindergartenAudio(): boolean {
+  return KINDERGARTEN_AUDIO_CUE_CATALOG.every((cue) => cue.reviewStatus !== "PENDING_QUALIFIED_REVIEW" && Boolean(cue.assetPath));
+}
+
+export function isKindergartenAudioReady(allowProvisionalAudio: boolean): boolean {
+  return hasProductionReadyKindergartenAudio() || (allowProvisionalAudio && hasPrivatePreviewKindergartenAudio());
 }
 
 export function catalogSkill(skillId: string): ElaSkillDefinition {

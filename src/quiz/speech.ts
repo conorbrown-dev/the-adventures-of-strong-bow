@@ -1,3 +1,11 @@
+import shortAUrl from "../game/assets/audio/phonemes/a-near-open-front-unrounded-vowel.ogg?url";
+import kUrl from "../game/assets/audio/phonemes/k-voiceless-velar-plosive.ogg?url";
+import mUrl from "../game/assets/audio/phonemes/m-bilabial-nasal.ogg?url";
+import nUrl from "../game/assets/audio/phonemes/n-alveolar-nasal.ogg?url";
+import pUrl from "../game/assets/audio/phonemes/p-voiceless-bilabial-plosive.ogg?url";
+import sUrl from "../game/assets/audio/phonemes/s-voiceless-alveolar-sibilant.ogg?url";
+import tUrl from "../game/assets/audio/phonemes/t-voiceless-alveolar-plosive.ogg?url";
+
 const PREFERRED_VOICE_NAMES = ["Microsoft Aria", "Microsoft Jenny", "Google US English", "Samantha", "Ava", "Karen", "Moira"];
 let activeAudio: HTMLAudioElement | undefined;
 let resolveActiveAudio: (() => void) | undefined;
@@ -5,7 +13,7 @@ let speechRequest = 0;
 let pendingHoverSpeech: number | undefined;
 const modelAudioCache = new Map<string, Blob>();
 const pendingModelAudio = new Map<string, Promise<Blob | undefined>>();
-export const REVIEWED_CURRICULUM_CUE_IDS = [
+export const CURRICULUM_CUE_IDS = [
   "phoneme.m.continuous",
   "phoneme.s.continuous",
   "phoneme.t.stop",
@@ -14,11 +22,19 @@ export const REVIEWED_CURRICULUM_CUE_IDS = [
   "phoneme.k.stop",
   "phoneme.a.short",
 ] as const;
-export type ReviewedCurriculumCueId = (typeof REVIEWED_CURRICULUM_CUE_IDS)[number];
+export type CurriculumCueId = (typeof CURRICULUM_CUE_IDS)[number];
 
-// Intentionally empty until a qualified reviewer approves the seven Stage 3 recordings.
+// These licensed IPA samples are a private-use bridge, not qualified curriculum recordings.
 // A missing isolated phoneme must never fall through to model or browser TTS.
-const reviewedCurriculumCueSources: Readonly<Partial<Record<ReviewedCurriculumCueId, string>>> = {};
+const curriculumCueSources: Readonly<Record<CurriculumCueId, string>> = {
+  "phoneme.m.continuous": mUrl,
+  "phoneme.s.continuous": sUrl,
+  "phoneme.t.stop": tUrl,
+  "phoneme.p.stop": pUrl,
+  "phoneme.n.continuous": nUrl,
+  "phoneme.k.stop": kUrl,
+  "phoneme.a.short": shortAUrl,
+};
 
 function cacheModelAudio(text: string, audio: Blob): void {
   if (modelAudioCache.size >= 100) {
@@ -119,12 +135,12 @@ export function stopSpeaking(): void {
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 }
 
-export function isReviewedCurriculumCueAvailable(cueId: string): cueId is ReviewedCurriculumCueId {
-  return (REVIEWED_CURRICULUM_CUE_IDS as readonly string[]).includes(cueId) && Boolean(reviewedCurriculumCueSources[cueId as ReviewedCurriculumCueId]);
+export function isCurriculumCueAvailable(cueId: string): cueId is CurriculumCueId {
+  return (CURRICULUM_CUE_IDS as readonly string[]).includes(cueId) && Boolean(curriculumCueSources[cueId as CurriculumCueId]);
 }
 
-export async function playReviewedCurriculumCue(cueId: ReviewedCurriculumCueId): Promise<boolean> {
-  const source = reviewedCurriculumCueSources[cueId];
+export async function playCurriculumCue(cueId: CurriculumCueId): Promise<boolean> {
+  const source = curriculumCueSources[cueId];
   if (!source) return false;
   stopSpeaking();
   const request = speechRequest;

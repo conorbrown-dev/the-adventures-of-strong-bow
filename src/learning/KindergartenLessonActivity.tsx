@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { isReviewedCurriculumCueAvailable, playReviewedCurriculumCue, speak, stopSpeaking } from "../quiz/speech";
+import { isCurriculumCueAvailable, playCurriculumCue, speak, stopSpeaking } from "../quiz/speech";
 import type { AnswerResult, HintResult, LessonActivityView, LessonChoiceView, LessonPresentationView, LessonSupportLevel } from "./learningApplication";
 
 const CONTINUE_FILL_MS = 1_200;
@@ -43,10 +43,10 @@ function SoundCueStrip({ cueIds }: { cueIds: readonly string[] }): JSX.Element |
   if (cueIds.length === 0) return null;
   return <section className="sound-cue-review" aria-label="Sound cards">
     <div className="sound-cue-list">{cueIds.map((cueId) => {
-      const isAvailable = isReviewedCurriculumCueAvailable(cueId);
-      return <button className="sound-cue-chip secondary" type="button" disabled={!isAvailable} onClick={() => { if (isAvailable) void playReviewedCurriculumCue(cueId); }} key={cueId} aria-label={isAvailable ? `Hear ${cueLabel(cueId)}` : `${cueLabel(cueId)} recording pending review`}>{cueLabel(cueId)}</button>;
+      const isAvailable = isCurriculumCueAvailable(cueId);
+      return <button className="sound-cue-chip secondary" type="button" disabled={!isAvailable} onClick={() => { if (isAvailable) void playCurriculumCue(cueId); }} key={cueId} aria-label={isAvailable ? `Hear ${cueLabel(cueId)}` : `${cueLabel(cueId)} recording unavailable`}>{cueLabel(cueId)}</button>;
     })}</div>
-    <p>Isolated sound buttons stay unavailable until each recording passes qualified curriculum review. The app will not guess these sounds with a computer voice.</p>
+    <p>These temporary practice recordings are licensed phonetic samples. A reading specialist still needs to review them before wider use.</p>
   </section>;
 }
 
