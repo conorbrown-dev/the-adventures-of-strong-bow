@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { warmSpeech } from "../../quiz/speech";
 import { sightWords, type SightWord } from "../data/sightWords";
 import { recordSightWordAttempt, RESPONSE_THRESHOLD_MS } from "../settings/sightWordSettings";
 import { AudioFeedbackSystem } from "../systems/AudioFeedbackSystem";
@@ -15,6 +16,10 @@ type BrowserRecognition = {
   onerror: (() => void) | null; onend: (() => void) | null;
 };
 type BrowserRecognitionConstructor = new () => BrowserRecognition;
+
+function getCorrectionPrompt(word: SightWord): string {
+  return `The word is ${word}.`;
+}
 
 export class SightWordsQuizScene extends Phaser.Scene {
   private audio!: AudioFeedbackSystem;
@@ -127,6 +132,8 @@ export class SightWordsQuizScene extends Phaser.Scene {
     recognition.lang = "en-US"; recognition.interimResults = false; recognition.continuous = false; recognition.maxAlternatives = 3;
     const attemptId = ++this.attemptId;
     this.promptStartedAt = this.time.now; this.listening = true;
+    const nextWord = this.words[0];
+    warmSpeech([getCorrectionPrompt(word), ...(nextWord ? [getCorrectionPrompt(nextWord)] : [])]);
     recognition.onresult = (event) => {
       const heard = Array.from(event.results[event.resultIndex], (alternative) => alternative.transcript.toLowerCase().match(/[a-z]+/g) ?? []).flat();
       void this.finishAttempt(word, heard.includes(word), attemptId);
@@ -157,7 +164,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
       this.audio.playIncorrectFeedback();
       await new Promise<void>((resolve) => this.time.delayedCall(350, resolve));
       if (this.finished || this.attemptId !== attemptId) return;
-      await this.audio.speakPhrase(`The word is ${word}.`);
+      await this.audio.speakPhrase(getCorrectionPrompt(word));
     }
     if (this.finished || this.attemptId !== attemptId) return;
     this.isAwaitingChoice = true;
