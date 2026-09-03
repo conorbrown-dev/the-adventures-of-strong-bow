@@ -1004,6 +1004,9 @@ export function LearningApp(): JSX.Element {
     : sequence
       ? sequenceAnswer.length === sequence.length
       : Boolean(selectedAnswer);
+  const completedDiagnosticQuestions = session
+    ? Math.min(session.position + (result ? 1 : 0), session.length)
+    : 0;
 
   useEffect(() => () => stopSpeaking(), []);
   useEffect(() => {
@@ -1511,7 +1514,9 @@ export function LearningApp(): JSX.Element {
                                 ? "INFORMATION LITERACY INQUIRY"
                                 : "ADULT-SCORED ELA CHECK"
                 : session.assessmentStage
-                  ? `${placementGradeName(session.assessmentStage.grade).toUpperCase()} LEARNING CHECK · ACTIVITY ${session.position + 1}`
+                  ? location.pathname === "/learning/diagnostic"
+                    ? `${placementGradeName(session.assessmentStage.grade).toUpperCase()} LEARNING CHECK · ${completedDiagnosticQuestions} / ${session.length} COMPLETED`
+                    : `${placementGradeName(session.assessmentStage.grade).toUpperCase()} LEARNING CHECK · ACTIVITY ${session.position + 1}`
                   : `QUESTION ${session.position + 1} OF ${session.length}`}
             </p>
             {session.assessmentStage && !result && (

@@ -99,6 +99,10 @@ export class SightWordsQuizScene extends Phaser.Scene {
   private async presentWord(word: SightWord): Promise<void> {
     this.isAwaitingChoice = false;
     this.setActionButtonsVisible(false);
+    const nextWord = this.words[0];
+    void warmSpeech([getCorrectionPrompt(word)]).then(async () => {
+      if (!this.finished && nextWord) await warmSpeech([getCorrectionPrompt(nextWord)]);
+    });
     this.timerFill?.setDisplaySize(0, 16).setFillStyle(0x45f6e5);
     this.timerText?.setText("");
     this.setFallbackTimer("", 0);
@@ -132,8 +136,6 @@ export class SightWordsQuizScene extends Phaser.Scene {
     recognition.lang = "en-US"; recognition.interimResults = false; recognition.continuous = false; recognition.maxAlternatives = 3;
     const attemptId = ++this.attemptId;
     this.promptStartedAt = this.time.now; this.listening = true;
-    const nextWord = this.words[0];
-    warmSpeech([getCorrectionPrompt(word), ...(nextWord ? [getCorrectionPrompt(nextWord)] : [])]);
     recognition.onresult = (event) => {
       const heard = Array.from(event.results[event.resultIndex], (alternative) => alternative.transcript.toLowerCase().match(/[a-z]+/g) ?? []).flat();
       void this.finishAttempt(word, heard.includes(word), attemptId);
@@ -144,7 +146,7 @@ export class SightWordsQuizScene extends Phaser.Scene {
     try { recognition.start(); } catch { void this.finishAttempt(word, false, attemptId); }
   }
 
-  private async finishAttempt(word: SightWord, correct: boolean, attemptId: number): Promise<void> {
+  private finishAttempt(word: SightWord, correct: boolean, attemptId: number): void {
     if (!this.listening || this.attemptId !== attemptId) return;
     this.listening = false;
     const recognition = this.recognition;
@@ -162,9 +164,11 @@ export class SightWordsQuizScene extends Phaser.Scene {
     } else {
       this.setStatus(`Not quite. Listen: the word is “${word}.”`, "#ff70b8");
       this.audio.playIncorrectFeedback();
-      await new Promise<void>((resolve) => this.time.delayedCall(350, resolve));
-      if (this.finished || this.attemptId !== attemptId) return;
-      await this.audio.speakPhrase(getCorrectionPrompt(word));
+      this.time.delayedCall(350, () => {
+        if (!this.finished && this.isAwaitingChoice && this.currentWord === word && this.attemptId === attemptId) {
+          void this.audio.speakPhrase(getCorrectionPrompt(word));
+        }
+      });
     }
     if (this.finished || this.attemptId !== attemptId) return;
     this.isAwaitingChoice = true;

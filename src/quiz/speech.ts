@@ -72,8 +72,8 @@ async function loadModelAudio(text: string): Promise<Blob | undefined> {
 }
 
 /** Preloads model speech for controls that are likely to be used next. */
-export function warmSpeech(texts: readonly string[]): void {
-  void Promise.all(texts.map((text) => loadModelAudio(text)));
+export async function warmSpeech(texts: readonly string[]): Promise<void> {
+  await Promise.all(texts.map((text) => loadModelAudio(text)));
 }
 
 /**
