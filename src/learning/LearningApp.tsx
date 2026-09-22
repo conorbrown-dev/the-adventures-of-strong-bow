@@ -22,6 +22,7 @@ import {
 } from "./learningApplication";
 import { coreCourseRoadmap } from "./coreCourseRoadmaps";
 import { KindergartenLessonActivity } from "./KindergartenLessonActivity";
+import { GuidedLessonPlayer } from "./GuidedLessonPlayer";
 
 type ProgressAttempt = {
   sessionId: string;
@@ -1373,6 +1374,9 @@ export function LearningApp(): JSX.Element {
         </section>
       </main>
     );
+
+  if (activeLessonPlan)
+    return <GuidedLessonPlayer plan={activeLessonPlan} onExit={returnToLearning} />;
 
   return (
     <main className="learning-app">

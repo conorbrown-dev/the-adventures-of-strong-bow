@@ -9,6 +9,7 @@ import tUrl from "../game/assets/audio/phonemes/t-voiceless-alveolar-plosive.ogg
 const PREFERRED_VOICE_NAMES = ["Microsoft Aria", "Microsoft Jenny", "Google US English", "Samantha", "Ava", "Karen", "Moira"];
 let activeAudio: HTMLAudioElement | undefined;
 let resolveActiveAudio: (() => void) | undefined;
+let resolveBrowserSpeech: ((completed: boolean) => void) | undefined;
 let speechRequest = 0;
 let pendingHoverSpeech: number | undefined;
 const modelAudioCache = new Map<string, Blob>();
@@ -121,8 +122,20 @@ export async function speak(text: string): Promise<boolean> {
   utterance.lang = "en-US";
   utterance.rate = 0.82;
   utterance.pitch = 1.04;
-  window.speechSynthesis.speak(utterance);
-  return true;
+  return new Promise<boolean>((resolve) => {
+    const complete = (completed: boolean) => {
+      if (resolveBrowserSpeech === complete) resolveBrowserSpeech = undefined;
+      resolve(completed);
+    };
+    resolveBrowserSpeech = complete;
+    utterance.onend = () => {
+      if (resolveBrowserSpeech === complete) complete(true);
+    };
+    utterance.onerror = () => {
+      if (resolveBrowserSpeech === complete) complete(false);
+    };
+    window.speechSynthesis.speak(utterance);
+  });
 }
 
 export function stopSpeaking(): void {
@@ -133,6 +146,7 @@ export function stopSpeaking(): void {
   }
   stopActiveAudio();
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  resolveBrowserSpeech?.(false);
 }
 
 export function isCurriculumCueAvailable(cueId: string): cueId is CurriculumCueId {

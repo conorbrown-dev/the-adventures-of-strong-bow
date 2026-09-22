@@ -560,6 +560,11 @@ canvas { display: block; touch-action: none; user-select: none; max-width: 100vw
 .learning-shell .lesson-continue { width: min(100%, 340px); margin: 0 auto; }
 .lesson-continue::before { animation: none; }
 .lesson-continue.is-filling::before { animation: learning-continue-fill 1.2s linear forwards; }
+.guided-lesson-player { position: fixed; inset: 0; z-index: 30; background: #061326; }
+.guided-lesson-stage { width: 100%; height: 100%; }
+.guided-lesson-stage canvas { width: 100% !important; height: 100% !important; max-width: none; max-height: none; border-radius: 0; outline: 0; box-shadow: none; }
+.guided-lesson-exit { position: fixed; z-index: 31; top: max(18px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); min-height: 42px; border: 1px solid rgb(167 217 255 / 72%); border-radius: 999px; background: rgb(6 19 38 / 76%); color: #fff; cursor: pointer; font: 800 .75rem "Arial Rounded MT Bold", ui-rounded, sans-serif; letter-spacing: .08em; padding: 10px 14px; }
+.guided-lesson-exit:focus-visible { outline: 3px solid #ffe39a; outline-offset: 3px; }
 @media (max-width: 640px) {
   .learning-app { padding: 0; }
   .learning-shell { min-height: 100dvh; border: 0; border-radius: 0; padding: 22px 18px 38px; }
