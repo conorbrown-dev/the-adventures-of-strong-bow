@@ -59,7 +59,6 @@ class GuidedLessonScene extends Phaser.Scene {
 
   private ready(): void {
     this.render();
-    window.setTimeout(() => this.playNarration(), 120);
   }
 
   private render(): void {
@@ -128,7 +127,12 @@ class GuidedLessonScene extends Phaser.Scene {
 
   private previousStep(): void { if (this.stepIndex === 0) return; this.stepIndex -= 1; this.isGetReadyOpen = false; this.render(); this.playNarration(); }
   private nextStep(): void { if (this.stepIndex >= this.steps.length - 1) return; this.stepIndex += 1; this.isGetReadyOpen = false; this.render(); this.playNarration(); }
-  private toggleGetReady(): void { this.isGetReadyOpen = !this.isGetReadyOpen; this.render(); }
+  private toggleGetReady(): void {
+    const isClosingInitialOverlay = this.isGetReadyOpen && this.stepIndex === 0;
+    this.isGetReadyOpen = !this.isGetReadyOpen;
+    this.render();
+    if (isClosingInitialOverlay) this.playNarration();
+  }
   private toggleNarration(): void { if (this.isNarrating) { stopSpeaking(); this.isNarrating = false; this.render(); return; } this.playNarration(); }
   private playNarration(): void {
     const step = this.steps[this.stepIndex];
