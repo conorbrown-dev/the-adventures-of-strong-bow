@@ -16,6 +16,10 @@ const CORRECT_ANSWERS_TO_LAUNCH = 5;
 const TRACK_CENTER_X = GAME_WIDTH / 2;
 const TRACK_WIDTH = 760;
 const RACE_DISTANCE = 18_000;
+const BASE_RACE_SPEED = 0.30;
+const MAX_STEERING_SPEED = 0.15;
+const SPEED_EASING_MS = 260;
+const STEERING_EASING_MS = 220;
 const CAR_COLORS = [
   { name: "BLUE", color: 0x2787ff }, { name: "RED", color: 0xef3e43 },
   { name: "HOT PINK", color: 0xff3ca6 }, { name: "NEON GREEN", color: 0x5cff35 },
@@ -60,10 +64,14 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private laneMarkers: Phaser.GameObjects.Rectangle[] = [];
   private finishLine?: Phaser.GameObjects.Container;
   private raceDistance = 0;
+  private raceSpeed = BASE_RACE_SPEED;
+  private playerLateralSpeed = 0;
   private boostUntil = 0;
   private brakeUntil = 0;
   private leftKey?: Phaser.Input.Keyboard.Key;
   private rightKey?: Phaser.Input.Keyboard.Key;
+  private aKey?: Phaser.Input.Keyboard.Key;
+  private dKey?: Phaser.Input.Keyboard.Key;
   private keyboardHandler?: (event: KeyboardEvent) => void;
 
   constructor() { super(SCENE_KEYS.PHONICS_STARSHIP_GAME); }
@@ -81,10 +89,14 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.laneMarkers = [];
     this.finishLine = undefined;
     this.raceDistance = 0;
+    this.raceSpeed = BASE_RACE_SPEED;
+    this.playerLateralSpeed = 0;
     this.boostUntil = 0;
     this.brakeUntil = 0;
     this.leftKey = undefined;
     this.rightKey = undefined;
+    this.aKey = undefined;
+    this.dKey = undefined;
   }
 
   create(): void {
@@ -140,18 +152,19 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private bindKeyboard(): void {
     this.input.keyboard?.addCapture([
       Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN, Phaser.Input.Keyboard.KeyCodes.LEFT,
-      Phaser.Input.Keyboard.KeyCodes.RIGHT, Phaser.Input.Keyboard.KeyCodes.SPACE
+      Phaser.Input.Keyboard.KeyCodes.RIGHT, Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.D,
+      Phaser.Input.Keyboard.KeyCodes.SPACE
     ]);
     this.leftKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
     this.rightKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+    this.aKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    this.dKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     this.keyboardHandler = (event: KeyboardEvent) => {
       if (this.phase === "ended" && event.key.toLowerCase() === "r") { this.scene.restart(); return; }
       if (this.phase === "color-select" && /^[1-9]$/.test(event.key)) { this.selectCarColor(Number(event.key) - 1); return; }
       if (this.phase === "racing") {
         if (event.code === "Space" || event.key === "ArrowUp") this.accelerate();
         if (event.key === "ArrowDown" || event.key.toLowerCase() === "b") this.brake();
-        if (event.key.toLowerCase() === "a") this.steerPlayer(-1);
-        if (event.key.toLowerCase() === "d") this.steerPlayer(1);
         return;
       }
       if (this.phase !== "learning") return;
@@ -164,7 +177,8 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       stopSpeaking();
       this.input.keyboard?.removeCapture([
         Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN, Phaser.Input.Keyboard.KeyCodes.LEFT,
-        Phaser.Input.Keyboard.KeyCodes.RIGHT, Phaser.Input.Keyboard.KeyCodes.SPACE
+        Phaser.Input.Keyboard.KeyCodes.RIGHT, Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.D,
+        Phaser.Input.Keyboard.KeyCodes.SPACE
       ]);
     });
   }
@@ -408,17 +422,27 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private brake(): void { if (this.phase === "racing") { this.brakeUntil = this.time.now + 700; this.raceStatusText?.setText("BRAKING!").setColor("#ff70b8"); } }
   private steerPlayer(direction: -1 | 1): void {
     if (!this.player) return;
-    this.player.x += direction * 42;
+    this.playerLateralSpeed = direction * MAX_STEERING_SPEED;
   }
 
   private updateRace(time: number, delta: number): void {
     if (!this.player || !this.playerTrail) return;
     const isBoosting = time < this.boostUntil;
     const isBraking = time < this.brakeUntil;
-    const speed = (isBoosting ? 0.78 : isBraking ? 0.06 : 0.30) * delta;
+    const targetRaceSpeed = isBoosting ? 0.78 : isBraking ? 0.06 : BASE_RACE_SPEED;
+    this.raceSpeed = Phaser.Math.Linear(this.raceSpeed, targetRaceSpeed, Math.min(1, delta / SPEED_EASING_MS));
+    const speed = this.raceSpeed * delta;
     this.raceDistance += speed;
-    const turnDirection = (this.leftKey?.isDown ? -1 : 0) + (this.rightKey?.isDown ? 1 : 0);
-    if (turnDirection !== 0) this.player.x += turnDirection * 0.42 * delta;
+    const turnDirection = (this.leftKey?.isDown || this.aKey?.isDown ? -1 : 0)
+      + (this.rightKey?.isDown || this.dKey?.isDown ? 1 : 0);
+    const targetLateralSpeed = turnDirection * MAX_STEERING_SPEED;
+    const steeringEase = turnDirection === 0 ? STEERING_EASING_MS * 0.7 : STEERING_EASING_MS;
+    this.playerLateralSpeed = Phaser.Math.Linear(
+      this.playerLateralSpeed,
+      targetLateralSpeed,
+      Math.min(1, delta / steeringEase)
+    );
+    this.player.x += this.playerLateralSpeed * delta;
     const shoulderLimit = TRACK_WIDTH / 2 - 28;
     if (Math.abs(this.player.x - TRACK_CENTER_X) > shoulderLimit) {
       this.finishRace(false);
