@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { speak, stopSpeaking } from "../../quiz/speech";
 import { PHONICS_CHALLENGES, type PhonicsChallenge } from "../data/phonicsChallenges";
 import { ASSET_KEYS } from "../utils/assetKeys";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
@@ -90,8 +91,8 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       this.tweens.add({ targets: dot, alpha: 0.08, duration: Phaser.Math.Between(900, 2200), yoyo: true, repeat: -1 });
     }
     this.mathStagePanels.push(
-      this.add.rectangle(683, 404, 760, 546, NEON.panel, 0.92).setStrokeStyle(2, NEON.purple, 0.35),
-      this.add.rectangle(683, 404, 730, 516, 0x090610, 0.64).setStrokeStyle(1, NEON.cyan, 0.12)
+      this.add.rectangle(683, 404, 1_080, 546, NEON.panel, 0.92).setStrokeStyle(2, NEON.purple, 0.35),
+      this.add.rectangle(683, 404, 1_050, 516, 0x090610, 0.64).setStrokeStyle(1, NEON.cyan, 0.12)
     );
   }
 
@@ -130,6 +131,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       if (this.keyboardHandler) this.input.keyboard?.off("keydown", this.keyboardHandler);
       this.keyboardHandler = undefined;
+      stopSpeaking();
       this.input.keyboard?.removeCapture([
         Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN, Phaser.Input.Keyboard.KeyCodes.SPACE
       ]);
@@ -153,6 +155,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.answer = "";
     this.statusText?.setText("Choose an answer, or press 1, 2, or 3").setColor(NEON.muted);
     this.refreshAnswer(); this.renderProblem();
+    void speak(this.problem.prompt);
   }
 
   private renderProblem(): void {
@@ -232,7 +235,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       const x = 325 + (index % 3) * 360;
       const y = 285 + Math.floor(index / 3) * 140;
       const bg = this.add.rectangle(x, y, 310, 104, 0x211735).setStrokeStyle(4, color.color);
-      const car = this.add.image(x - 96, y, ASSET_KEYS.RACING_CAR).setDisplaySize(76, 38).setTint(color.color);
+      const car = this.add.image(x - 96, y, this.getCarTextureKey(color)).setDisplaySize(76, 38);
       const label = this.add.text(x + 35, y, `${index + 1}. ${color.name}`, { fontFamily: "Press Start 2P, monospace", fontSize: "16px", color: `#${color.color.toString(16).padStart(6, "0")}` }).setOrigin(0.5);
       this.add.zone(x, y, 310, 104).setInteractive({ useHandCursor: true })
         .on("pointerover", () => { bg.setFillStyle(color.color, 0.28); car.setScale(1.1); })
@@ -247,6 +250,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     const color = CAR_COLORS[index];
     if (this.phase !== "color-select" || !color) return;
     this.selectedColor = color;
+    stopSpeaking();
     this.children.removeAll(true);
     this.startRace();
   }
@@ -258,7 +262,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.add.rectangle(1180, GAME_HEIGHT / 2, 24, GAME_HEIGHT, 0xffffff).setDepth(1);
     for (let y = 22; y < GAME_HEIGHT; y += 44) this.add.rectangle(1180, y, 24, 22, 0x111111).setDepth(2);
     this.playerTrail = this.add.image(150, 510, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(76, 38).setTint(this.selectedColor!.color).setAlpha(0.45).setDepth(2);
-    this.player = this.add.image(180, 510, ASSET_KEYS.RACING_CAR).setDisplaySize(76, 38).setTint(this.selectedColor!.color).setDepth(4);
+    this.player = this.add.image(180, 510, this.getCarTextureKey(this.selectedColor!)).setDisplaySize(76, 38).setDepth(4);
     this.raceStatusText = this.add.text(GAME_WIDTH / 2, 62, "GO!  WRECK RIVALS OR REACH THE CHECKERED FLAG", { fontFamily: "Press Start 2P, monospace", fontSize: "18px", color: "#ffffff" }).setOrigin(0.5).setDepth(8);
     this.raceProgressText = this.add.text(46, 48, "RACE  0%", { fontFamily: "Press Start 2P, monospace", fontSize: "17px", color: "#ffffff" }).setDepth(8);
     this.createRaceControl(970, 690, "▲ ACCEL", "SPACE / ↑", NEON.cyan, () => this.accelerate());
@@ -276,8 +280,42 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
 
   private spawnRival(color: CarColor, x: number, y: number, speed: number): void {
     const trail = this.add.image(x - 34, y, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(70, 35).setTint(color.color).setAlpha(0.34).setDepth(2);
-    const car = this.add.image(x, y, ASSET_KEYS.RACING_CAR).setDisplaySize(70, 35).setTint(color.color).setDepth(4);
+    const car = this.add.image(x, y, this.getCarTextureKey(color)).setDisplaySize(70, 35).setDepth(4);
     this.rivals.push({ car, trail, color, speed });
+  }
+
+  private getCarTextureKey(color: CarColor): string {
+    const textureKey = `${ASSET_KEYS.RACING_CAR}-${color.name.toLowerCase().replace(/ /g, "-")}`;
+    if (this.textures.exists(textureKey)) return textureKey;
+
+    const source = this.textures.get(ASSET_KEYS.RACING_CAR).getSourceImage() as CanvasImageSource;
+    const width = 60;
+    const height = 30;
+    const texture = this.textures.createCanvas(textureKey, width, height);
+    if (!texture) return ASSET_KEYS.RACING_CAR;
+    const context = texture.context;
+    context.drawImage(source, 0, 0, width, height);
+    const pixels = context.getImageData(0, 0, width, height);
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const offset = (y * width + x) * 4;
+        const red = pixels.data[offset] ?? 0;
+        const green = pixels.data[offset + 1] ?? 0;
+        const blue = pixels.data[offset + 2] ?? 0;
+        const alpha = pixels.data[offset + 3] ?? 0;
+        const isWindow = x >= 28 && x <= 44 && y >= 7 && y <= 22;
+        const isBlueBody = blue > red * 1.2 && blue > green * 1.1;
+        if (alpha > 0 && !isWindow && isBlueBody) {
+          pixels.data[offset] = (color.color >> 16) & 0xff;
+          pixels.data[offset + 1] = (color.color >> 8) & 0xff;
+          pixels.data[offset + 2] = color.color & 0xff;
+        }
+      }
+    }
+    context.putImageData(pixels, 0, 0);
+    texture.refresh();
+    return textureKey;
   }
 
   private accelerate(): void { if (this.phase === "racing") { this.boostUntil = this.time.now + 1000; this.raceStatusText?.setText("TURBO BURST!").setColor("#f7ff28"); } }
