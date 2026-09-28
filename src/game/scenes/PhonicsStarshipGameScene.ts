@@ -15,7 +15,7 @@ const NEON = {
 const CORRECT_ANSWERS_TO_LAUNCH = 5;
 const TRACK_CENTER_X = GAME_WIDTH / 2;
 const TRACK_WIDTH = 760;
-const RACE_DISTANCE = 1_200;
+const RACE_DISTANCE = 18_000;
 const CAR_COLORS = [
   { name: "BLUE", color: 0x2787ff }, { name: "RED", color: 0xef3e43 },
   { name: "HOT PINK", color: 0xff3ca6 }, { name: "NEON GREEN", color: 0x5cff35 },
@@ -302,13 +302,15 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     if (this.textures.exists(roadKey) && this.textures.exists(borderKey)) return { roadKey, borderKey };
 
     const source = this.textures.get(ASSET_KEYS.RACING_ROAD).getSourceImage() as CanvasImageSource;
-    const roadTexture = this.textures.createCanvas(roadKey, 68, 112);
+    const roadTexture = this.textures.createCanvas(roadKey, 68, 72);
     const borderTexture = this.textures.createCanvas(borderKey, 10, 20);
     if (!roadTexture || !borderTexture) return { roadKey: ASSET_KEYS.RACING_ROAD, borderKey: ASSET_KEYS.RACING_ROAD };
-    roadTexture.context.drawImage(source, 101, 0, 68, 112, 0, 0, 68, 112);
+    roadTexture.context.drawImage(source, 101, 0, 68, 72, 0, 0, 68, 72);
     roadTexture.refresh();
+    roadTexture.setFilter(Phaser.Textures.FilterMode.NEAREST);
     borderTexture.context.drawImage(source, 91, 0, 10, 20, 0, 0, 10, 20);
     borderTexture.refresh();
+    borderTexture.setFilter(Phaser.Textures.FilterMode.NEAREST);
     return { roadKey, borderKey };
   }
 
@@ -381,8 +383,8 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     const isBraking = time < this.brakeUntil;
     const speed = (isBoosting ? 0.78 : isBraking ? 0.06 : 0.30) * delta;
     this.raceDistance += speed;
-    this.roadSurface?.setTilePosition(0, this.roadSurface.tilePositionY + speed);
-    this.roadBorders.forEach((border) => border.setTilePosition(0, border.tilePositionY + speed));
+    this.roadSurface?.setTilePosition(0, this.roadSurface.tilePositionY - speed);
+    this.roadBorders.forEach((border) => border.setTilePosition(0, border.tilePositionY - speed));
     this.laneMarkers.forEach((marker) => {
       marker.y += speed;
       if (marker.y > GAME_HEIGHT + 32) marker.y -= GAME_HEIGHT + 108;
