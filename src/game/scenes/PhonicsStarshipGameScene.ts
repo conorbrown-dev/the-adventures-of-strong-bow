@@ -64,7 +64,6 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private answer = "";
   private ignoredAnswerPointerId?: number;
   private problemLayer?: Phaser.GameObjects.Container;
-  private answerText?: Phaser.GameObjects.Text;
   private statusText?: Phaser.GameObjects.Text;
   private correctCount = 0;
   private correctCountText?: Phaser.GameObjects.Text;
@@ -232,7 +231,6 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   private createAnswerArea(): void {
-    this.answerText = this.trackMath(this.add.text(GAME_WIDTH / 2, 620, "", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "28px", color: "#45f6e5" }).setOrigin(0.5));
     this.statusText = this.trackMath(this.add.text(GAME_WIDTH / 2, 666, "Choose an answer, or press 1, 2, or 3", { fontFamily: "Trebuchet MS, sans-serif", fontSize: "20px", color: NEON.muted }).setOrigin(0.5));
   }
 
@@ -277,11 +275,6 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     });
   }
 
-  private refreshAnswer(): void {
-    const choiceIndex = Number(this.answer);
-    this.answerText?.setText(Number.isInteger(choiceIndex) ? `Selected: ${this.displayedChoices[choiceIndex]}` : "");
-  }
-
   private selectChoice(choiceIndex: number, pointerId?: number): void {
     if (pointerId === this.ignoredAnswerPointerId) {
       this.ignoredAnswerPointerId = undefined;
@@ -289,7 +282,6 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     }
     if (this.phase !== "learning" || choiceIndex >= this.displayedChoices.length) return;
     this.answer = String(choiceIndex);
-    this.refreshAnswer();
     this.checkAnswer();
   }
 
@@ -306,7 +298,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.recentChallengeIndices = [...this.recentChallengeIndices, selectedIndex].slice(-5);
     this.answer = "";
     this.statusText?.setText("Choose an answer, or press 1, 2, or 3").setColor(NEON.muted);
-    this.refreshAnswer(); this.renderProblem();
+    this.renderProblem();
     void speak(this.problem.prompt);
   }
 
@@ -335,7 +327,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     if (!this.answer) return;
     if (Number(this.answer) !== this.displayedCorrectChoice) {
       this.statusText?.setText("TRY AGAIN — YOU'VE GOT THIS!").setColor("#ff70b8");
-      this.tweens.add({ targets: this.answerText, x: "+=10", duration: 55, yoyo: true, repeat: 3 }); return;
+      this.tweens.add({ targets: this.statusText, x: "+=10", duration: 55, yoyo: true, repeat: 3 }); return;
     }
     this.correctCount += 1;
     this.correctCountText?.setText(`CORRECT  ${this.correctCount} / ${CORRECT_ANSWERS_TO_LAUNCH}`);
