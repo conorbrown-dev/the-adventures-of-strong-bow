@@ -33,6 +33,7 @@ interface RivalCar {
   trail: Phaser.GameObjects.Image;
   color: CarColor;
   speed: number;
+  lateralSpeed: number;
   distance: number;
   paceOffset: number;
   laneTarget: number;
@@ -377,6 +378,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       trail,
       color,
       speed,
+      lateralSpeed: 0,
       distance: this.raceDistance + (this.player?.y ?? 570) - y,
       paceOffset: Phaser.Math.FloatBetween(-0.06, 0.06),
       laneTarget: x,
@@ -465,9 +467,18 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
         rival.nextLaneChange = time + Phaser.Math.Between(1_400, 3_500);
       }
       const targetSpeed = Phaser.Math.Clamp(playerSpeed + rival.paceOffset, 0.16, 0.52);
-      rival.speed = Phaser.Math.Linear(rival.speed, targetSpeed, Math.min(1, delta / 1_100));
+      rival.speed = Phaser.Math.Linear(rival.speed, targetSpeed, Math.min(1, delta / SPEED_EASING_MS));
       rival.distance += rival.speed * delta;
-      rival.car.x = Phaser.Math.Linear(rival.car.x, rival.laneTarget, Math.min(1, delta / 400));
+      const laneDistance = rival.laneTarget - rival.car.x;
+      const turnDirection = Math.abs(laneDistance) < 3 ? 0 : Math.sign(laneDistance);
+      const targetLateralSpeed = turnDirection * MAX_STEERING_SPEED;
+      const steeringEase = turnDirection === 0 ? STEERING_EASING_MS * 0.7 : STEERING_EASING_MS;
+      rival.lateralSpeed = Phaser.Math.Linear(
+        rival.lateralSpeed,
+        targetLateralSpeed,
+        Math.min(1, delta / steeringEase)
+      );
+      rival.car.x += rival.lateralSpeed * delta;
       rival.car.y = this.player.y - (rival.distance - this.raceDistance);
       rival.trail.setPosition(rival.car.x, rival.car.y + 32);
       if (Math.abs(rival.car.x - TRACK_CENTER_X) > shoulderLimit) {
