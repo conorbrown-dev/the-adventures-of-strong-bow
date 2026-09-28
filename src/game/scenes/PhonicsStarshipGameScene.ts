@@ -231,6 +231,14 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   private createAnswerArea(): void {
+    const repeatButton = this.trackMath(this.add.rectangle(GAME_WIDTH / 2, 598, 330, 48, 0x1b1430, 1).setStrokeStyle(2, NEON.cyan, 0.9));
+    const repeatLabel = this.trackMath(this.add.text(GAME_WIDTH / 2, 598, "REPEAT INSTRUCTIONS  (R)", {
+      fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "18px", color: NEON.ink, letterSpacing: 1
+    }).setOrigin(0.5));
+    this.trackMath(this.add.zone(GAME_WIDTH / 2, 598, 330, 48).setInteractive({ useHandCursor: true })
+      .on("pointerover", () => { repeatButton.setFillStyle(0x33244f); repeatLabel.setScale(1.04); void speakOnHover("Repeat instructions"); })
+      .on("pointerout", () => { repeatButton.setFillStyle(0x1b1430); repeatLabel.setScale(1); })
+      .on("pointerup", () => this.repeatCurrentInstructions()));
     this.statusText = this.trackMath(this.add.text(GAME_WIDTH / 2, 666, "Choose an answer, or press 1, 2, or 3", { fontFamily: "Trebuchet MS, sans-serif", fontSize: "20px", color: NEON.muted }).setOrigin(0.5));
   }
 
@@ -243,7 +251,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.input.keyboard?.addCapture([
       Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN, Phaser.Input.Keyboard.KeyCodes.LEFT,
       Phaser.Input.Keyboard.KeyCodes.RIGHT, Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.D,
-      Phaser.Input.Keyboard.KeyCodes.SPACE
+      Phaser.Input.Keyboard.KeyCodes.R, Phaser.Input.Keyboard.KeyCodes.SPACE
     ]);
     this.leftKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
     this.rightKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
@@ -259,6 +267,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
         return;
       }
       if (this.phase !== "learning") return;
+      if (event.key.toLowerCase() === "r") { this.repeatCurrentInstructions(); return; }
       if (/^[1-3]$/.test(event.key)) this.selectChoice(Number(event.key) - 1);
     };
     this.input.keyboard?.on("keydown", this.keyboardHandler);
@@ -270,9 +279,14 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       this.input.keyboard?.removeCapture([
         Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN, Phaser.Input.Keyboard.KeyCodes.LEFT,
         Phaser.Input.Keyboard.KeyCodes.RIGHT, Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.D,
-        Phaser.Input.Keyboard.KeyCodes.SPACE
+        Phaser.Input.Keyboard.KeyCodes.R, Phaser.Input.Keyboard.KeyCodes.SPACE
       ]);
     });
+  }
+
+  private repeatCurrentInstructions(): void {
+    if (this.phase !== "learning") return;
+    void speak(this.problem.prompt);
   }
 
   private selectChoice(choiceIndex: number, pointerId?: number): void {
