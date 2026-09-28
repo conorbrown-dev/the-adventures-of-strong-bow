@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
-import { speak, stopSpeaking } from "../../quiz/speech";
-import { PHONICS_CHALLENGES, type PhonicsChallenge } from "../data/phonicsChallenges";
+import { speak, speakOnHover, stopSpeaking } from "../../quiz/speech";
+import { PHONICS_CHALLENGES, PHONICS_MODULES, type PhonicsChallenge, type PhonicsModule } from "../data/phonicsChallenges";
 import { ASSET_KEYS } from "../utils/assetKeys";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { addGameNavigation } from "../utils/gameNavigation";
@@ -45,7 +45,11 @@ interface RivalCar {
 
 export class PhonicsStarshipGameScene extends Phaser.Scene {
   private problem: PhonicsChallenge = PHONICS_CHALLENGES[0];
+  private selectedModule?: PhonicsModule;
+  private recentChallengeIndices: number[] = [];
+  private modulePickerLayer?: Phaser.GameObjects.Container;
   private answer = "";
+  private ignoredAnswerPointerId?: number;
   private problemLayer?: Phaser.GameObjects.Container;
   private answerText?: Phaser.GameObjects.Text;
   private statusText?: Phaser.GameObjects.Text;
@@ -56,7 +60,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private mathStagePanels: Phaser.GameObjects.Rectangle[] = [];
   private backgroundStars: Phaser.GameObjects.Arc[] = [];
 
-  private phase: "learning" | "color-select" | "racing" | "ended" = "learning";
+  private phase: "module-select" | "starting-module" | "learning" | "color-select" | "racing" | "ended" = "module-select";
   private player?: Phaser.GameObjects.Image;
   private playerTrail?: Phaser.GameObjects.Image;
   private selectedColor?: CarColor;
@@ -81,9 +85,13 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   constructor() { super(SCENE_KEYS.PHONICS_STARSHIP_GAME); }
 
   init(): void {
-    this.phase = "learning";
+    this.phase = "module-select";
     this.answer = "";
+    this.ignoredAnswerPointerId = undefined;
     this.correctCount = 0;
+    this.selectedModule = undefined;
+    this.recentChallengeIndices = [];
+    this.modulePickerLayer = undefined;
     this.mathObjects = [];
     this.mathStagePanels = [];
     this.backgroundStars = [];
@@ -106,12 +114,9 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor(NEON.dark);
     this.createBackground();
-    this.createHeader();
-    this.createAnswerArea();
-    this.createKeypad();
     this.bindKeyboard();
     addGameNavigation(this);
-    this.newProblem();
+    this.showModulePicker();
   }
 
   update(time: number, delta: number): void {
@@ -139,8 +144,68 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
 
   private createHeader(): void {
     this.trackMath(this.add.text(76, 58, "PHONICS RACING", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "27px", color: "#ffffff", letterSpacing: 2 }));
-    this.trackMath(this.add.text(77, 94, "vowels, teams, silent e, and digraphs", { fontFamily: "Trebuchet MS, sans-serif", fontSize: "19px", color: NEON.muted, letterSpacing: 1 }));
+    this.trackMath(this.add.text(77, 94, `${this.selectedModule?.title ?? "Phonics"} practice`, { fontFamily: "Trebuchet MS, sans-serif", fontSize: "19px", color: NEON.muted, letterSpacing: 1 }));
     this.correctCountText = this.trackMath(this.add.text(GAME_WIDTH - 75, 70, `CORRECT  0 / ${CORRECT_ANSWERS_TO_LAUNCH}`, { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "19px", color: "#ffe45c", letterSpacing: 1 }).setOrigin(1, 0.5));
+  }
+
+  private showModulePicker(): void {
+    const layer = this.add.container(0, 0).setDepth(10);
+    this.modulePickerLayer = layer;
+    layer.add(this.add.text(GAME_WIDTH / 2, 154, "CHOOSE A PHONICS SKILL", {
+      fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "38px", color: "#ffffff", letterSpacing: 2
+    }).setOrigin(0.5));
+    layer.add(this.add.text(GAME_WIDTH / 2, 210, "Practice one skill at a time, then race!", {
+      fontFamily: "Trebuchet MS, sans-serif", fontSize: "23px", color: "#45f6e5"
+    }).setOrigin(0.5));
+    PHONICS_MODULES.forEach((module, index) => this.createModuleButton(layer, module, index));
+    layer.add(this.add.text(GAME_WIDTH / 2, 677, "CLICK A SKILL OR PRESS 1–4", {
+      fontFamily: "Trebuchet MS, sans-serif", fontSize: "18px", color: NEON.muted, letterSpacing: 1
+    }).setOrigin(0.5));
+    void speak("Choose one phonics skill to practice. You will practice one skill at a time.");
+  }
+
+  private createModuleButton(layer: Phaser.GameObjects.Container, module: PhonicsModule, index: number): void {
+    const x = 420 + (index % 2) * 520;
+    const y = 350 + Math.floor(index / 2) * 190;
+    const color = [NEON.yellow, NEON.cyan, NEON.orange, NEON.purple][index] ?? NEON.cyan;
+    const background = this.add.rectangle(x, y, 460, 150, 0x1b1430, 1).setStrokeStyle(3, color, 0.9);
+    const title = this.add.text(x, y - 35, `${index + 1}. ${module.title}`, {
+      fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "29px", color: NEON.ink
+    }).setOrigin(0.5);
+    const description = this.add.text(x, y + 27, module.description, {
+      fontFamily: "Trebuchet MS, sans-serif", fontSize: "18px", color: "#a99ac3", align: "center", wordWrap: { width: 390 }
+    }).setOrigin(0.5);
+    const zone = this.add.zone(x, y, 460, 150).setInteractive({ useHandCursor: true })
+      .on("pointerover", () => { background.setFillStyle(0x33244f); title.setScale(1.04); void speakOnHover(module.title); })
+      .on("pointerout", () => { background.setFillStyle(0x1b1430); title.setScale(1); })
+      .on("pointerdown", (pointer: Phaser.Input.Pointer) => this.selectModule(index, pointer.id));
+    layer.add([background, title, description, zone]);
+  }
+
+  private selectModule(index: number, pointerId?: number): void {
+    const module = PHONICS_MODULES[index];
+    if (this.phase !== "module-select" || !module) return;
+    this.phase = "starting-module";
+    this.selectedModule = module;
+    this.recentChallengeIndices = [];
+    stopSpeaking();
+    if (pointerId !== undefined) {
+      this.ignoredAnswerPointerId = pointerId;
+      this.input.once("pointerup", () => this.time.delayedCall(0, () => this.startModule()));
+      return;
+    }
+    this.time.delayedCall(0, () => this.startModule());
+  }
+
+  private startModule(): void {
+    this.modulePickerLayer?.destroy(true);
+    this.modulePickerLayer = undefined;
+    this.createHeader();
+    this.createAnswerArea();
+    this.createKeypad();
+    this.phase = "learning";
+    this.newProblem();
+    this.time.delayedCall(1_000, () => { this.ignoredAnswerPointerId = undefined; });
   }
 
   private createAnswerArea(): void {
@@ -165,6 +230,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.dKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     this.keyboardHandler = (event: KeyboardEvent) => {
       if (this.phase === "ended" && event.key.toLowerCase() === "r") { this.scene.restart(); return; }
+      if (this.phase === "module-select" && /^[1-4]$/.test(event.key)) { this.selectModule(Number(event.key) - 1); return; }
       if (this.phase === "color-select" && /^[1-9]$/.test(event.key)) { this.selectCarColor(Number(event.key) - 1); return; }
       if (this.phase === "racing") {
         if (event.code === "Space" || event.key === "ArrowUp") this.accelerate();
@@ -192,7 +258,11 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.answerText?.setText(Number.isInteger(choiceIndex) ? `Selected: ${this.problem.choices[choiceIndex]}` : "");
   }
 
-  private selectChoice(choiceIndex: number): void {
+  private selectChoice(choiceIndex: number, pointerId?: number): void {
+    if (pointerId === this.ignoredAnswerPointerId) {
+      this.ignoredAnswerPointerId = undefined;
+      return;
+    }
     if (this.phase !== "learning" || choiceIndex >= this.problem.choices.length) return;
     this.answer = String(choiceIndex);
     this.refreshAnswer();
@@ -200,7 +270,13 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   private newProblem(): void {
-    this.problem = PHONICS_CHALLENGES[Phaser.Math.Between(0, PHONICS_CHALLENGES.length - 1)] ?? PHONICS_CHALLENGES[0];
+    const challenges = this.selectedModule?.challenges ?? PHONICS_CHALLENGES;
+    const availableIndices = challenges
+      .map((_, index) => index)
+      .filter((index) => !this.recentChallengeIndices.includes(index));
+    const selectedIndex = Phaser.Utils.Array.GetRandom(availableIndices) ?? 0;
+    this.problem = challenges[selectedIndex] ?? PHONICS_CHALLENGES[0];
+    this.recentChallengeIndices = [...this.recentChallengeIndices, selectedIndex].slice(-5);
     this.answer = "";
     this.statusText?.setText("Choose an answer, or press 1, 2, or 3").setColor(NEON.muted);
     this.refreshAnswer(); this.renderProblem();
@@ -224,7 +300,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     const zone = this.add.zone(x, y, 300, 100).setInteractive({ useHandCursor: true })
       .on("pointerover", () => { bg.setFillStyle(0x33244f); label.setScale(1.06); })
       .on("pointerout", () => { bg.setFillStyle(0x1b1430); label.setScale(1); })
-      .on("pointerup", () => this.selectChoice(index));
+      .on("pointerup", (pointer: Phaser.Input.Pointer) => this.selectChoice(index, pointer.id));
     this.keypadLayer?.add([bg, label, zone]);
   }
 
