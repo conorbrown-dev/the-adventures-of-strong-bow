@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 
 import { PHONICS_CHALLENGES, type PhonicsChallenge } from "../data/phonicsChallenges";
-import { type StarshipDifficulty, loadAdditionSettings } from "../settings/additionSettings";
 import { ASSET_KEYS } from "../utils/assetKeys";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { addGameNavigation } from "../utils/gameNavigation";
@@ -13,29 +12,17 @@ const NEON = {
   ink: "#f7f2ff", muted: "#a99ac3"
 } as const;
 const CORRECT_ANSWERS_TO_LAUNCH = 5;
-interface Enemy {
-  ship: Phaser.GameObjects.Image;
-  health: number;
-  speed: number;
-  fireAt: number;
-  boss: boolean;
-}
-interface Projectile { sprite: Phaser.GameObjects.Image; speed: number; damage: number; playerOwned: boolean; }
-interface RepairKit { pickup: Phaser.GameObjects.Container; speed: number; }
-interface CombatDifficultySettings {
-  normalHealth: number; bossHealth: number; minSpeed: number; maxSpeed: number;
-  normalFireDelay: [number, number]; bossFireDelay: number; normalDamage: number;
-  bossCollisionDamage: number; bombDamage: number; playerSpeed: number;
-}
-const COMBAT_DIFFICULTIES: Record<StarshipDifficulty, CombatDifficultySettings> = {
-  easy: { normalHealth: 1, bossHealth: 10, minSpeed: 0.04, maxSpeed: 0.09, normalFireDelay: [2200, 3400], bossFireDelay: 1000, normalDamage: 7, bossCollisionDamage: 15, bombDamage: 12, playerSpeed: 0.58 },
-  normal: { normalHealth: 2, bossHealth: 20, minSpeed: 0.06, maxSpeed: 0.16, normalFireDelay: [1300, 2000], bossFireDelay: 650, normalDamage: 10, bossCollisionDamage: 25, bombDamage: 20, playerSpeed: 0.48 },
-  hard: { normalHealth: 3, bossHealth: 30, minSpeed: 0.1, maxSpeed: 0.2, normalFireDelay: [800, 1400], bossFireDelay: 450, normalDamage: 12, bossCollisionDamage: 35, bombDamage: 25, playerSpeed: 0.42 }
-};
+const CAR_COLORS = [
+  { name: "BLUE", color: 0x2787ff }, { name: "RED", color: 0xef3e43 },
+  { name: "HOT PINK", color: 0xff3ca6 }, { name: "NEON GREEN", color: 0x5cff35 },
+  { name: "NEON YELLOW", color: 0xf7ff28 }, { name: "NEON ORANGE", color: 0xff8a25 },
+  { name: "CYAN", color: 0x27f8ff }, { name: "PURPLE", color: 0x9a58ff },
+  { name: "WHITE", color: 0xffffff }
+] as const;
+type CarColor = (typeof CAR_COLORS)[number];
+interface RivalCar { car: Phaser.GameObjects.Image; trail: Phaser.GameObjects.Image; color: CarColor; speed: number; }
 
 export class PhonicsStarshipGameScene extends Phaser.Scene {
-  private enemyShipCount = 8;
-  private starshipDifficulty: StarshipDifficulty = "easy";
   private problem: PhonicsChallenge = PHONICS_CHALLENGES[0];
   private answer = "";
   private problemLayer?: Phaser.GameObjects.Container;
@@ -48,22 +35,15 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private mathStagePanels: Phaser.GameObjects.Rectangle[] = [];
   private backgroundStars: Phaser.GameObjects.Arc[] = [];
 
-  private phase: "learning" | "launching" | "combat" | "ended" = "learning";
+  private phase: "learning" | "color-select" | "racing" | "ended" = "learning";
   private player?: Phaser.GameObjects.Image;
-  private enemies: Enemy[] = [];
-  private projectiles: Projectile[] = [];
-  private repairKits: RepairKit[] = [];
-  private playerHealth = 100;
-  private shipsDestroyed = 0;
-  private shipsSpawned = 0;
-  private bossSpawned = false;
-  private nextSpawnAt = 0;
-  private nextShotAt = 0;
-  private healthText?: Phaser.GameObjects.Text;
-  private fleetText?: Phaser.GameObjects.Text;
-  private combatStatusText?: Phaser.GameObjects.Text;
-  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
-  private moveKeys?: { W: Phaser.Input.Keyboard.Key; A: Phaser.Input.Keyboard.Key; S: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key; };
+  private playerTrail?: Phaser.GameObjects.Image;
+  private selectedColor?: CarColor;
+  private rivals: RivalCar[] = [];
+  private raceStatusText?: Phaser.GameObjects.Text;
+  private raceProgressText?: Phaser.GameObjects.Text;
+  private boostUntil = 0;
+  private brakeUntil = 0;
   private keyboardHandler?: (event: KeyboardEvent) => void;
 
   constructor() { super(SCENE_KEYS.PHONICS_STARSHIP_GAME); }
@@ -75,21 +55,13 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.mathObjects = [];
     this.mathStagePanels = [];
     this.backgroundStars = [];
-    this.enemies = [];
-    this.projectiles = [];
-    this.repairKits = [];
-    this.playerHealth = 100;
-    this.shipsDestroyed = 0;
-    this.shipsSpawned = 0;
-    this.bossSpawned = false;
-    this.nextSpawnAt = 0;
-    this.nextShotAt = 0;
+    this.rivals = [];
+    this.selectedColor = undefined;
+    this.boostUntil = 0;
+    this.brakeUntil = 0;
   }
 
   create(): void {
-    const settings = loadAdditionSettings();
-    this.enemyShipCount = settings.enemyShipCount;
-    this.starshipDifficulty = settings.starshipDifficulty;
     this.cameras.main.setBackgroundColor(NEON.dark);
     this.createBackground();
     this.createHeader();
@@ -101,13 +73,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
-    if (this.phase !== "combat") return;
-    this.scrollBackground(delta);
-    this.movePlayer(delta);
-    this.spawnShips(time);
-    this.updateEnemies(time, delta);
-    this.updateProjectiles(delta);
-    this.updateRepairKits(delta);
+    if (this.phase === "racing") this.updateRace(time, delta);
   }
 
   private trackMath<T extends Phaser.GameObjects.GameObject>(object: T): T {
@@ -129,16 +95,6 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     );
   }
 
-  private scrollBackground(delta: number): void {
-    this.backgroundStars.forEach((star) => {
-      star.y += Number(star.getData("scrollSpeed")) * delta;
-      if (star.y > GAME_HEIGHT + 4) {
-        star.y = -4;
-        star.x = Phaser.Math.Between(16, GAME_WIDTH - 16);
-      }
-    });
-  }
-
   private createHeader(): void {
     this.trackMath(this.add.text(76, 58, "PHONICS STARSHIP", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "27px", color: "#ffffff", letterSpacing: 2 }));
     this.trackMath(this.add.text(77, 94, "vowels, teams, silent e, and digraphs", { fontFamily: "Trebuchet MS, sans-serif", fontSize: "19px", color: NEON.muted, letterSpacing: 1 }));
@@ -156,18 +112,17 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   private bindKeyboard(): void {
-    this.cursors = this.input.keyboard?.createCursorKeys();
     this.input.keyboard?.addCapture([
-      Phaser.Input.Keyboard.KeyCodes.UP,
-      Phaser.Input.Keyboard.KeyCodes.DOWN,
-      Phaser.Input.Keyboard.KeyCodes.LEFT,
-      Phaser.Input.Keyboard.KeyCodes.RIGHT,
-      Phaser.Input.Keyboard.KeyCodes.SPACE
+      Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN, Phaser.Input.Keyboard.KeyCodes.SPACE
     ]);
-    this.moveKeys = this.input.keyboard?.addKeys("W,A,S,D") as typeof this.moveKeys;
     this.keyboardHandler = (event: KeyboardEvent) => {
       if (this.phase === "ended" && event.key.toLowerCase() === "r") { this.scene.restart(); return; }
-      if (this.phase === "combat") { if (event.code === "Space") this.firePlayerLaser(); return; }
+      if (this.phase === "color-select" && /^[1-9]$/.test(event.key)) { this.selectCarColor(Number(event.key) - 1); return; }
+      if (this.phase === "racing") {
+        if (event.code === "Space" || event.key === "ArrowUp") this.accelerate();
+        if (event.key === "ArrowDown" || event.key.toLowerCase() === "b") this.brake();
+        return;
+      }
       if (this.phase !== "learning") return;
       if (/^[1-3]$/.test(event.key)) this.selectChoice(Number(event.key) - 1);
     };
@@ -176,11 +131,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       if (this.keyboardHandler) this.input.keyboard?.off("keydown", this.keyboardHandler);
       this.keyboardHandler = undefined;
       this.input.keyboard?.removeCapture([
-        Phaser.Input.Keyboard.KeyCodes.UP,
-        Phaser.Input.Keyboard.KeyCodes.DOWN,
-        Phaser.Input.Keyboard.KeyCodes.LEFT,
-        Phaser.Input.Keyboard.KeyCodes.RIGHT,
-        Phaser.Input.Keyboard.KeyCodes.SPACE
+        Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN, Phaser.Input.Keyboard.KeyCodes.SPACE
       ]);
     });
   }
@@ -263,160 +214,108 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
 
   private launchCombat(): void {
     if (this.phase !== "learning") return;
-    this.phase = "launching";
+    this.phase = "color-select";
     this.mathObjects.forEach((object) => object.destroy(true));
     this.mathObjects = [];
     this.mathStagePanels.forEach((panel) => panel.destroy());
     this.mathStagePanels = [];
-    this.player = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT + 70, ASSET_KEYS.PLAYER_STARSHIP).setDisplaySize(78, 87).setDepth(4);
-    this.combatStatusText = this.add.text(GAME_WIDTH / 2, 390, "PHONICS CORE CHARGED — DEFEND THE LAB!", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "28px", color: "#45f6e5" }).setOrigin(0.5).setDepth(6);
-    this.tweens.add({ targets: this.player, y: 620, duration: 900, ease: "Sine.easeOut", onComplete: () => this.beginCombat() });
+    this.backgroundStars.forEach((star) => star.destroy());
+    this.backgroundStars = [];
+    this.showColorPicker();
   }
 
-  private beginCombat(): void {
-    this.phase = "combat";
-    this.nextSpawnAt = this.time.now + 550;
-    this.combatStatusText?.setText("ARROWS / WASD TO FLY  •  SPACE TO FIRE").setFontSize(20);
-    this.healthText = this.add.text(55, 52, "HULL  100", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "24px", color: "#45f6e5" }).setDepth(6);
-    this.fleetText = this.add.text(GAME_WIDTH - 55, 52, `FLEET  0 / ${this.enemyShipCount}`, { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "24px", color: "#ffe45c" }).setOrigin(1, 0).setDepth(6);
-    this.time.delayedCall(2600, () => this.combatStatusText?.setVisible(false));
+  private showColorPicker(): void {
+    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x130d25);
+    this.add.text(GAME_WIDTH / 2, 115, "PHONICS RACE UNLOCKED!", { fontFamily: "Arial Black, Trebuchet MS, sans-serif", fontSize: "47px", color: "#ffffff" }).setOrigin(0.5);
+    this.add.text(GAME_WIDTH / 2, 175, "Pick your race car color", { fontFamily: "Press Start 2P, monospace", fontSize: "21px", color: "#45f6e5" }).setOrigin(0.5);
+    CAR_COLORS.forEach((color, index) => {
+      const x = 325 + (index % 3) * 360;
+      const y = 285 + Math.floor(index / 3) * 140;
+      const bg = this.add.rectangle(x, y, 310, 104, 0x211735).setStrokeStyle(4, color.color);
+      const car = this.add.image(x - 96, y, ASSET_KEYS.RACING_CAR).setDisplaySize(76, 38).setTint(color.color);
+      const label = this.add.text(x + 35, y, `${index + 1}. ${color.name}`, { fontFamily: "Press Start 2P, monospace", fontSize: "16px", color: `#${color.color.toString(16).padStart(6, "0")}` }).setOrigin(0.5);
+      this.add.zone(x, y, 310, 104).setInteractive({ useHandCursor: true })
+        .on("pointerover", () => { bg.setFillStyle(color.color, 0.28); car.setScale(1.1); })
+        .on("pointerout", () => { bg.setFillStyle(0x211735); car.setScale(1); })
+        .on("pointerup", () => this.selectCarColor(index));
+      void label;
+    });
+    this.add.text(GAME_WIDTH / 2, 705, "CLICK A CAR OR PRESS 1–9", { fontFamily: "Press Start 2P, monospace", fontSize: "16px", color: NEON.muted }).setOrigin(0.5);
   }
 
-  private movePlayer(delta: number): void {
-    if (!this.player) return;
-    const speed = COMBAT_DIFFICULTIES[this.starshipDifficulty].playerSpeed * delta;
-    let x = this.player.x; let y = this.player.y;
-    if (this.cursors?.left.isDown || this.moveKeys?.A.isDown) x -= speed;
-    if (this.cursors?.right.isDown || this.moveKeys?.D.isDown) x += speed;
-    if (this.cursors?.up.isDown || this.moveKeys?.W.isDown) y -= speed;
-    if (this.cursors?.down.isDown || this.moveKeys?.S.isDown) y += speed;
-    this.player.setPosition(Phaser.Math.Clamp(x, 45, GAME_WIDTH - 45), Phaser.Math.Clamp(y, 330, GAME_HEIGHT - 50));
+  private selectCarColor(index: number): void {
+    const color = CAR_COLORS[index];
+    if (this.phase !== "color-select" || !color) return;
+    this.selectedColor = color;
+    this.children.removeAll(true);
+    this.startRace();
   }
 
-  private firePlayerLaser(): void {
-    if (!this.player || this.time.now < this.nextShotAt) return;
-    this.nextShotAt = this.time.now + 220;
-    const laser = this.add.image(this.player.x, this.player.y - 50, ASSET_KEYS.PLAYER_LASER).setDisplaySize(18, 34).setDepth(3);
-    this.projectiles.push({ sprite: laser, speed: -0.95, damage: 1, playerOwned: true });
+  private startRace(): void {
+    this.phase = "racing";
+    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x10101b);
+    for (let x = 90; x < GAME_WIDTH; x += 180) this.add.image(x, GAME_HEIGHT / 2, ASSET_KEYS.RACING_ROAD).setDisplaySize(180, GAME_HEIGHT).setDepth(0);
+    this.add.rectangle(1180, GAME_HEIGHT / 2, 24, GAME_HEIGHT, 0xffffff).setDepth(1);
+    for (let y = 22; y < GAME_HEIGHT; y += 44) this.add.rectangle(1180, y, 24, 22, 0x111111).setDepth(2);
+    this.playerTrail = this.add.image(150, 510, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(76, 38).setTint(this.selectedColor!.color).setAlpha(0.45).setDepth(2);
+    this.player = this.add.image(180, 510, ASSET_KEYS.RACING_CAR).setDisplaySize(76, 38).setTint(this.selectedColor!.color).setDepth(4);
+    this.raceStatusText = this.add.text(GAME_WIDTH / 2, 62, "GO!  WRECK RIVALS OR REACH THE CHECKERED FLAG", { fontFamily: "Press Start 2P, monospace", fontSize: "18px", color: "#ffffff" }).setOrigin(0.5).setDepth(8);
+    this.raceProgressText = this.add.text(46, 48, "RACE  0%", { fontFamily: "Press Start 2P, monospace", fontSize: "17px", color: "#ffffff" }).setDepth(8);
+    this.createRaceControl(970, 690, "▲ ACCEL", "SPACE / ↑", NEON.cyan, () => this.accelerate());
+    this.createRaceControl(1190, 690, "▼ BRAKE", "B / ↓", NEON.pink, () => this.brake());
+    CAR_COLORS.filter((color) => color.name !== this.selectedColor?.name).slice(0, 6).forEach((color, index) => this.spawnRival(color, 360 + index * 135, 420 + (index % 3) * 90, Phaser.Math.FloatBetween(0.13, 0.22)));
   }
 
-  private spawnShips(time: number): void {
-    if (time < this.nextSpawnAt) return;
-    if (this.shipsSpawned < this.enemyShipCount) {
-      this.shipsSpawned += 1;
-      this.spawnEnemy(false);
-      this.nextSpawnAt = time + Phaser.Math.Between(700, 1150);
-    } else if (this.shipsDestroyed === this.enemyShipCount && !this.bossSpawned && this.enemies.length === 0) {
-      this.bossSpawned = true; this.spawnEnemy(true);
-      this.combatStatusText?.setText("WARNING — BOSS STARSHIP INCOMING!").setColor("#ff70b8").setVisible(true);
-    }
+  private createRaceControl(x: number, y: number, label: string, key: string, color: number, action: () => void): void {
+    const bg = this.add.rectangle(x, y, 190, 76, 0x161225).setStrokeStyle(4, color);
+    const title = this.add.text(x, y - 12, label, { fontFamily: "Press Start 2P, monospace", fontSize: "15px", color: "#ffffff" }).setOrigin(0.5);
+    const hint = this.add.text(x, y + 17, key, { fontFamily: "Press Start 2P, monospace", fontSize: "11px", color: "#bdb5d4" }).setOrigin(0.5);
+    this.add.zone(x, y, 190, 76).setInteractive({ useHandCursor: true }).on("pointerdown", action).on("pointerover", () => bg.setFillStyle(color, 0.35)).on("pointerout", () => bg.setFillStyle(0x161225));
+    void title; void hint;
   }
 
-  private spawnEnemy(boss: boolean): void {
-    const difficulty = COMBAT_DIFFICULTIES[this.starshipDifficulty];
-    const ship = this.add.image(Phaser.Math.Between(80, GAME_WIDTH - 80), -75, ASSET_KEYS.ENEMY_STARSHIP_SHEET, boss ? 1 : Phaser.Math.Between(0, 1)).setDepth(2);
-    ship.setDisplaySize(boss ? 118 : 64, boss ? 146 : 80);
-    if (boss) ship.setTint(0xff70b8);
-    this.enemies.push({ ship, health: boss ? difficulty.bossHealth : difficulty.normalHealth, speed: boss ? 0.095 : Phaser.Math.FloatBetween(difficulty.minSpeed, difficulty.maxSpeed), fireAt: this.time.now + Phaser.Math.Between(...difficulty.normalFireDelay), boss });
+  private spawnRival(color: CarColor, x: number, y: number, speed: number): void {
+    const trail = this.add.image(x - 34, y, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(70, 35).setTint(color.color).setAlpha(0.34).setDepth(2);
+    const car = this.add.image(x, y, ASSET_KEYS.RACING_CAR).setDisplaySize(70, 35).setTint(color.color).setDepth(4);
+    this.rivals.push({ car, trail, color, speed });
   }
 
-  private recycleEnemy(enemy: Enemy, time: number): void {
-    const difficulty = COMBAT_DIFFICULTIES[this.starshipDifficulty];
-    enemy.ship.setPosition(Phaser.Math.Between(80, GAME_WIDTH - 80), -75);
-    enemy.speed = enemy.boss ? 0.095 : Phaser.Math.FloatBetween(difficulty.minSpeed, difficulty.maxSpeed);
-    enemy.fireAt = time + Phaser.Math.Between(...difficulty.normalFireDelay);
-  }
+  private accelerate(): void { if (this.phase === "racing") { this.boostUntil = this.time.now + 1000; this.raceStatusText?.setText("TURBO BURST!").setColor("#f7ff28"); } }
+  private brake(): void { if (this.phase === "racing") { this.brakeUntil = this.time.now + 700; this.raceStatusText?.setText("BRAKING!").setColor("#ff70b8"); } }
 
-  private updateEnemies(time: number, delta: number): void {
-    for (const enemy of [...this.enemies]) {
-      if (enemy.boss) {
-        enemy.ship.y = Math.min(190, enemy.ship.y + enemy.speed * delta);
-        if (enemy.ship.y >= 190) enemy.ship.x = Phaser.Math.Clamp(enemy.ship.x + Math.sin(time / 450) * 0.18 * delta, 80, GAME_WIDTH - 80);
-      } else enemy.ship.y += enemy.speed * delta;
-      if (time >= enemy.fireAt && enemy.ship.y > 30) {
-        const difficulty = COMBAT_DIFFICULTIES[this.starshipDifficulty];
-        this.fireEnemyWeapon(enemy);
-        enemy.fireAt = time + (enemy.boss ? difficulty.bossFireDelay : Phaser.Math.Between(...difficulty.normalFireDelay));
-      }
-      if (!enemy.boss && enemy.ship.y > GAME_HEIGHT + 100) {
-        // Keep the same fleet member alive: it re-enters at the top with a
-        // fresh lane and speed, so every ship must be defeated to summon the boss.
-        this.recycleEnemy(enemy, time);
-        continue;
-      }
-      if (this.player && Phaser.Geom.Intersects.RectangleToRectangle(enemy.ship.getBounds(), this.player.getBounds())) {
-        this.damagePlayer(enemy.boss ? COMBAT_DIFFICULTIES[this.starshipDifficulty].bossCollisionDamage : COMBAT_DIFFICULTIES[this.starshipDifficulty].normalDamage + 5);
-        if (this.phase === "combat") this.recycleEnemy(enemy, time);
-      }
-    }
-  }
-
-  private fireEnemyWeapon(enemy: Enemy): void {
-    const bomb = enemy.boss && Phaser.Math.Between(0, 2) === 0;
-    const projectile = this.add.image(enemy.ship.x, enemy.ship.y + enemy.ship.displayHeight / 2, bomb ? ASSET_KEYS.ENEMY_BOMB : ASSET_KEYS.ENEMY_LASER).setDisplaySize(bomb ? 34 : 18, bomb ? 39 : 34).setDepth(3);
-    const difficulty = COMBAT_DIFFICULTIES[this.starshipDifficulty];
-    this.projectiles.push({ sprite: projectile, speed: bomb ? 0.36 : 0.56, damage: bomb ? difficulty.bombDamage : difficulty.normalDamage, playerOwned: false });
-  }
-
-  private updateProjectiles(delta: number): void {
-    for (const projectile of [...this.projectiles]) {
-      projectile.sprite.y += projectile.speed * delta;
-      if (projectile.sprite.y < -50 || projectile.sprite.y > GAME_HEIGHT + 50) { this.removeProjectile(projectile); continue; }
-      if (projectile.playerOwned) {
-        const target = this.enemies.find((enemy) => Phaser.Geom.Intersects.RectangleToRectangle(projectile.sprite.getBounds(), enemy.ship.getBounds()));
-        if (target) { target.health -= projectile.damage; this.removeProjectile(projectile); target.ship.setTintFill(0xffffff); this.time.delayedCall(45, () => target.ship.active && target.ship.clearTint()); if (target.health <= 0) this.removeEnemy(target, true); }
-      } else if (this.player && Phaser.Geom.Intersects.RectangleToRectangle(projectile.sprite.getBounds(), this.player.getBounds())) { this.damagePlayer(projectile.damage); this.removeProjectile(projectile); }
-    }
-  }
-
-  private spawnRepairKit(x: number, y: number): void {
-    const pickup = this.add.container(x, y).setDepth(4);
-    const caseShape = this.add.circle(0, 0, 19, 0x43c970).setStrokeStyle(3, 0xe9fff0, 0.9);
-    const cross = this.add.text(0, -1, "+", { fontFamily: "Arial Black, sans-serif", fontSize: "28px", color: "#ffffff" }).setOrigin(0.5);
-    pickup.add([caseShape, cross]);
-    this.repairKits.push({ pickup, speed: 0.11 });
-  }
-
-  private updateRepairKits(delta: number): void {
-    for (const repairKit of [...this.repairKits]) {
-      repairKit.pickup.y += repairKit.speed * delta;
-      if (repairKit.pickup.y > GAME_HEIGHT + 40) {
-        this.removeRepairKit(repairKit);
-        continue;
-      }
-      if (this.player && Phaser.Geom.Intersects.RectangleToRectangle(repairKit.pickup.getBounds(), this.player.getBounds())) {
-        this.playerHealth = Math.min(100, this.playerHealth + 25);
-        this.healthText?.setText(`HULL  ${this.playerHealth}`).setColor("#45f6e5");
-        this.combatStatusText?.setText("REPAIR KIT COLLECTED  +25 HULL").setColor("#45f6e5").setVisible(true);
-        this.time.delayedCall(1200, () => this.phase === "combat" && this.combatStatusText?.setVisible(false));
-        this.removeRepairKit(repairKit);
+  private updateRace(time: number, delta: number): void {
+    if (!this.player || !this.playerTrail) return;
+    const isBoosting = time < this.boostUntil;
+    const isBraking = time < this.brakeUntil;
+    const speed = (isBoosting ? 0.68 : isBraking ? 0.04 : 0.23) * delta;
+    this.player.x += speed;
+    this.playerTrail.setPosition(this.player.x - 36, this.player.y).setAlpha(isBoosting ? 0.85 : 0.42);
+    this.raceProgressText?.setText(`RACE  ${Math.min(100, Math.floor((this.player.x - 180) / 10))}%`);
+    if (!isBoosting && !isBraking) this.raceStatusText?.setText("SPACE / ↑ TO BURST  •  B / ↓ TO BRAKE").setColor("#ffffff");
+    for (const rival of [...this.rivals]) {
+      rival.car.x += rival.speed * delta;
+      rival.trail.setPosition(rival.car.x - 34, rival.car.y);
+      if (rival.car.x > GAME_WIDTH + 80) { rival.car.destroy(); rival.trail.destroy(); this.rivals = this.rivals.filter((item) => item !== rival); continue; }
+      if (Phaser.Geom.Intersects.RectangleToRectangle(this.player.getBounds(), rival.car.getBounds())) {
+        if (speed / delta > rival.speed + 0.06) this.wreckRival(rival);
+        else this.finishRace(false);
       }
     }
+    if (this.player.x >= 1180) this.finishRace(true);
   }
 
-  private removeProjectile(projectile: Projectile): void { projectile.sprite.destroy(); this.projectiles = this.projectiles.filter((item) => item !== projectile); }
-  private removeRepairKit(repairKit: RepairKit): void { repairKit.pickup.destroy(); this.repairKits = this.repairKits.filter((item) => item !== repairKit); }
-  private removeEnemy(enemy: Enemy, destroyed: boolean): void {
-    if (destroyed) this.spawnRepairKit(enemy.ship.x, enemy.ship.y);
-    enemy.ship.destroy(); this.enemies = this.enemies.filter((item) => item !== enemy);
-    if (destroyed && !enemy.boss) { this.shipsDestroyed += 1; this.fleetText?.setText(`FLEET  ${this.shipsDestroyed} / ${this.enemyShipCount}`); }
-    if (destroyed && enemy.boss) this.finishCombat(true);
+  private wreckRival(rival: RivalCar): void {
+    rival.car.setTintFill(0xffffff);
+    this.tweens.add({ targets: [rival.car, rival.trail], angle: 720, alpha: 0, duration: 550, onComplete: () => { rival.car.destroy(); rival.trail.destroy(); } });
+    this.rivals = this.rivals.filter((item) => item !== rival);
+    this.raceStatusText?.setText("RIVAL WRECKED!").setColor("#45f6e5");
   }
 
-  private damagePlayer(amount: number): void {
-    if (this.phase !== "combat" || !this.player) return;
-    this.playerHealth = Math.max(0, this.playerHealth - amount);
-    this.healthText?.setText(`HULL  ${this.playerHealth}`).setColor(this.playerHealth <= 35 ? "#ff70b8" : "#45f6e5");
-    this.player.setTintFill(0xffffff); this.cameras.main.shake(110, 0.006); this.time.delayedCall(70, () => this.player?.clearTint());
-    if (this.playerHealth === 0) this.finishCombat(false);
-  }
-
-  private finishCombat(won: boolean): void {
+  private finishRace(won: boolean): void {
+    if (this.phase !== "racing") return;
     this.phase = "ended";
-    this.projectiles.forEach(({ sprite }) => sprite.destroy()); this.projectiles = [];
-    this.repairKits.forEach(({ pickup }) => pickup.destroy()); this.repairKits = [];
-    this.enemies.forEach(({ ship }) => ship.destroy()); this.enemies = [];
-    this.combatStatusText?.setText(won ? "BOSS DEFEATED — NEXT MISSION IN 4..." : "SHIP LOST — NEW MISSION IN 4...").setColor(won ? "#45f6e5" : "#ff70b8").setFontSize(28).setVisible(true);
+    this.raceStatusText?.setText(won ? "CHECKERED FLAG!  YOU WIN!" : "CRASHED!  NEW RACE IN 4...").setColor(won ? "#f7ff28" : "#ff70b8").setFontSize(25);
+    if (won) this.createCorrectAnswerConfetti();
     this.time.delayedCall(4000, () => this.scene.restart());
   }
 }

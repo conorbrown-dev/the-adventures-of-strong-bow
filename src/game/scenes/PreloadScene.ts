@@ -83,6 +83,9 @@ export class PreloadScene extends Phaser.Scene {
       ASSET_KEYS.BEAM_SHEET,
       new URL("../assets/beams.png", import.meta.url).toString()
     );
+    this.load.image(ASSET_KEYS.RACING_ROAD, new URL("../../../Road.png", import.meta.url).toString());
+    this.load.image(ASSET_KEYS.RACING_CAR, new URL("../../../TopDownCar.png", import.meta.url).toString());
+    this.load.image(ASSET_KEYS.RACING_CAR_TRAIL, new URL("../../../TopDownCarTrail.png", import.meta.url).toString());
     this.load.spritesheet(
       ASSET_KEYS.KITTEN_CATCHER,
       new URL(

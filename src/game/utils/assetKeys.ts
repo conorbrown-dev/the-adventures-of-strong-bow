@@ -82,7 +82,10 @@ export const ASSET_KEYS = {
   BEAM_SHEET: "addition-beam-sheet",
   PLAYER_LASER: "addition-player-laser",
   ENEMY_LASER: "addition-enemy-laser",
-  ENEMY_BOMB: "addition-enemy-bomb"
+  ENEMY_BOMB: "addition-enemy-bomb",
+  RACING_ROAD: "phonics-racing-road",
+  RACING_CAR: "phonics-racing-car",
+  RACING_CAR_TRAIL: "phonics-racing-car-trail"
 } as const;
 
 export const FOSSIL_ASSET_KEYS = {
