@@ -1,0 +1,5 @@
+# Local files that are not part of the application deployment.
+.DS_Store
+carskid.7z
+carskid/
+drag racing uncut sfx.mp3
