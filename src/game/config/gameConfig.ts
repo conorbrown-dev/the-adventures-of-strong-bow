@@ -15,6 +15,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { BarnDoorVowelsTitleScene } from "../scenes/BarndoorVowelsTitleScene";
 import { AdditionGameScene } from "../scenes/AdditionGameScene";
 import { AdditionTitleScene } from "../scenes/AdditionTitleScene";
+import { PhonicsStarshipGameScene } from "../scenes/PhonicsStarshipGameScene";
 import { PauseOverlayScene } from "../scenes/PauseOverlayScene";
 import { SightWordsTitleScene } from "../scenes/SightWordsTitleScene";
 import { SightWordsQuizScene } from "../scenes/SightWordsQuizScene";
@@ -50,6 +51,7 @@ export function createGameConfig(
       BootScene,
       AdditionTitleScene,
       AdditionGameScene,
+      PhonicsStarshipGameScene,
       SightWordsTitleScene,
       SightWordsQuizScene,
       PauseOverlayScene,

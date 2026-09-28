@@ -2,6 +2,7 @@ export const SCENE_KEYS = {
   BOOT: "BootScene",
   ADDITION_GAME: "AdditionGameScene",
   ADDITION_TITLE: "AdditionTitleScene",
+  PHONICS_STARSHIP_GAME: "PhonicsStarshipGameScene",
   SIGHT_WORDS_TITLE: "SightWordsTitleScene",
   SIGHT_WORDS_QUIZ: "SightWordsQuizScene",
   STUDENT_LOGIN: "StudentLoginScene",
