@@ -20,6 +20,9 @@ const BASE_RACE_SPEED = 0.30;
 const MAX_STEERING_SPEED = 0.15;
 const SPEED_EASING_MS = 260;
 const STEERING_EASING_MS = 220;
+const RIVAL_CATCH_UP_DISTANCE = 1_200;
+const RIVAL_CATCH_UP_LIMIT = 0.14;
+const RIVAL_FALL_BACK_LIMIT = 0.10;
 const CAR_COLORS = [
   { name: "BLUE", color: 0x2787ff }, { name: "RED", color: 0xef3e43 },
   { name: "HOT PINK", color: 0xff3ca6 }, { name: "NEON GREEN", color: 0x5cff35 },
@@ -466,7 +469,13 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
         rival.laneTarget = TRACK_CENTER_X + (Phaser.Utils.Array.GetRandom([-210, 0, 210]) ?? 0);
         rival.nextLaneChange = time + Phaser.Math.Between(1_400, 3_500);
       }
-      const targetSpeed = Phaser.Math.Clamp(playerSpeed + rival.paceOffset, 0.16, 0.52);
+      const distanceFromPlayer = rival.distance - this.raceDistance;
+      const catchUpSpeed = Phaser.Math.Clamp(
+        -distanceFromPlayer / RIVAL_CATCH_UP_DISTANCE,
+        -RIVAL_FALL_BACK_LIMIT,
+        RIVAL_CATCH_UP_LIMIT
+      );
+      const targetSpeed = Phaser.Math.Clamp(playerSpeed + rival.paceOffset + catchUpSpeed, 0.16, 0.52);
       rival.speed = Phaser.Math.Linear(rival.speed, targetSpeed, Math.min(1, delta / SPEED_EASING_MS));
       rival.distance += rival.speed * delta;
       const laneDistance = rival.laneTarget - rival.car.x;
