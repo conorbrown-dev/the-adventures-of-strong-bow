@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 import { speak, speakOnHover, stopSpeaking } from "../../quiz/speech";
-import { PHONICS_CHALLENGES, PHONICS_MODULES, type PhonicsChallenge, type PhonicsModule } from "../data/phonicsChallenges";
+import { PHONICS_CHALLENGES, PHONICS_MODULES, shufflePhonicsChoices, type PhonicsChallenge, type PhonicsModule } from "../data/phonicsChallenges";
 import { ASSET_KEYS } from "../utils/assetKeys";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { addGameNavigation } from "../utils/gameNavigation";
@@ -45,6 +45,8 @@ interface RivalCar {
 
 export class PhonicsStarshipGameScene extends Phaser.Scene {
   private problem: PhonicsChallenge = PHONICS_CHALLENGES[0];
+  private displayedChoices: readonly string[] = PHONICS_CHALLENGES[0]?.choices ?? [];
+  private displayedCorrectChoice = PHONICS_CHALLENGES[0]?.correctChoice ?? 0;
   private selectedModule?: PhonicsModule;
   private recentChallengeIndices: number[] = [];
   private modulePickerLayer?: Phaser.GameObjects.Container;
@@ -255,7 +257,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
 
   private refreshAnswer(): void {
     const choiceIndex = Number(this.answer);
-    this.answerText?.setText(Number.isInteger(choiceIndex) ? `Selected: ${this.problem.choices[choiceIndex]}` : "");
+    this.answerText?.setText(Number.isInteger(choiceIndex) ? `Selected: ${this.displayedChoices[choiceIndex]}` : "");
   }
 
   private selectChoice(choiceIndex: number, pointerId?: number): void {
@@ -263,7 +265,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       this.ignoredAnswerPointerId = undefined;
       return;
     }
-    if (this.phase !== "learning" || choiceIndex >= this.problem.choices.length) return;
+    if (this.phase !== "learning" || choiceIndex >= this.displayedChoices.length) return;
     this.answer = String(choiceIndex);
     this.refreshAnswer();
     this.checkAnswer();
@@ -276,6 +278,9 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       .filter((index) => !this.recentChallengeIndices.includes(index));
     const selectedIndex = Phaser.Utils.Array.GetRandom(availableIndices) ?? 0;
     this.problem = challenges[selectedIndex] ?? PHONICS_CHALLENGES[0];
+    const presentedChallenge = shufflePhonicsChoices(this.problem);
+    this.displayedChoices = presentedChallenge.choices;
+    this.displayedCorrectChoice = presentedChallenge.correctChoice;
     this.recentChallengeIndices = [...this.recentChallengeIndices, selectedIndex].slice(-5);
     this.answer = "";
     this.statusText?.setText("Choose an answer, or press 1, 2, or 3").setColor(NEON.muted);
@@ -291,7 +296,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       align: "center", wordWrap: { width: 820 }, lineSpacing: 10
     }).setOrigin(0.5));
     this.keypadLayer?.removeAll(true);
-    this.problem.choices.forEach((choice, index) => this.createChoiceButton(340 + index * 340, 500, index, choice));
+    this.displayedChoices.forEach((choice, index) => this.createChoiceButton(340 + index * 340, 500, index, choice));
   }
 
   private createChoiceButton(x: number, y: number, index: number, choice: string): void {
@@ -306,7 +311,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
 
   private checkAnswer(): void {
     if (!this.answer) return;
-    if (Number(this.answer) !== this.problem.correctChoice) {
+    if (Number(this.answer) !== this.displayedCorrectChoice) {
       this.statusText?.setText("TRY AGAIN — YOU'VE GOT THIS!").setColor("#ff70b8");
       this.tweens.add({ targets: this.answerText, x: "+=10", duration: 55, yoyo: true, repeat: 3 }); return;
     }

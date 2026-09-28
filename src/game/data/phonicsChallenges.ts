@@ -12,6 +12,28 @@ export interface PhonicsModule {
   readonly challenges: readonly PhonicsChallenge[];
 }
 
+export interface PresentedPhonicsChallenge {
+  readonly choices: readonly string[];
+  readonly correctChoice: number;
+}
+
+export function shufflePhonicsChoices(
+  challenge: PhonicsChallenge,
+  random: () => number = Math.random,
+): PresentedPhonicsChallenge {
+  const choices = challenge.choices.map((choice, index) => ({ choice, isCorrect: index === challenge.correctChoice }));
+
+  for (let index = choices.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [choices[index], choices[swapIndex]] = [choices[swapIndex]!, choices[index]!];
+  }
+
+  return {
+    choices: choices.map(({ choice }) => choice),
+    correctChoice: choices.findIndex(({ isCorrect }) => isCorrect),
+  };
+}
+
 const SHORT_VOWEL_CHALLENGES: readonly PhonicsChallenge[] = [
   { prompt: "Which word has a short a sound?", choices: ["cap", "cape", "rain"], correctChoice: 0, teachingNote: "Cap has the short a sound." },
   { prompt: "Which word has a short o sound?", choices: ["rope", "boat", "hop"], correctChoice: 2, teachingNote: "Hop has the short o sound." },
