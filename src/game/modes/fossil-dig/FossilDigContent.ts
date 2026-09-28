@@ -34,7 +34,7 @@ const FOSSIL_DIG_MODULES: readonly FossilDigModuleDefinition[] = [
   {
     id: "silent-e",
     title: "Fossil Dig: Silent E",
-    instruction: "Find the word with a silent E. The E is at the end.",
+    instruction: "Find the word with a silent letter E. The silent letter is last.",
     targetWords: ["cape", "kite", "tube", "hope", "cube", "fine"],
     distractorWords: ["camp", "kitten", "tub", "pencil", "nest", "step"]
   },
