@@ -86,6 +86,9 @@ export class PreloadScene extends Phaser.Scene {
     this.load.image(ASSET_KEYS.RACING_ROAD, new URL("../../../Road.png", import.meta.url).toString());
     this.load.image(ASSET_KEYS.RACING_CAR, new URL("../../../TopDownCar.png", import.meta.url).toString());
     this.load.image(ASSET_KEYS.RACING_CAR_TRAIL, new URL("../../../TopDownCarTrail.png", import.meta.url).toString());
+    this.load.audio(ASSET_KEYS.RACING_ENGINE_LOOP, new URL("../../../loop_5.wav", import.meta.url).toString());
+    this.load.audio(ASSET_KEYS.RACING_SKID_LOOP, new URL("../../../skid-loop.wav", import.meta.url).toString());
+    this.load.audio(ASSET_KEYS.RACING_COUNTDOWN, new URL("../../../countdown.ogg", import.meta.url).toString());
     this.load.spritesheet(
       ASSET_KEYS.KITTEN_CATCHER,
       new URL(

@@ -20,6 +20,7 @@ const BASE_RACE_SPEED = 0.30;
 const MAX_STEERING_SPEED = 0.15;
 const SPEED_EASING_MS = 260;
 const STEERING_EASING_MS = 220;
+const SKID_SOUND_LATERAL_SPEED = 0.025;
 const RIVAL_CATCH_UP_DISTANCE = 1_200;
 const RIVAL_CATCH_UP_LIMIT = 0.14;
 const RIVAL_FALL_BACK_LIMIT = 0.10;
@@ -62,7 +63,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private mathStagePanels: Phaser.GameObjects.Rectangle[] = [];
   private backgroundStars: Phaser.GameObjects.Arc[] = [];
 
-  private phase: "module-select" | "starting-module" | "learning" | "color-select" | "racing" | "ended" = "module-select";
+  private phase: "module-select" | "starting-module" | "learning" | "color-select" | "countdown" | "racing" | "ended" = "module-select";
   private player?: Phaser.GameObjects.Image;
   private playerTrail?: Phaser.GameObjects.Image;
   private selectedColor?: CarColor;
@@ -83,6 +84,9 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private aKey?: Phaser.Input.Keyboard.Key;
   private dKey?: Phaser.Input.Keyboard.Key;
   private keyboardHandler?: (event: KeyboardEvent) => void;
+  private engineLoop?: Phaser.Sound.BaseSound;
+  private skidLoop?: Phaser.Sound.BaseSound;
+  private countdownSound?: Phaser.Sound.BaseSound;
 
   constructor() { super(SCENE_KEYS.PHONICS_STARSHIP_GAME); }
 
@@ -111,6 +115,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.rightKey = undefined;
     this.aKey = undefined;
     this.dKey = undefined;
+    this.stopRaceSounds();
   }
 
   create(): void {
@@ -247,6 +252,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       if (this.keyboardHandler) this.input.keyboard?.off("keydown", this.keyboardHandler);
       this.keyboardHandler = undefined;
       stopSpeaking();
+      this.stopRaceSounds();
       this.input.keyboard?.removeCapture([
         Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN, Phaser.Input.Keyboard.KeyCodes.LEFT,
         Phaser.Input.Keyboard.KeyCodes.RIGHT, Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.D,
@@ -386,12 +392,12 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   private startRace(): void {
-    this.phase = "racing";
+    this.phase = "countdown";
     this.add.rectangle(TRACK_CENTER_X, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x080b0d);
     this.createScrollingTrack();
     this.playerTrail = this.add.image(TRACK_CENTER_X, 604, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(76, 38).setTint(this.selectedColor!.color).setAlpha(0.45).setAngle(-90).setDepth(4);
     this.player = this.add.image(TRACK_CENTER_X, 570, this.getCarTextureKey(this.selectedColor!)).setDisplaySize(76, 38).setAngle(-90).setDepth(6);
-    this.raceStatusText = this.add.text(GAME_WIDTH / 2, 62, "GO!  RACE UP THE TRACK TO THE CHECKERED FLAG", { fontFamily: "Press Start 2P, monospace", fontSize: "18px", color: "#ffffff" }).setOrigin(0.5).setDepth(10);
+    this.raceStatusText = this.add.text(GAME_WIDTH / 2, 62, "GET READY!", { fontFamily: "Press Start 2P, monospace", fontSize: "24px", color: "#ffe45c" }).setOrigin(0.5).setDepth(10);
     this.raceProgressText = this.add.text(46, 48, "RACE  0%", { fontFamily: "Press Start 2P, monospace", fontSize: "17px", color: "#ffffff" }).setDepth(8);
     this.createRaceControl(700, 682, "◀ TURN", "A / ←", NEON.purple, () => this.steerPlayer(-1));
     this.createRaceControl(890, 682, "▲ ACCEL", "SPACE / ↑", NEON.cyan, () => this.accelerate());
@@ -401,6 +407,21 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       const lane = [-190, 0, 190][index % 3] ?? 0;
       this.spawnRival(color, TRACK_CENTER_X + lane, 180 + Math.floor(index / 3) * 190, Phaser.Math.FloatBetween(0.18, 0.32));
     });
+    this.playCountdown();
+  }
+
+  private playCountdown(): void {
+    this.countdownSound = this.sound.add(ASSET_KEYS.RACING_COUNTDOWN);
+    this.countdownSound.once(Phaser.Sound.Events.COMPLETE, () => this.beginRace());
+    if (!this.countdownSound.play()) this.beginRace();
+  }
+
+  private beginRace(): void {
+    if (this.phase !== "countdown") return;
+    this.phase = "racing";
+    this.raceStatusText?.setText("GO!  RACE UP THE TRACK TO THE CHECKERED FLAG").setColor("#ffffff").setFontSize(18);
+    this.engineLoop = this.sound.add(ASSET_KEYS.RACING_ENGINE_LOOP, { loop: true, volume: 0.35 });
+    this.engineLoop.play();
   }
 
   private createScrollingTrack(): void {
@@ -507,7 +528,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private accelerate(): void { if (this.phase === "racing") { this.boostUntil = this.time.now + 1000; this.raceStatusText?.setText("TURBO BURST!").setColor("#f7ff28"); } }
   private brake(): void { if (this.phase === "racing") { this.brakeUntil = this.time.now + 700; this.raceStatusText?.setText("BRAKING!").setColor("#ff70b8"); } }
   private steerPlayer(direction: -1 | 1): void {
-    if (!this.player) return;
+    if (this.phase !== "racing" || !this.player) return;
     this.playerLateralSpeed = direction * MAX_STEERING_SPEED;
   }
 
@@ -528,6 +549,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       targetLateralSpeed,
       Math.min(1, delta / steeringEase)
     );
+    this.updateSkidSound();
     this.player.x += this.playerLateralSpeed * delta;
     const shoulderLimit = TRACK_WIDTH / 2 - 28;
     if (Math.abs(this.player.x - TRACK_CENTER_X) > shoulderLimit) {
@@ -593,8 +615,33 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private finishRace(won: boolean): void {
     if (this.phase !== "racing") return;
     this.phase = "ended";
+    this.stopRaceSounds();
     this.raceStatusText?.setText(won ? "CHECKERED FLAG!  YOU WIN!" : "CRASHED!  NEW RACE IN 4...").setColor(won ? "#f7ff28" : "#ff70b8").setFontSize(25);
     if (won) this.createCorrectAnswerConfetti();
     this.time.delayedCall(4000, () => this.scene.restart());
+  }
+
+  private updateSkidSound(): void {
+    const isSteering = Math.abs(this.playerLateralSpeed) >= SKID_SOUND_LATERAL_SPEED;
+    if (isSteering && !this.skidLoop) {
+      this.skidLoop = this.sound.add(ASSET_KEYS.RACING_SKID_LOOP, { loop: true, volume: 0.28 });
+      this.skidLoop.play();
+      return;
+    }
+    if (!isSteering && this.skidLoop) {
+      this.skidLoop.stop();
+      this.skidLoop.destroy();
+      this.skidLoop = undefined;
+    }
+  }
+
+  private stopRaceSounds(): void {
+    [this.engineLoop, this.skidLoop, this.countdownSound].forEach((sound) => {
+      sound?.stop();
+      sound?.destroy();
+    });
+    this.engineLoop = undefined;
+    this.skidLoop = undefined;
+    this.countdownSound = undefined;
   }
 }

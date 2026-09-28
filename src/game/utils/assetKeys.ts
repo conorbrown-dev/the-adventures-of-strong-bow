@@ -85,7 +85,10 @@ export const ASSET_KEYS = {
   ENEMY_BOMB: "addition-enemy-bomb",
   RACING_ROAD: "phonics-racing-road",
   RACING_CAR: "phonics-racing-car",
-  RACING_CAR_TRAIL: "phonics-racing-car-trail"
+  RACING_CAR_TRAIL: "phonics-racing-car-trail",
+  RACING_ENGINE_LOOP: "phonics-racing-engine-loop",
+  RACING_SKID_LOOP: "phonics-racing-skid-loop",
+  RACING_COUNTDOWN: "phonics-racing-countdown"
 } as const;
 
 export const FOSSIL_ASSET_KEYS = {
