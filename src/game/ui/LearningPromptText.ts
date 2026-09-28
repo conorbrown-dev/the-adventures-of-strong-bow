@@ -59,19 +59,20 @@ export class LearningPromptText extends Phaser.GameObjects.Container {
     pathDots.strokePath();
 
     this.objectiveCard = scene.add
-      .rectangle(54, 0, 98, 40, 0xfff8ea)
+      .rectangle(48, 0, 198, 48, 0xfff8ea)
       .setStrokeStyle(2, 0x5e4127);
     this.objectiveSprite = scene.add
-      .image(54, 0, fossilTextureKeys[0])
+      .image(48, 0, fossilTextureKeys[0])
       .setDisplaySize(30, 30);
     this.objectiveText = scene.add
-      .text(54, 0, "", {
+      .text(48, 0, "", {
         fontFamily: "Trebuchet MS",
         fontSize: "22px",
         color: COLORS.TEXT_DARK,
         fontStyle: "bold"
       })
       .setOrigin(0.5)
+      .setWordWrapWidth(180)
       .setVisible(false);
     this.objectiveGem = scene.add.graphics().setVisible(false);
     this.objectiveBurst = scene.add.graphics().setVisible(false);
@@ -115,13 +116,18 @@ export class LearningPromptText extends Phaser.GameObjects.Container {
 
     if (prompt.kind === "find_category") {
       this.objectiveText
-        .setText(prompt.targetType === LearningType.VOWEL ? "A" : "B")
+        .setFontSize(prompt.targetType === LearningType.CVC_WORD ? 16 : 22)
+        .setText(
+          prompt.targetType === LearningType.CVC_WORD
+            ? prompt.displayText
+            : prompt.targetType === LearningType.VOWEL ? "A" : "B"
+        )
         .setVisible(true);
       return;
     }
 
     if (prompt.kind === "find_specific" && prompt.targetValue) {
-      this.objectiveText.setText(prompt.targetValue).setVisible(true);
+      this.objectiveText.setFontSize(22).setText(prompt.targetValue).setVisible(true);
       return;
     }
 

@@ -209,7 +209,7 @@ export class FossilDigScene extends Phaser.Scene {
     this.cvcDigSites = this.createCvcDigSites();
     this.collectedFossilTray = new CollectedFossilTray(this);
     this.hud.setRepeatHandler(() => {
-      void this.audioFeedbackSystem.speakCurrentWord();
+      void this.repeatCurrentFossilPrompt();
     });
     this.hud.setRepeatButtonVisible(true);
     this.hud.setRepeatButtonEnabled(true);
@@ -739,20 +739,43 @@ export class FossilDigScene extends Phaser.Scene {
       return;
     }
 
-    this.promptSystem.setPrompt({
-      kind: "find_specific",
-      displayText: "Listen to the word. Find the matching fossil.",
-      targetType: LearningType.CVC_WORD,
-      targetValue: currentWord,
-      spokenText: `Listen to the word. Find the matching fossil. ${currentWord}.`
-    });
     this.hud.setRepeatButtonVisible(true);
     this.hud.setRepeatButtonEnabled(true);
-    this.audioFeedbackSystem.setCurrentWord(
-      currentWord,
-      this.moduleId === "cvc" ? getCvcVoiceAssetKey(currentWord) : undefined
-    );
+    if (this.moduleId !== "cvc") {
+      this.promptSystem.setPrompt({
+        kind: "find_category",
+        displayText: this.mode.content.instruction,
+        targetType: LearningType.CVC_WORD,
+        spokenText: this.mode.content.instruction
+      });
+      await this.audioFeedbackSystem.speakPhrase(this.mode.content.instruction, {
+        rate: 0.84,
+        pitch: 1.08
+      });
+      return;
+    }
+
+    this.promptSystem.setPrompt({
+      kind: "find_specific",
+      displayText: this.mode.content.instruction,
+      targetType: LearningType.CVC_WORD,
+      targetValue: currentWord,
+      spokenText: `${this.mode.content.instruction} ${currentWord}.`
+    });
+    this.audioFeedbackSystem.setCurrentWord(currentWord, getCvcVoiceAssetKey(currentWord));
     await this.audioFeedbackSystem.speakCurrentWord();
+  }
+
+  private async repeatCurrentFossilPrompt(): Promise<void> {
+    if (this.moduleId === "cvc") {
+      await this.audioFeedbackSystem.speakCurrentWord();
+      return;
+    }
+
+    await this.audioFeedbackSystem.speakPhrase(this.mode.content.instruction, {
+      rate: 0.84,
+      pitch: 1.08
+    });
   }
 
   private async playOpeningAudioSequence(): Promise<void> {

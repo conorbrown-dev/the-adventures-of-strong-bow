@@ -17,5 +17,9 @@ describe("Fossil Dig phonics modules", () => {
     expect(content.pickups.some((target) =>
       content.distractors.some((distractor) => distractor.label !== target.label)
     )).toBe(true);
+    if (moduleId !== "cvc") {
+      expect(content.instruction).not.toContain(content.pickups[0]!.label);
+      expect(content.promptPlan[0]?.kind).toBe("find_category");
+    }
   });
 });

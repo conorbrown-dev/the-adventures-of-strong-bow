@@ -11,6 +11,7 @@ export type FossilDigModuleId =
 interface FossilDigModuleDefinition {
   id: FossilDigModuleId;
   title: string;
+  instruction: string;
   targetWords: readonly string[];
   distractorWords: readonly string[];
 }
@@ -19,30 +20,35 @@ const FOSSIL_DIG_MODULES: readonly FossilDigModuleDefinition[] = [
   {
     id: "cvc",
     title: "Fossil Dig: CVC Words",
+    instruction: "Listen to the word. Find the matching fossil.",
     targetWords: cvcWords.map((word) => word.displayText),
     distractorWords: cvcWords.map((word) => word.displayText)
   },
   {
     id: "short-vowels",
     title: "Fossil Dig: Short Vowels",
+    instruction: "Find the word with a short vowel sound.",
     targetWords: ["cap", "hop", "hen", "pig", "dog", "sun"],
     distractorWords: ["cape", "rope", "team", "tune", "boat", "bead"]
   },
   {
     id: "silent-e",
     title: "Fossil Dig: Silent E",
+    instruction: "Find the word with a silent e at the end.",
     targetWords: ["cape", "kite", "tube", "hope", "cube", "fine"],
     distractorWords: ["camp", "kitten", "tub", "pencil", "nest", "step"]
   },
   {
     id: "vowel-teams",
     title: "Fossil Dig: Vowel Teams",
+    instruction: "Find the word with a vowel team.",
     targetWords: ["rain", "seed", "coat", "team", "green", "snow"],
     distractorWords: ["cat", "sled", "cot", "time", "grin", "snore"]
   },
   {
     id: "consonant-digraphs",
     title: "Fossil Dig: Consonant Digraphs",
+    instruction: "Find the word with a consonant digraph.",
     targetWords: ["ship", "chop", "thin", "chat", "whale", "fish"],
     distractorWords: ["sip", "cop", "tin", "cat", "wale", "fin"]
   }
@@ -73,6 +79,7 @@ export interface FossilDigPickupContent {
 
 export interface FossilDigContent {
   title: string;
+  instruction: string;
   pickups: FossilDigPickupContent[];
   distractors: FossilDigPickupContent[];
   initialPrompt: PromptDescriptor;
@@ -86,6 +93,7 @@ export function buildFossilDigContent(
   const module = getFossilDigModuleDefinition(moduleId);
   return {
     title: module.title,
+    instruction: module.instruction,
     pickups: module.targetWords.map((word) => ({
       id: `${module.id}-${word}`,
       label: word,
@@ -98,14 +106,14 @@ export function buildFossilDigContent(
     })),
     initialPrompt: {
       kind: "collect_all",
-      displayText: "Listen to the word. Find the matching fossil."
+      displayText: module.instruction,
+      spokenText: module.instruction
     },
     promptPlan: [
       {
-        kind: "find_specific",
-        displayText: "Listen to the word. Find the matching fossil.",
-        targetValue: "cat",
-        spokenText: "cat"
+        kind: moduleId === "cvc" ? "find_specific" : "find_category",
+        displayText: module.instruction,
+        spokenText: module.instruction
       }
     ],
     validationMode: "strict_match"
