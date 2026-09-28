@@ -37,10 +37,10 @@ export function shufflePhonicsChoices(
 const SHORT_VOWEL_CHALLENGES: readonly PhonicsChallenge[] = [
   { prompt: "Which word has a short a sound?", choices: ["cap", "cape", "rain"], correctChoice: 0, teachingNote: "Cap has the short a sound." },
   { prompt: "Which word has a short o sound?", choices: ["rope", "boat", "hop"], correctChoice: 2, teachingNote: "Hop has the short o sound." },
-  { prompt: "Which word has a short e sound?", choices: ["hen", "these", "team"], correctChoice: 0, teachingNote: "Hen has the short e sound." },
+  { prompt: "Which word has a short e sound?", choices: ["hen", "he", "team"], correctChoice: 0, teachingNote: "Hen has the short e sound. He has a long e sound, and team has a vowel team." },
   { prompt: "Which word has a short a sound?", choices: ["map", "make", "mail"], correctChoice: 0, teachingNote: "Map has the short a sound." },
   { prompt: "Which word has a short e sound?", choices: ["bed", "bead", "beet"], correctChoice: 0, teachingNote: "Bed has the short e sound." },
-  { prompt: "Which word has a short i sound?", choices: ["pig", "pie", "pine"], correctChoice: 0, teachingNote: "Pig has the short i sound." },
+  { prompt: "Which word has a short i sound?", choices: ["pig", "pine", "team"], correctChoice: 0, teachingNote: "Pig has the short i sound. Pine has silent e, and team has a vowel team." },
   { prompt: "Which word has a short o sound?", choices: ["dog", "doe", "boat"], correctChoice: 0, teachingNote: "Dog has the short o sound." },
   { prompt: "Which word has a short u sound?", choices: ["sun", "tune", "blue"], correctChoice: 0, teachingNote: "Sun has the short u sound." },
 ];
@@ -61,14 +61,14 @@ const SILENT_E_CHALLENGES: readonly PhonicsChallenge[] = [
 
 const VOWEL_TEAM_CHALLENGES: readonly PhonicsChallenge[] = [
   { prompt: "Which word has a long a vowel team?", choices: ["cat", "rain", "cake"], correctChoice: 1, teachingNote: "The ai in rain is a vowel team that says long a." },
-  { prompt: "Which word has the vowel team ee?", choices: ["seed", "sled", "said"], correctChoice: 0, teachingNote: "The ee in seed works together to say long e." },
+  { prompt: "Which word has the vowel team ee?", choices: ["seed", "sled", "seal"], correctChoice: 0, teachingNote: "The ee in seed works together to say long e. Seal uses a different vowel team." },
   { prompt: "Which word has the vowel team oa?", choices: ["coat", "cot", "cute"], correctChoice: 0, teachingNote: "The oa in coat works together to say long o." },
   { prompt: "Which word has the vowel team ai?", choices: ["train", "tan", "ten"], correctChoice: 0, teachingNote: "The ai in train works together to say long a." },
   { prompt: "Which word has the vowel team ay?", choices: ["play", "pal", "pill"], correctChoice: 0, teachingNote: "The ay in play works together to say long a." },
   { prompt: "Which word has the vowel team ea?", choices: ["team", "tam", "time"], correctChoice: 0, teachingNote: "The ea in team works together to say long e." },
   { prompt: "Which word has the vowel team ee?", choices: ["green", "grain", "grin"], correctChoice: 0, teachingNote: "The ee in green works together to say long e." },
   { prompt: "Which word has the vowel team oa?", choices: ["road", "rod", "red"], correctChoice: 0, teachingNote: "The oa in road works together to say long o." },
-  { prompt: "Which word has the vowel team ow?", choices: ["snow", "saw", "sun"], correctChoice: 0, teachingNote: "The ow in snow works together to say long o." },
+  { prompt: "Which word has the vowel team ow?", choices: ["snow", "sun", "snore"], correctChoice: 0, teachingNote: "The ow in snow works together to say long o. Snore uses silent e instead." },
   { prompt: "Which vowel team completes r__n to make rain?", choices: ["ai", "ee", "oa"], correctChoice: 0, teachingNote: "Add ai to r and n to make rain." },
   { prompt: "Which vowel team completes b__t to make boat?", choices: ["oa", "ai", "ee"], correctChoice: 0, teachingNote: "Add oa to b and t to make boat." },
   { prompt: "Which vowel team completes s__d to make seed?", choices: ["ee", "oa", "ai"], correctChoice: 0, teachingNote: "Add ee to s and d to make seed." },

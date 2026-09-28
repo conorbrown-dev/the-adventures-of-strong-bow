@@ -36,6 +36,24 @@ describe("PHONICS_CHALLENGES", () => {
     })).toBe(true);
   });
 
+  it("uses conceptually distinct distractors in the other phonics modules", () => {
+    const shortVowels = PHONICS_MODULES.find((module) => module.id === "short-vowels");
+    const vowelTeams = PHONICS_MODULES.find((module) => module.id === "vowel-teams");
+
+    expect(shortVowels?.challenges).toContainEqual(expect.objectContaining({
+      prompt: "Which word has a short i sound?",
+      choices: ["pig", "pine", "team"],
+    }));
+    expect(vowelTeams?.challenges).toContainEqual(expect.objectContaining({
+      prompt: "Which word has the vowel team ee?",
+      choices: ["seed", "sled", "seal"],
+    }));
+    expect(vowelTeams?.challenges).toContainEqual(expect.objectContaining({
+      prompt: "Which word has the vowel team ow?",
+      choices: ["snow", "sun", "snore"],
+    }));
+  });
+
   it("shuffles the displayed choices while preserving the correct answer", () => {
     const challenge = { prompt: "Choose the answer.", choices: ["first", "correct", "last"], correctChoice: 1, teachingNote: "Correct." };
     const presented = shufflePhonicsChoices(challenge, () => 0);
