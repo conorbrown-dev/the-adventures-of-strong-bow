@@ -96,17 +96,6 @@ export class LearningPromptText extends Phaser.GameObjects.Container {
     this.objectiveBurst.clear().setVisible(false);
 
     if (
-      prompt.kind === "find_specific" &&
-      prompt.targetType === LearningType.CVC_WORD
-    ) {
-      this.objectiveSprite
-        .setTexture(fossilTextureKeys[0])
-        .setDisplaySize(30, 30)
-        .setVisible(true);
-      return;
-    }
-
-    if (
       prompt.displayText.toLowerCase().includes("gem") ||
       prompt.displayText.toLowerCase().includes("crystal")
     ) {

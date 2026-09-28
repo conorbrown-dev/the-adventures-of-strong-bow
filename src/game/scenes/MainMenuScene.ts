@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import type { LetterCatchVariant } from "../modes/letter-catch/LetterCatchConfig";
+import type { FossilDigModuleId } from "../modes/fossil-dig/FossilDigContent";
 import { COLORS, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
@@ -16,6 +17,7 @@ interface MenuOption {
   sceneKey: string;
   sceneData?: {
     variant?: "cvc" | LetterCatchVariant;
+    moduleId?: FossilDigModuleId;
   };
 }
 
@@ -83,22 +85,28 @@ export class MainMenuScene extends Phaser.Scene {
       )
       .setOrigin(0.5);
 
+    const usesCompactLessonLayout = this.options.length > 3;
+    const optionStartY = usesCompactLessonLayout ? 310 : 340;
+    const optionSpacing = usesCompactLessonLayout ? 88 : 110;
+    const optionHeight = usesCompactLessonLayout ? 68 : 84;
+    const optionFontSize = usesCompactLessonLayout ? "26px" : "30px";
+
     this.options.forEach((option, index) => {
-      const y = 340 + index * 110;
+      const y = optionStartY + index * optionSpacing;
       const card = this.add
-        .rectangle(GAME_WIDTH / 2, y, 520, 84, 0xf6edd7)
+        .rectangle(GAME_WIDTH / 2, y, 520, optionHeight, 0xf6edd7)
         .setStrokeStyle(4, 0x5e4127);
       const text = this.add
         .text(GAME_WIDTH / 2, y, option.label, {
           fontFamily: "Trebuchet MS",
-          fontSize: "30px",
+          fontSize: optionFontSize,
           fontStyle: "bold",
           color: "#2d1f14"
         })
         .setOrigin(0.5);
 
       this.add
-        .zone(GAME_WIDTH / 2, y, 520, 84)
+        .zone(GAME_WIDTH / 2, y, 520, optionHeight)
         .setInteractive({ useHandCursor: true })
         .on("pointerover", () => {
           this.selectedIndex = index;
@@ -127,7 +135,7 @@ export class MainMenuScene extends Phaser.Scene {
     this.add
       .text(
         GAME_WIDTH / 2,
-        650,
+        usesCompactLessonLayout ? 730 : 650,
         "Press Esc to return to the game title screen.",
         {
           fontFamily: "Trebuchet MS",
@@ -219,8 +227,12 @@ export class MainMenuScene extends Phaser.Scene {
       {
         label: "CVC Words",
         sceneKey: SCENE_KEYS.FOSSIL_DIG,
-        sceneData: { variant: "cvc" }
-      }
+        sceneData: { moduleId: "cvc" }
+      },
+      { label: "Short Vowels", sceneKey: SCENE_KEYS.FOSSIL_DIG, sceneData: { moduleId: "short-vowels" } },
+      { label: "Silent E", sceneKey: SCENE_KEYS.FOSSIL_DIG, sceneData: { moduleId: "silent-e" } },
+      { label: "Vowel Teams", sceneKey: SCENE_KEYS.FOSSIL_DIG, sceneData: { moduleId: "vowel-teams" } },
+      { label: "Consonant Digraphs", sceneKey: SCENE_KEYS.FOSSIL_DIG, sceneData: { moduleId: "consonant-digraphs" } }
     ];
   }
 

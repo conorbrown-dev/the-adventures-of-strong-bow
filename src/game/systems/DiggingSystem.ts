@@ -384,6 +384,13 @@ export class DiggingSystem {
     return true;
   }
 
+  destroy(): void {
+    this.tiles.flat().forEach((tile) => tile.destroy());
+    this.tileBackings.flat().forEach((tile) => tile.destroy());
+    this.dugTiles.flat().forEach((tile) => tile.destroy());
+    this.ladders.flat().forEach((ladder) => ladder.destroy());
+  }
+
   private createTiles(): void {
     for (let row = 0; row < this.rows; row += 1) {
       for (let col = 0; col < this.cols; col += 1) {

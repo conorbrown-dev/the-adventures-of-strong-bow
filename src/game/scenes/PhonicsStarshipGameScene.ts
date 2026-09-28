@@ -6,6 +6,7 @@ import { ASSET_KEYS } from "../utils/assetKeys";
 import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { addGameNavigation } from "../utils/gameNavigation";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { applyRaceDamage, isKnockedOut, PLAYER_HIT_LIMIT, RIVAL_HIT_LIMIT } from "../systems/raceDamage";
 
 const NEON = {
   yellow: 0xffe45c, blue: 0x43baff, orange: 0xff8a3d, purple: 0xc681ff,
@@ -24,6 +25,9 @@ const SKID_SOUND_LATERAL_SPEED = 0.025;
 const RIVAL_CATCH_UP_DISTANCE = 1_200;
 const RIVAL_CATCH_UP_LIMIT = 0.14;
 const RIVAL_FALL_BACK_LIMIT = 0.10;
+const COLLISION_DAMAGE_COOLDOWN_MS = 800;
+const HEALTH_BAR_WIDTH = 116;
+const HEALTH_BAR_HEIGHT = 13;
 const CAR_COLORS = [
   { name: "BLUE", color: 0x2787ff }, { name: "RED", color: 0xef3e43 },
   { name: "HOT PINK", color: 0xff3ca6 }, { name: "NEON GREEN", color: 0x5cff35 },
@@ -32,6 +36,10 @@ const CAR_COLORS = [
   { name: "WHITE", color: 0xffffff }
 ] as const;
 type CarColor = (typeof CAR_COLORS)[number];
+interface HealthBar {
+  background: Phaser.GameObjects.Rectangle;
+  fill: Phaser.GameObjects.Rectangle;
+}
 interface RivalCar {
   car: Phaser.GameObjects.Image;
   trail: Phaser.GameObjects.Image;
@@ -42,6 +50,8 @@ interface RivalCar {
   paceOffset: number;
   laneTarget: number;
   nextLaneChange: number;
+  remainingHits: number;
+  healthBar: HealthBar;
 }
 
 export class PhonicsStarshipGameScene extends Phaser.Scene {
@@ -66,6 +76,8 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private phase: "module-select" | "starting-module" | "learning" | "color-select" | "countdown" | "racing" | "ended" = "module-select";
   private player?: Phaser.GameObjects.Image;
   private playerTrail?: Phaser.GameObjects.Image;
+  private playerHealthBar?: HealthBar;
+  private playerRemainingHits = PLAYER_HIT_LIMIT;
   private selectedColor?: CarColor;
   private rivals: RivalCar[] = [];
   private raceStatusText?: Phaser.GameObjects.Text;
@@ -79,6 +91,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private playerLateralSpeed = 0;
   private boostUntil = 0;
   private brakeUntil = 0;
+  private nextCollisionDamageAt = 0;
   private leftKey?: Phaser.Input.Keyboard.Key;
   private rightKey?: Phaser.Input.Keyboard.Key;
   private aKey?: Phaser.Input.Keyboard.Key;
@@ -109,8 +122,11 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.raceDistance = 0;
     this.raceSpeed = BASE_RACE_SPEED;
     this.playerLateralSpeed = 0;
+    this.playerHealthBar = undefined;
+    this.playerRemainingHits = PLAYER_HIT_LIMIT;
     this.boostUntil = 0;
     this.brakeUntil = 0;
+    this.nextCollisionDamageAt = 0;
     this.leftKey = undefined;
     this.rightKey = undefined;
     this.aKey = undefined;
@@ -399,6 +415,8 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.player = this.add.image(TRACK_CENTER_X, 570, this.getCarTextureKey(this.selectedColor!)).setDisplaySize(76, 38).setAngle(-90).setDepth(6);
     this.raceStatusText = this.add.text(GAME_WIDTH / 2, 62, "GET READY!", { fontFamily: "Press Start 2P, monospace", fontSize: "24px", color: "#ffe45c" }).setOrigin(0.5).setDepth(10);
     this.raceProgressText = this.add.text(46, 48, "RACE  0%", { fontFamily: "Press Start 2P, monospace", fontSize: "17px", color: "#ffffff" }).setDepth(8);
+    this.add.text(46, 78, "YOUR CAR", { fontFamily: "Press Start 2P, monospace", fontSize: "11px", color: "#ffffff" }).setDepth(8);
+    this.playerHealthBar = this.createHealthBar(106, 101);
     this.createRaceControl(700, 682, "◀ TURN", "A / ←", NEON.purple, () => this.steerPlayer(-1));
     this.createRaceControl(890, 682, "▲ ACCEL", "SPACE / ↑", NEON.cyan, () => this.accelerate());
     this.createRaceControl(1_080, 682, "▼ BRAKE", "B / ↓", NEON.pink, () => this.brake());
@@ -478,6 +496,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private spawnRival(color: CarColor, x: number, y: number, speed: number): void {
     const trail = this.add.image(x, y + 32, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(70, 35).setTint(color.color).setAlpha(0.34).setAngle(-90).setDepth(4);
     const car = this.add.image(x, y, this.getCarTextureKey(color)).setDisplaySize(70, 35).setAngle(-90).setDepth(6);
+    const healthBar = this.createHealthBar(x, y - 34, 7);
     this.rivals.push({
       car,
       trail,
@@ -487,8 +506,24 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       distance: this.raceDistance + (this.player?.y ?? 570) - y,
       paceOffset: Phaser.Math.FloatBetween(-0.06, 0.06),
       laneTarget: x,
-      nextLaneChange: this.time.now + Phaser.Math.Between(1_400, 3_500)
+      nextLaneChange: this.time.now + Phaser.Math.Between(1_400, 3_500),
+      remainingHits: RIVAL_HIT_LIMIT,
+      healthBar
     });
+  }
+
+  private createHealthBar(x: number, y: number, depth = 8): HealthBar {
+    const background = this.add.rectangle(x, y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT, 0xc83f4c).setStrokeStyle(2, 0x210d17).setDepth(depth);
+    const fill = this.add.rectangle(x - HEALTH_BAR_WIDTH / 2 + 2, y, HEALTH_BAR_WIDTH - 4, HEALTH_BAR_HEIGHT - 4, 0x45db70)
+      .setOrigin(0, 0.5)
+      .setDepth(depth + 1);
+    return { background, fill };
+  }
+
+  private updateHealthBar(healthBar: HealthBar, remainingHits: number, hitLimit: number, x: number, y: number): void {
+    const fillWidth = (HEALTH_BAR_WIDTH - 4) * Phaser.Math.Clamp(remainingHits / hitLimit, 0, 1);
+    healthBar.background.setPosition(x, y);
+    healthBar.fill.setSize(fillWidth, HEALTH_BAR_HEIGHT - 4).setPosition(x - HEALTH_BAR_WIDTH / 2 + 2, y);
   }
 
   private getCarTextureKey(color: CarColor): string {
@@ -593,23 +628,52 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
       rival.car.x += rival.lateralSpeed * delta;
       rival.car.y = this.player.y - (rival.distance - this.raceDistance);
       rival.trail.setPosition(rival.car.x, rival.car.y + 32);
+      this.updateHealthBar(rival.healthBar, rival.remainingHits, RIVAL_HIT_LIMIT, rival.car.x, rival.car.y - 34);
       if (Math.abs(rival.car.x - TRACK_CENTER_X) > shoulderLimit) {
         this.wreckRival(rival);
         continue;
       }
       if (Phaser.Geom.Intersects.RectangleToRectangle(this.player.getBounds(), rival.car.getBounds())) {
-        if (playerSpeed > rival.speed + 0.06) this.wreckRival(rival);
-        else this.finishRace(false);
+        this.handleCarCollision(rival, playerSpeed, time);
       }
     }
     if (this.raceDistance >= RACE_DISTANCE) this.finishRace(true);
   }
 
   private wreckRival(rival: RivalCar): void {
+    rival.healthBar.background.destroy();
+    rival.healthBar.fill.destroy();
     rival.car.setTintFill(0xffffff);
     this.tweens.add({ targets: [rival.car, rival.trail], angle: 720, alpha: 0, duration: 550, onComplete: () => { rival.car.destroy(); rival.trail.destroy(); } });
     this.rivals = this.rivals.filter((item) => item !== rival);
     this.raceStatusText?.setText("RIVAL WRECKED!").setColor("#45f6e5");
+  }
+
+  private handleCarCollision(rival: RivalCar, playerSpeed: number, time: number): void {
+    if (!this.player || time < this.nextCollisionDamageAt) return;
+    this.nextCollisionDamageAt = time + COLLISION_DAMAGE_COOLDOWN_MS;
+
+    if (playerSpeed > rival.speed + 0.06) {
+      rival.remainingHits = applyRaceDamage(rival.remainingHits);
+      this.updateHealthBar(rival.healthBar, rival.remainingHits, RIVAL_HIT_LIMIT, rival.car.x, rival.car.y - 34);
+      this.flashCar(rival.car);
+      if (isKnockedOut(rival.remainingHits)) this.wreckRival(rival);
+      else this.raceStatusText?.setText("RIVAL HIT!  ONE HIT LEFT").setColor("#45f6e5");
+      return;
+    }
+
+    this.playerRemainingHits = applyRaceDamage(this.playerRemainingHits);
+    if (this.playerHealthBar) this.updateHealthBar(this.playerHealthBar, this.playerRemainingHits, PLAYER_HIT_LIMIT, 106, 101);
+    this.flashCar(this.player);
+    if (isKnockedOut(this.playerRemainingHits)) {
+      this.finishRace(false);
+      return;
+    }
+    this.raceStatusText?.setText(`YOUR CAR HIT!  ${this.playerRemainingHits} HITS LEFT`).setColor("#ff70b8");
+  }
+
+  private flashCar(car: Phaser.GameObjects.Image): void {
+    this.tweens.add({ targets: car, alpha: 0.38, duration: 85, yoyo: true, repeat: 2 });
   }
 
   private finishRace(won: boolean): void {

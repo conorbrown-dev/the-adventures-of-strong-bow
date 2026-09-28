@@ -8,7 +8,7 @@ import { Player } from "../entities/Player";
 import { LearningType } from "../data/learningTypes";
 import { terrainTileFrames } from "../data/terrainTiles";
 import { FossilDigMode } from "../modes/fossil-dig/FossilDigMode";
-import type { FossilDigPickupContent } from "../modes/fossil-dig/FossilDigContent";
+import type { FossilDigModuleId, FossilDigPickupContent } from "../modes/fossil-dig/FossilDigContent";
 import { type FossilDigStageTheme } from "../modes/fossil-dig/FossilDigStageTheme";
 import { CollisionSystem } from "../systems/CollisionSystem";
 import { DinoAssemblySystem } from "../systems/DinoAssemblySystem";
@@ -37,6 +37,7 @@ import { addGameNavigation } from "../utils/gameNavigation";
 
 interface FossilDigSceneData {
   stageTheme?: FossilDigStageTheme;
+  moduleId?: FossilDigModuleId;
 }
 
 interface PlacedFossil {
@@ -81,6 +82,7 @@ interface CvcDigSite {
 
 export class FossilDigScene extends Phaser.Scene {
   private stageTheme?: FossilDigStageTheme;
+  private moduleId: FossilDigModuleId = "cvc";
   private mode!: FossilDigMode;
   private player!: Player;
   private diggingSystem!: DiggingSystem;
@@ -133,6 +135,7 @@ export class FossilDigScene extends Phaser.Scene {
 
   init(data: FossilDigSceneData): void {
     this.stageTheme = data.stageTheme;
+    this.moduleId = data.moduleId ?? "cvc";
     this.gem = undefined;
     this.gemPlacement = undefined;
     this.fossils = [];
@@ -169,7 +172,7 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.mode = FossilDigMode.create(this.stageTheme);
+    this.mode = FossilDigMode.create(this.stageTheme, this.moduleId);
     this.startFossilDigBackgroundMusic();
     const worldWidth = this.mode.config.worldCols * this.mode.config.cellSize;
     const worldHeight =
@@ -180,12 +183,7 @@ export class FossilDigScene extends Phaser.Scene {
     this.createAboveGroundBackground(worldWidth);
     this.createSurfaceTiles();
 
-    this.diggingSystem = new DiggingSystem(this, {
-      width: worldWidth,
-      height: worldHeight,
-      cellSize: this.mode.config.cellSize,
-      undergroundTop: this.mode.config.undergroundTop
-    });
+    this.createDiggingSystem(worldWidth, worldHeight);
     this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
 
@@ -207,7 +205,7 @@ export class FossilDigScene extends Phaser.Scene {
     });
 
 
-    this.hud.setRepeatOnlyMode(true);
+    this.hud.setRepeatOnlyMode(false);
     this.cvcDigSites = this.createCvcDigSites();
     this.collectedFossilTray = new CollectedFossilTray(this);
     this.hud.setRepeatHandler(() => {
@@ -245,35 +243,82 @@ export class FossilDigScene extends Phaser.Scene {
     this.updateCameraPosition(true);
     this.cameras.main.roundPixels = true;
 
+    this.createDigSitePickups();
+
+    this.assemblySystem = new DinoAssemblySystem(this);
+
+    void this.playOpeningAudioSequence();
+  }
+
+  private createDiggingSystem(worldWidth: number, worldHeight: number): void {
+    this.diggingSystem = new DiggingSystem(this, {
+      width: worldWidth,
+      height: worldHeight,
+      cellSize: this.mode.config.cellSize,
+      undergroundTop: this.mode.config.undergroundTop
+    });
+  }
+
+  private createDigSitePickups(): void {
     this.fossils = this.createFossils();
     const gemSpawnCell = this.findGemSpawnCell();
     this.gem = new GemPickup(
       this,
-      gemSpawnCell.col * this.mode.config.cellSize +
-      this.mode.config.cellSize / 2,
-      this.mode.config.undergroundTop +
-      gemSpawnCell.row * this.mode.config.cellSize +
-      this.mode.config.cellSize / 2,
+      gemSpawnCell.col * this.mode.config.cellSize + this.mode.config.cellSize / 2,
+      this.mode.config.undergroundTop + gemSpawnCell.row * this.mode.config.cellSize + this.mode.config.cellSize / 2,
       this.mode.rewardJewel.textureKey
     );
     this.gemPlacement = gemSpawnCell;
-
-    this.assemblySystem = new DinoAssemblySystem(this);
 
     this.fossils.forEach((pickup) => {
       CollisionSystem.addOverlap(this, this.player, pickup, () => {
         void this.handleFossilOverlap(pickup);
       });
     });
+    CollisionSystem.addOverlap(this, this.player, this.gem, () => {
+      void this.handleGemCollected();
+    });
+  }
 
-    if (this.gem) {
-      CollisionSystem.addOverlap(this, this.player, this.gem, () => {
-        void this.handleGemCollected();
-        return;
-      });
-    }
+  private async resetDigSiteForNextTarget(): Promise<void> {
+    this.promptSystem.setPrompt({
+      kind: "collect_all",
+      displayText: "Great job! A new dig site is ready."
+    });
+    this.hud.setRepeatButtonEnabled(false);
+    await this.audioFeedbackSystem.speakPhrase(
+      "Great job. Let's dig at a new spot!",
+      { rate: 0.84, pitch: 1.08 }
+    );
 
-    void this.playOpeningAudioSequence();
+    this.fossils.forEach((fossil) => fossil.destroy());
+    this.fossils = [];
+    this.fossilPlacements = [];
+    this.gem?.destroy();
+    this.gem = undefined;
+    this.gemPlacement = undefined;
+    this.diggingSystem.destroy();
+    this.surfaceTiles.forEach((tile) => tile.destroy());
+    this.surfaceTunnelTiles.forEach((tile) => tile.destroy());
+    this.surfaceLadders.forEach((ladder) => ladder.destroy());
+    this.surfaceTiles = [];
+    this.surfaceTunnelTiles = [];
+    this.surfaceLadders = [];
+
+    const worldWidth = this.mode.config.worldCols * this.mode.config.cellSize;
+    const worldHeight = this.mode.config.undergroundTop + this.mode.config.worldRows * this.mode.config.cellSize;
+    this.createDiggingSystem(worldWidth, worldHeight);
+    this.createSurfaceTiles();
+    this.cvcDigSites = this.createCvcDigSites();
+    this.currentCvcSiteIndex = 0;
+    this.activeCvcSiteIndex = 0;
+    this.player.setPosition(
+      this.getSurfaceColumnCenterX(1),
+      this.getSurfacePlayerY()
+    );
+    this.player.body.reset(this.player.x, this.player.y);
+    this.updateCameraPosition(true);
+    this.createDigSitePickups();
   }
 
   update(_time: number, _delta: number): void {
@@ -664,56 +709,24 @@ export class FossilDigScene extends Phaser.Scene {
     await this.audioFeedbackSystem.playCorrectFeedback();
     this.updateCvcProgress();
 
-    if (this.isSingleSiteSequentialCvcMode()) {
-      currentSite.targetPickupIds = currentSite.targetPickupIds.filter(
-        (targetPickupId) => targetPickupId !== pickup.pickupId
-      );
-
-      if (currentSite.targetPickupIds.length > 0) {
-        const nextTargetPickupId =
-          Phaser.Utils.Array.GetRandom(currentSite.targetPickupIds) ??
-          currentSite.targetPickupIds[0];
-        const nextTargetPickup = currentSite.pickups.find(
-          (sitePickup) => sitePickup.id === nextTargetPickupId
-        );
-
-        if (nextTargetPickup) {
-          currentSite.targetPickupId = nextTargetPickup.id;
-          currentSite.targetLabel = nextTargetPickup.label;
-          await this.announceCurrentCvcTarget();
-          this.pickupInteractionLocked = false;
-          return;
-        }
-      }
+    if (!this.mode.state.allFossilsCollected) {
+      await this.resetDigSiteForNextTarget();
+      await this.announceCurrentCvcTarget();
+      this.pickupInteractionLocked = false;
+      return;
     }
 
-    const nextSite = this.cvcDigSites[this.collectedCorrectFossils.length];
-
-    if (nextSite && this.cvcDigSites.length > 1) {
-      this.currentCvcSiteIndex = nextSite.index;
-      this.promptSystem.setPrompt({
-        kind: "collect_all",
-        displayText: "Great job! Head right to the next dig site."
-      });
-      this.hud.setRepeatButtonEnabled(false);
-      this.showNextSiteGuidance(nextSite);
-      await this.audioFeedbackSystem.speakPhrase(
-        "Good job. Let's move onto the next dig site. Head to the right.",
-        { rate: 0.86, pitch: 1.06 }
-      );
-    } else {
-      this.mode.state.markGemAvailable();
-      if (this.revealGemIfReady()) {
-        this.audioFeedbackSystem.playFossilDiscovered();
-      }
-      this.updateCvcProgress();
-      this.hud.setRepeatButtonEnabled(false);
-      this.hud.setRepeatButtonVisible(false);
-      this.promptSystem.showGemPrompt();
-      await this.audioFeedbackSystem.playVoiceClip(ASSET_KEYS.FIND_CRYSTAL, {
-        volume: 0.9
-      });
+    this.mode.state.markGemAvailable();
+    if (this.revealGemIfReady()) {
+      this.audioFeedbackSystem.playFossilDiscovered();
     }
+    this.updateCvcProgress();
+    this.hud.setRepeatButtonEnabled(false);
+    this.hud.setRepeatButtonVisible(false);
+    this.promptSystem.showGemPrompt();
+    await this.audioFeedbackSystem.playVoiceClip(ASSET_KEYS.FIND_CRYSTAL, {
+      volume: 0.9
+    });
 
     this.pickupInteractionLocked = false;
   }
@@ -737,7 +750,7 @@ export class FossilDigScene extends Phaser.Scene {
     this.hud.setRepeatButtonEnabled(true);
     this.audioFeedbackSystem.setCurrentWord(
       currentWord,
-      getCvcVoiceAssetKey(currentWord)
+      this.moduleId === "cvc" ? getCvcVoiceAssetKey(currentWord) : undefined
     );
     await this.audioFeedbackSystem.speakCurrentWord();
   }
@@ -1866,72 +1879,26 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   private createCvcDigSites(): CvcDigSite[] {
-    const siteCount = Math.min(
-      this.mode.config.cvcSiteCount ?? 1,
-      this.mode.content.pickups.length
+    const roundIndex = this.collectedCorrectFossils.length;
+    const target = Phaser.Utils.Array.GetRandom(this.mode.content.pickups) ?? this.mode.content.pickups[0]!;
+    const distractorPool = this.mode.content.distractors.filter(
+      (distractor) => distractor.label !== target.label
     );
-    const pickupsPerSite = Math.max(1, this.mode.config.cvcPickupsPerSite ?? 1);
-    const shuffledPickups = Phaser.Utils.Array.Shuffle([...this.mode.content.pickups]);
+    const distractors = this.takeCycledPickups(
+      distractorPool.length > 0 ? distractorPool : this.mode.content.pickups,
+      2
+    ).map((pickup, index) => ({ ...pickup, id: `${pickup.id}-round-${roundIndex}-wrong-${index}` }));
+    const targetPickup = { ...target, id: `${target.id}-round-${roundIndex}-target` };
 
-    if (siteCount === 1) {
-      const siteTargets = shuffledPickups
-        .slice(0, Math.min(pickupsPerSite, this.mode.content.pickups.length))
-        .map((pickup, index) => ({
-          ...pickup,
-          id: `${pickup.id}-site-0-target-${index}`
-        }));
-      const initialTarget =
-        Phaser.Utils.Array.GetRandom(siteTargets) ?? siteTargets[0];
-
-      return [
-        {
-          index: 0,
-          startCol: 0,
-          endCol: CVC_DIG_SITE_WIDTH_BLOCKS - 1,
-          targetLabel: initialTarget.label,
-          targetPickupId: initialTarget.id,
-          targetPickupIds: siteTargets.map((pickup) => pickup.id),
-          pickups: Phaser.Utils.Array.Shuffle(siteTargets)
-        }
-      ];
-    }
-
-    const targetPool = shuffledPickups.slice(0, siteCount);
-    const targetIds = new Set(targetPool.map((pickup) => pickup.id));
-    const distractorPool = this.mode.content.pickups.filter(
-      (pickup) => !targetIds.has(pickup.id)
-    );
-    const fallbackDistractors =
-      distractorPool.length > 0 ? distractorPool : this.mode.content.pickups;
-
-    return Array.from({ length: siteCount }, (_, index) => {
-      const target = targetPool[index % targetPool.length];
-      const distractors = this.takeCycledPickups(
-        fallbackDistractors.filter((pickup) => pickup.id !== target.id),
-        pickupsPerSite - 1
-      ).map((pickup, pickupIndex) => ({
-        ...pickup,
-        id: `${pickup.id}-site-${index}-wrong-${pickupIndex}`
-      }));
-      const targetPickupId = `${target.id}-site-${index}-target`;
-      const pickups = Phaser.Utils.Array.Shuffle([
-        ...distractors,
-        {
-          ...target,
-          id: targetPickupId
-        }
-      ]);
-
-      return {
-        index,
-        startCol: index * CVC_DIG_SITE_WIDTH_BLOCKS,
-        endCol: (index + 1) * CVC_DIG_SITE_WIDTH_BLOCKS - 1,
-        targetLabel: target.label,
-        targetPickupId,
-        targetPickupIds: [targetPickupId],
-        pickups
-      };
-    });
+    return [{
+      index: 0,
+      startCol: 0,
+      endCol: CVC_DIG_SITE_WIDTH_BLOCKS - 1,
+      targetLabel: targetPickup.label,
+      targetPickupId: targetPickup.id,
+      targetPickupIds: [targetPickup.id],
+      pickups: Phaser.Utils.Array.Shuffle([targetPickup, ...distractors])
+    }];
   }
 
   private takeCycledPickups(
@@ -2001,36 +1968,6 @@ export class FossilDigScene extends Phaser.Scene {
 
   private isSingleSiteSequentialCvcMode(): boolean {
     return (this.mode.config.cvcSiteCount ?? 1) === 1;
-  }
-
-  private showNextSiteGuidance(nextSite: CvcDigSite): void {
-    this.nextSiteArrow?.destroy();
-    this.pendingSiteArrivalIndex = nextSite.index;
-
-    const x =
-      (nextSite.startCol + 0.5) * this.mode.config.cellSize;
-    const y = this.mode.config.undergroundTop - this.mode.config.cellSize * 1.6;
-    const arrow = this.add
-      .triangle(0, 0, 0, 48, 28, 0, 56, 48, 0xffdd57)
-      .setStrokeStyle(4, 0x5e4127);
-    const label = this.add
-      .text(28, -18, "Next dig site", {
-        fontFamily: "Trebuchet MS",
-        fontSize: "26px",
-        color: "#2d1f14",
-        fontStyle: "bold"
-      })
-      .setOrigin(0.5);
-
-    this.nextSiteArrow = this.add.container(x, y, [arrow, label]).setDepth(80);
-    this.tweens.add({
-      targets: this.nextSiteArrow,
-      alpha: 0.2,
-      duration: 380,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.InOut"
-    });
   }
 
   private checkForCvcSiteArrival(): void {

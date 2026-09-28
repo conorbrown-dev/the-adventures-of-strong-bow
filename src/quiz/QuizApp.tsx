@@ -22,7 +22,7 @@ const gameRoutes = {
   "/games/addition": { scene: "AdditionGameScene" },
   "/games/phonics-racing": { scene: "PhonicsStarshipGameScene" },
   "/games/phonics-starship": { scene: "PhonicsStarshipGameScene" },
-  "/games/fossil-dig": { scene: "FossilDigScene" },
+  "/games/fossil-dig": { scene: "FossilDigTitleScene" },
   "/games/kitten-catch/vowels": { scene: "LetterCatchScene", sceneData: { variant: "vowels" } },
   "/games/kitten-catch/consonants": { scene: "LetterCatchScene", sceneData: { variant: "consonants" } }
 } as const;

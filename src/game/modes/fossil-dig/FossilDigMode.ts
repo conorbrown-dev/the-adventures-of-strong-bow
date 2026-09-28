@@ -2,7 +2,7 @@ import {
   getFossilDigModeConfig,
   type FossilDigModeConfig,
 } from "./FossilDigConfig";
-import { buildFossilDigContent } from "./FossilDigContent";
+import { buildFossilDigContent, type FossilDigModuleId } from "./FossilDigContent";
 import { FossilDigState } from "./FossilDigState";
 import { getDinoById } from "../../data/dinos";
 import { getJewelById } from "../../data/jewels";
@@ -33,12 +33,13 @@ export class FossilDigMode {
   }
 
   static create(
-    stageTheme: FossilDigStageTheme = createRandomFossilDigStageTheme()
+    stageTheme: FossilDigStageTheme = createRandomFossilDigStageTheme(),
+    moduleId: FossilDigModuleId = "cvc"
   ): FossilDigMode {
     const config = getFossilDigModeConfig();
-    const content = buildFossilDigContent();
+    const content = buildFossilDigContent(moduleId);
     const totalFossils = getCvcConfiguredTargetCount(content.pickups.length)
 
-    return new FossilDigMode(config, content, stageTheme, totalFossils);
+    return new FossilDigMode({ ...config, title: content.title }, content, stageTheme, totalFossils);
   }
 }
