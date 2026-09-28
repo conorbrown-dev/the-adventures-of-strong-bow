@@ -46,14 +46,17 @@ const SHORT_VOWEL_CHALLENGES: readonly PhonicsChallenge[] = [
 ];
 
 const SILENT_E_CHALLENGES: readonly PhonicsChallenge[] = [
-  { prompt: "Which word has a long o because silent e changes the vowel?", choices: ["tot", "tote", "top"], correctChoice: 1, teachingNote: "The silent e makes the o in tote say its name." },
-  { prompt: "Which word has a long i because of silent e?", choices: ["kit", "kite", "kick"], correctChoice: 1, teachingNote: "The silent e makes the i in kite say its name." },
-  { prompt: "Which word has a long u because of silent e?", choices: ["tub", "tube", "tug"], correctChoice: 1, teachingNote: "The silent e makes the u in tube say its name." },
-  { prompt: "Which word has a long a because silent e changes the vowel?", choices: ["cap", "cape", "camp"], correctChoice: 1, teachingNote: "The silent e makes the a in cape say its name." },
-  { prompt: "Which word has a long e because of silent e?", choices: ["pet", "Pete", "pen"], correctChoice: 1, teachingNote: "The silent e makes the e in Pete say its name." },
-  { prompt: "Which word has a long i because silent e changes the vowel?", choices: ["fin", "fine", "fit"], correctChoice: 1, teachingNote: "The silent e makes the i in fine say its name." },
-  { prompt: "Which word has a long o because of silent e?", choices: ["hop", "hope", "hot"], correctChoice: 1, teachingNote: "The silent e makes the o in hope say its name." },
-  { prompt: "Which word has a long u because silent e changes the vowel?", choices: ["cub", "cube", "cup"], correctChoice: 1, teachingNote: "The silent e makes the u in cube say its name." },
+  { prompt: "Which word has a long o because silent e changes the vowel?", choices: ["ten", "tote", "pet"], correctChoice: 1, teachingNote: "Tote ends in silent e. The e makes the o say its name." },
+  { prompt: "Which word has a long i because of silent e?", choices: ["kitten", "kite", "pencil"], correctChoice: 1, teachingNote: "Kite ends in silent e. The e makes the i say its name." },
+  { prompt: "Which word has a long u because of silent e?", choices: ["tunnel", "tube", "tub"], correctChoice: 1, teachingNote: "Tube ends in silent e. The e makes the u say its name." },
+  { prompt: "Which word has a long a because silent e changes the vowel?", choices: ["camel", "cape", "camp"], correctChoice: 1, teachingNote: "Cape ends in silent e. The e makes the a say its name." },
+  { prompt: "Which word has a long e because of silent e?", choices: ["pet", "Pete", "pencil"], correctChoice: 1, teachingNote: "Pete ends in silent e. The e makes the first e say its name." },
+  { prompt: "Which word has a long i because silent e changes the vowel?", choices: ["pencil", "fine", "fin"], correctChoice: 1, teachingNote: "Fine ends in silent e. The e makes the i say its name." },
+  { prompt: "Which word has a long o because of silent e?", choices: ["hen", "hope", "hot"], correctChoice: 1, teachingNote: "Hope ends in silent e. The e makes the o say its name." },
+  { prompt: "Which word has a long u because silent e changes the vowel?", choices: ["tunnel", "cube", "cub"], correctChoice: 1, teachingNote: "Cube ends in silent e. The e makes the u say its name." },
+  { prompt: "Which word has an e in the middle, not a silent e at the end?", choices: ["step", "tape", "cube"], correctChoice: 0, teachingNote: "Step has an e in the middle. It does not have the silent-e pattern." },
+  { prompt: "Which word does not use a silent e pattern?", choices: ["pencil", "hope", "kite"], correctChoice: 0, teachingNote: "Pencil has an e in the middle, not a silent e at the end." },
+  { prompt: "Which word has an e that is not at the end?", choices: ["nest", "bike", "cute"], correctChoice: 0, teachingNote: "Nest has an e in the middle, so it is not a silent-e word." },
 ];
 
 const VOWEL_TEAM_CHALLENGES: readonly PhonicsChallenge[] = [

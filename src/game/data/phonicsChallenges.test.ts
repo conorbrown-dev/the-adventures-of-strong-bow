@@ -27,6 +27,15 @@ describe("PHONICS_CHALLENGES", () => {
     });
   });
 
+  it("contrasts silent e words with words that contain e away from the end", () => {
+    const silentEModule = PHONICS_MODULES.find((module) => module.id === "silent-e");
+
+    expect(silentEModule?.challenges.some((challenge) => {
+      const correctAnswer = challenge.choices[challenge.correctChoice];
+      return challenge.prompt.includes("not at the end") && correctAnswer?.includes("e") && !correctAnswer.endsWith("e");
+    })).toBe(true);
+  });
+
   it("shuffles the displayed choices while preserving the correct answer", () => {
     const challenge = { prompt: "Choose the answer.", choices: ["first", "correct", "last"], correctChoice: 1, teachingNote: "Correct." };
     const presented = shufflePhonicsChoices(challenge, () => 0);
