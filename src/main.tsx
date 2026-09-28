@@ -43,6 +43,7 @@ function startGameScene(activeGame: import("phaser").Game, { scene, sceneData }:
   // Keep the title scene visible until Phaser has created the requested
   // activity, so a failed initialization cannot leave a black canvas.
   targetScene.events.once("create", () => {
+    activeGame.scene.bringToTop(scene);
     phaserRoot.dataset.activeScene = scene;
     if (activeGame.scene.isActive(SCENE_KEYS.TITLE)) activeGame.scene.stop(SCENE_KEYS.TITLE);
   });
