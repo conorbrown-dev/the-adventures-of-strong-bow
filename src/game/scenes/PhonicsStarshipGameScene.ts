@@ -13,6 +13,9 @@ const NEON = {
   ink: "#f7f2ff", muted: "#a99ac3"
 } as const;
 const CORRECT_ANSWERS_TO_LAUNCH = 5;
+const TRACK_CENTER_X = GAME_WIDTH / 2;
+const TRACK_WIDTH = 760;
+const RACE_DISTANCE = 1_200;
 const CAR_COLORS = [
   { name: "BLUE", color: 0x2787ff }, { name: "RED", color: 0xef3e43 },
   { name: "HOT PINK", color: 0xff3ca6 }, { name: "NEON GREEN", color: 0x5cff35 },
@@ -43,6 +46,11 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   private rivals: RivalCar[] = [];
   private raceStatusText?: Phaser.GameObjects.Text;
   private raceProgressText?: Phaser.GameObjects.Text;
+  private roadSurface?: Phaser.GameObjects.TileSprite;
+  private roadBorders: Phaser.GameObjects.TileSprite[] = [];
+  private laneMarkers: Phaser.GameObjects.Rectangle[] = [];
+  private finishLine?: Phaser.GameObjects.Container;
+  private raceDistance = 0;
   private boostUntil = 0;
   private brakeUntil = 0;
   private keyboardHandler?: (event: KeyboardEvent) => void;
@@ -58,6 +66,10 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.backgroundStars = [];
     this.rivals = [];
     this.selectedColor = undefined;
+    this.roadBorders = [];
+    this.laneMarkers = [];
+    this.finishLine = undefined;
+    this.raceDistance = 0;
     this.boostUntil = 0;
     this.brakeUntil = 0;
   }
@@ -257,17 +269,59 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
 
   private startRace(): void {
     this.phase = "racing";
-    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x10101b);
-    for (let x = 90; x < GAME_WIDTH; x += 180) this.add.image(x, GAME_HEIGHT / 2, ASSET_KEYS.RACING_ROAD).setDisplaySize(180, GAME_HEIGHT).setDepth(0);
-    this.add.rectangle(1180, GAME_HEIGHT / 2, 24, GAME_HEIGHT, 0xffffff).setDepth(1);
-    for (let y = 22; y < GAME_HEIGHT; y += 44) this.add.rectangle(1180, y, 24, 22, 0x111111).setDepth(2);
-    this.playerTrail = this.add.image(150, 510, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(76, 38).setTint(this.selectedColor!.color).setAlpha(0.45).setDepth(2);
-    this.player = this.add.image(180, 510, this.getCarTextureKey(this.selectedColor!)).setDisplaySize(76, 38).setDepth(4);
-    this.raceStatusText = this.add.text(GAME_WIDTH / 2, 62, "GO!  WRECK RIVALS OR REACH THE CHECKERED FLAG", { fontFamily: "Press Start 2P, monospace", fontSize: "18px", color: "#ffffff" }).setOrigin(0.5).setDepth(8);
+    this.add.rectangle(TRACK_CENTER_X, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x080b0d);
+    this.createScrollingTrack();
+    this.playerTrail = this.add.image(TRACK_CENTER_X, 604, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(76, 38).setTint(this.selectedColor!.color).setAlpha(0.45).setAngle(-90).setDepth(4);
+    this.player = this.add.image(TRACK_CENTER_X, 570, this.getCarTextureKey(this.selectedColor!)).setDisplaySize(76, 38).setAngle(-90).setDepth(6);
+    this.raceStatusText = this.add.text(GAME_WIDTH / 2, 62, "GO!  RACE UP THE TRACK TO THE CHECKERED FLAG", { fontFamily: "Press Start 2P, monospace", fontSize: "18px", color: "#ffffff" }).setOrigin(0.5).setDepth(10);
     this.raceProgressText = this.add.text(46, 48, "RACE  0%", { fontFamily: "Press Start 2P, monospace", fontSize: "17px", color: "#ffffff" }).setDepth(8);
-    this.createRaceControl(970, 690, "▲ ACCEL", "SPACE / ↑", NEON.cyan, () => this.accelerate());
-    this.createRaceControl(1190, 690, "▼ BRAKE", "B / ↓", NEON.pink, () => this.brake());
-    CAR_COLORS.filter((color) => color.name !== this.selectedColor?.name).slice(0, 6).forEach((color, index) => this.spawnRival(color, 360 + index * 135, 420 + (index % 3) * 90, Phaser.Math.FloatBetween(0.13, 0.22)));
+    this.createRaceControl(1_070, 682, "▲ ACCEL", "SPACE / ↑", NEON.cyan, () => this.accelerate());
+    this.createRaceControl(1_270, 682, "▼ BRAKE", "B / ↓", NEON.pink, () => this.brake());
+    CAR_COLORS.filter((color) => color.name !== this.selectedColor?.name).slice(0, 6).forEach((color, index) => {
+      const lane = [-190, 0, 190][index % 3] ?? 0;
+      this.spawnRival(color, TRACK_CENTER_X + lane, 180 + Math.floor(index / 3) * 190, Phaser.Math.FloatBetween(0.18, 0.32));
+    });
+  }
+
+  private createScrollingTrack(): void {
+    const { roadKey, borderKey } = this.getStraightRoadTextureKeys();
+    this.roadSurface = this.add.tileSprite(TRACK_CENTER_X, GAME_HEIGHT / 2, TRACK_WIDTH, GAME_HEIGHT, roadKey).setTileScale(5).setDepth(1);
+    const borderWidth = 40;
+    this.roadBorders = [
+      this.add.tileSprite(TRACK_CENTER_X - TRACK_WIDTH / 2 - borderWidth / 2, GAME_HEIGHT / 2, borderWidth, GAME_HEIGHT, borderKey),
+      this.add.tileSprite(TRACK_CENTER_X + TRACK_WIDTH / 2 + borderWidth / 2, GAME_HEIGHT / 2, borderWidth, GAME_HEIGHT, borderKey)
+    ];
+    this.roadBorders.forEach((border) => border.setTileScale(4).setDepth(2));
+    for (let y = 48; y < GAME_HEIGHT; y += 108) this.laneMarkers.push(this.add.rectangle(TRACK_CENTER_X, y, 12, 52, 0xf6d958).setDepth(3));
+    this.finishLine = this.createFinishLine(TRACK_CENTER_X, 570 - RACE_DISTANCE);
+  }
+
+  private getStraightRoadTextureKeys(): { roadKey: string; borderKey: string } {
+    const roadKey = `${ASSET_KEYS.RACING_ROAD}-straight-asphalt`;
+    const borderKey = `${ASSET_KEYS.RACING_ROAD}-straight-border`;
+    if (this.textures.exists(roadKey) && this.textures.exists(borderKey)) return { roadKey, borderKey };
+
+    const source = this.textures.get(ASSET_KEYS.RACING_ROAD).getSourceImage() as CanvasImageSource;
+    const roadTexture = this.textures.createCanvas(roadKey, 68, 112);
+    const borderTexture = this.textures.createCanvas(borderKey, 10, 20);
+    if (!roadTexture || !borderTexture) return { roadKey: ASSET_KEYS.RACING_ROAD, borderKey: ASSET_KEYS.RACING_ROAD };
+    roadTexture.context.drawImage(source, 101, 0, 68, 112, 0, 0, 68, 112);
+    roadTexture.refresh();
+    borderTexture.context.drawImage(source, 91, 0, 10, 20, 0, 0, 10, 20);
+    borderTexture.refresh();
+    return { roadKey, borderKey };
+  }
+
+  private createFinishLine(x: number, y: number): Phaser.GameObjects.Container {
+    const line = this.add.container(x, y).setDepth(5);
+    const squareSize = 26;
+    for (let column = -14; column < 14; column += 1) {
+      for (let row = 0; row < 2; row += 1) {
+        const isLight = (column + row) % 2 === 0;
+        line.add(this.add.rectangle(column * squareSize, row * squareSize - squareSize / 2, squareSize, squareSize, isLight ? 0xffffff : 0x111111));
+      }
+    }
+    return line;
   }
 
   private createRaceControl(x: number, y: number, label: string, key: string, color: number, action: () => void): void {
@@ -279,8 +333,8 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   private spawnRival(color: CarColor, x: number, y: number, speed: number): void {
-    const trail = this.add.image(x - 34, y, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(70, 35).setTint(color.color).setAlpha(0.34).setDepth(2);
-    const car = this.add.image(x, y, this.getCarTextureKey(color)).setDisplaySize(70, 35).setDepth(4);
+    const trail = this.add.image(x, y + 32, ASSET_KEYS.RACING_CAR_TRAIL).setDisplaySize(70, 35).setTint(color.color).setAlpha(0.34).setAngle(-90).setDepth(4);
+    const car = this.add.image(x, y, this.getCarTextureKey(color)).setDisplaySize(70, 35).setAngle(-90).setDepth(6);
     this.rivals.push({ car, trail, color, speed });
   }
 
@@ -325,21 +379,28 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     if (!this.player || !this.playerTrail) return;
     const isBoosting = time < this.boostUntil;
     const isBraking = time < this.brakeUntil;
-    const speed = (isBoosting ? 0.68 : isBraking ? 0.04 : 0.23) * delta;
-    this.player.x += speed;
-    this.playerTrail.setPosition(this.player.x - 36, this.player.y).setAlpha(isBoosting ? 0.85 : 0.42);
-    this.raceProgressText?.setText(`RACE  ${Math.min(100, Math.floor((this.player.x - 180) / 10))}%`);
+    const speed = (isBoosting ? 0.78 : isBraking ? 0.06 : 0.30) * delta;
+    this.raceDistance += speed;
+    this.roadSurface?.setTilePosition(0, this.roadSurface.tilePositionY + speed);
+    this.roadBorders.forEach((border) => border.setTilePosition(0, border.tilePositionY + speed));
+    this.laneMarkers.forEach((marker) => {
+      marker.y += speed;
+      if (marker.y > GAME_HEIGHT + 32) marker.y -= GAME_HEIGHT + 108;
+    });
+    this.finishLine?.setY(this.player.y - RACE_DISTANCE + this.raceDistance);
+    this.playerTrail.setPosition(this.player.x, this.player.y + 34).setAlpha(isBoosting ? 0.85 : 0.42);
+    this.raceProgressText?.setText(`RACE  ${Math.min(100, Math.floor(this.raceDistance / RACE_DISTANCE * 100))}%`);
     if (!isBoosting && !isBraking) this.raceStatusText?.setText("SPACE / ↑ TO BURST  •  B / ↓ TO BRAKE").setColor("#ffffff");
     for (const rival of [...this.rivals]) {
-      rival.car.x += rival.speed * delta;
-      rival.trail.setPosition(rival.car.x - 34, rival.car.y);
-      if (rival.car.x > GAME_WIDTH + 80) { rival.car.destroy(); rival.trail.destroy(); this.rivals = this.rivals.filter((item) => item !== rival); continue; }
+      rival.car.y += (speed / delta - rival.speed) * delta;
+      rival.trail.setPosition(rival.car.x, rival.car.y + 32);
+      if (rival.car.y > GAME_HEIGHT + 80 || rival.car.y < -80) { rival.car.destroy(); rival.trail.destroy(); this.rivals = this.rivals.filter((item) => item !== rival); continue; }
       if (Phaser.Geom.Intersects.RectangleToRectangle(this.player.getBounds(), rival.car.getBounds())) {
         if (speed / delta > rival.speed + 0.06) this.wreckRival(rival);
         else this.finishRace(false);
       }
     }
-    if (this.player.x >= 1180) this.finishRace(true);
+    if (this.raceDistance >= RACE_DISTANCE) this.finishRace(true);
   }
 
   private wreckRival(rival: RivalCar): void {
