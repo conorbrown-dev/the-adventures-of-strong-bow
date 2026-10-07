@@ -56,3 +56,14 @@ Set `CURRICULUM_PROCTOR_CODE` in the server environment to an adult-only code. A
 ## Student authentication
 
 Set `JWT_SECRET` in every production server environment to a long, randomly generated secret. The server refuses to start in production without it. Student-specific progress, quiz attempts, subject-level changes, and standalone Learning sessions require the bearer token issued after student creation or PIN login. The API derives the learner identity from that signed token and does not accept a caller-supplied learner ID.
+
+## Railway deployment
+
+Add a PostgreSQL service to the project. On the application service, set
+`DATABASE_URL` to `${{Postgres.DATABASE_URL}}` (using the database service's actual
+name) and set `JWT_SECRET` to a long, randomly generated secret. The production
+launcher requires both variables, applies Prisma migrations, and starts the API
+on port 3000 alongside the web server.
+
+Railway checks `/api/health`, which verifies that the API and database respond.
+The homepage alone cannot establish that learning sessions are available.

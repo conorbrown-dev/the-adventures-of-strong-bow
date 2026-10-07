@@ -4,8 +4,10 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { StudentsModule } from "./students/students.module";
 import { TtsModule } from "./tts/tts.module";
 import { CurriculumModule } from "./curriculum/curriculum.module";
+import { HealthController } from "./health.controller";
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
