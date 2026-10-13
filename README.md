@@ -67,3 +67,15 @@ on port 3000 alongside the web server.
 
 Railway checks `/api/health`, which verifies that the API and database respond.
 The homepage alone cannot establish that learning sessions are available.
+
+## Mastered game skills
+
+Open **Fossil Dig → Settings** for parent and teacher controls. Uncheck any
+Fossil Dig lesson to remove it from the lesson menu. Uncheck **CVC practice
+across games** to disable Fossil Dig CVC and Short Vowels, Phonics Racing
+Short Vowels, and Barn Door Vowels (whose closed-vowel exercises use CVCs).
+Other lessons retain CVC distractors when they help contrast the target skill.
+
+These preferences apply to all students in the current browser and persist
+across reloads. Recheck a skill to make it available again. The **Dig length &
+sound** button opens the existing game length and volume controls.

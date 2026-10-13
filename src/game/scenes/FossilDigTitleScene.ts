@@ -10,6 +10,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
 import { returnToLearningLibrary } from "../utils/gameNavigation";
+import { showLearningModeSettingsDialog } from "../ui/learningModeSettingsDialog";
 
 interface FossilTitleButton {
   button: Phaser.GameObjects.Image;
@@ -37,6 +38,15 @@ export class FossilDigTitleScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.buttons = [];
+    this.selectedIndex = 0;
+    this.overlayVisible = false;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.destroyOverlay();
+      this.stopBackgroundMusic();
+      this.input.keyboard?.removeAllKeys(true);
+      this.buttons = [];
+    });
     this.resetTitleCamera();
     this.startBackgroundMusic();
 
@@ -61,7 +71,7 @@ export class FossilDigTitleScene extends Phaser.Scene {
       615,
       ASSET_KEYS.TITLE_BUTTON_SETTINGS_ACTIVE,
       ASSET_KEYS.TITLE_BUTTON_SETTINGS_INACTIVE,
-      () => this.showSettingsOverlay()
+      () => showLearningModeSettingsDialog(this, () => this.showSettingsOverlay())
     );
     this.createButton(
       2,

@@ -9,6 +9,8 @@ import { ASSET_KEYS } from "../utils/assetKeys";
 import { COLORS, GAME_WIDTH } from "../utils/constants";
 import { addGameNavigation } from "../utils/gameNavigation";
 import { SCENE_KEYS } from "../utils/sceneKeys";
+import { loadLearningModeSettings } from "../settings/learningModeSettings";
+import { stopSpeaking } from "../../quiz/speech";
 
 const ANIMAL_KEYS = [
   ASSET_KEYS.BARN_DOOR_COW,
@@ -109,6 +111,11 @@ export class BarnDoorVowelsScene extends Phaser.Scene {
   }
 
   create(): void {
+    if (!loadLearningModeSettings().isCvcEnabled) {
+      stopSpeaking();
+      this.scene.start(SCENE_KEYS.MAIN_MENU, { family: "barn-door-vowels" });
+      return;
+    }
     this.mode = BarnDoorVowelsMode.create(createRandomBarnDoorVowelsStageTheme());
     this.audioFeedbackSystem = new AudioFeedbackSystem(this);
     this.cameras.main.setBackgroundColor(0x9bd8f2);

@@ -1,5 +1,6 @@
 export interface PhonicsChallenge {
   readonly prompt: string;
+  readonly spokenPrompt?: string;
   readonly choices: readonly string[];
   readonly correctChoice: number;
   readonly teachingNote: string;
@@ -61,14 +62,14 @@ const SILENT_E_CHALLENGES: readonly PhonicsChallenge[] = [
 
 const VOWEL_TEAM_CHALLENGES: readonly PhonicsChallenge[] = [
   { prompt: "Which word has a long a vowel team?", choices: ["cat", "rain", "cake"], correctChoice: 1, teachingNote: "The ai in rain is a vowel team that says long a." },
-  { prompt: "Which word has the vowel team ee?", choices: ["seed", "sled", "seal"], correctChoice: 0, teachingNote: "The ee in seed works together to say long e. Seal uses a different vowel team." },
-  { prompt: "Which word has the vowel team oa?", choices: ["coat", "cot", "cute"], correctChoice: 0, teachingNote: "The oa in coat works together to say long o." },
-  { prompt: "Which word has the vowel team ai?", choices: ["train", "tan", "ten"], correctChoice: 0, teachingNote: "The ai in train works together to say long a." },
-  { prompt: "Which word has the vowel team ay?", choices: ["play", "pal", "pill"], correctChoice: 0, teachingNote: "The ay in play works together to say long a." },
-  { prompt: "Which word has the vowel team ea?", choices: ["team", "tam", "time"], correctChoice: 0, teachingNote: "The ea in team works together to say long e." },
-  { prompt: "Which word has the vowel team ee?", choices: ["green", "grain", "grin"], correctChoice: 0, teachingNote: "The ee in green works together to say long e." },
-  { prompt: "Which word has the vowel team oa?", choices: ["road", "rod", "red"], correctChoice: 0, teachingNote: "The oa in road works together to say long o." },
-  { prompt: "Which word has the vowel team ow?", choices: ["snow", "sun", "snore"], correctChoice: 0, teachingNote: "The ow in snow works together to say long o. Snore uses silent e instead." },
+  { prompt: "Which word has the vowel team ee?", spokenPrompt: "Which word has the vowel team ee, ee?", choices: ["seed", "sled", "seal"], correctChoice: 0, teachingNote: "The ee in seed works together to say long e. Seal uses a different vowel team." },
+  { prompt: "Which word has the vowel team oa?", spokenPrompt: "Which word has the vowel team oh, ay?", choices: ["coat", "cot", "cute"], correctChoice: 0, teachingNote: "The oa in coat works together to say long o." },
+  { prompt: "Which word has the vowel team ai?", spokenPrompt: "Which word has the vowel team ay, eye?", choices: ["train", "tan", "ten"], correctChoice: 0, teachingNote: "The ai in train works together to say long a." },
+  { prompt: "Which word has the vowel team ay?", spokenPrompt: "Which word has the vowel team ay, why?", choices: ["play", "pal", "pill"], correctChoice: 0, teachingNote: "The ay in play works together to say long a." },
+  { prompt: "Which word has the vowel team ea?", spokenPrompt: "Which word has the vowel team ee, ay?", choices: ["team", "tam", "time"], correctChoice: 0, teachingNote: "The ea in team works together to say long e." },
+  { prompt: "Which word has the vowel team ee?", spokenPrompt: "Which word has the vowel team ee, ee?", choices: ["green", "grain", "grin"], correctChoice: 0, teachingNote: "The ee in green works together to say long e." },
+  { prompt: "Which word has the vowel team oa?", spokenPrompt: "Which word has the vowel team oh, ay?", choices: ["road", "rod", "red"], correctChoice: 0, teachingNote: "The oa in road works together to say long o." },
+  { prompt: "Which word has the vowel team ow?", spokenPrompt: "Which word has the vowel team oh, double you?", choices: ["snow", "sun", "snore"], correctChoice: 0, teachingNote: "The ow in snow works together to say long o. Snore uses silent e instead." },
   { prompt: "Which vowel team completes r__n to make rain?", choices: ["ai", "ee", "oa"], correctChoice: 0, teachingNote: "Add ai to r and n to make rain." },
   { prompt: "Which vowel team completes b__t to make boat?", choices: ["oa", "ai", "ee"], correctChoice: 0, teachingNote: "Add oa to b and t to make boat." },
   { prompt: "Which vowel team completes s__d to make seed?", choices: ["ee", "oa", "ai"], correctChoice: 0, teachingNote: "Add ee to s and d to make seed." },

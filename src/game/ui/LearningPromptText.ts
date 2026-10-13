@@ -126,11 +126,6 @@ export class LearningPromptText extends Phaser.GameObjects.Container {
       return;
     }
 
-    if (prompt.kind === "find_specific" && prompt.targetValue) {
-      this.objectiveText.setFontSize(22).setText(prompt.targetValue).setVisible(true);
-      return;
-    }
-
     this.drawBurstIcon(this.objectiveBurst, 54, 0, 0xffdc6b);
     this.objectiveBurst.setVisible(true);
   }

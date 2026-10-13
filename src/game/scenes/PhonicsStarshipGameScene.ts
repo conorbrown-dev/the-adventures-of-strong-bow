@@ -7,6 +7,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "../utils/constants";
 import { addGameNavigation } from "../utils/gameNavigation";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { applyRaceDamage, isKnockedOut, PLAYER_HIT_LIMIT, RIVAL_HIT_LIMIT } from "../systems/raceDamage";
+import { isPhonicsModuleEnabled } from "../settings/learningModeSettings";
 
 const NEON = {
   yellow: 0xffe45c, blue: 0x43baff, orange: 0xff8a3d, purple: 0xc681ff,
@@ -55,6 +56,7 @@ interface RivalCar {
 }
 
 export class PhonicsStarshipGameScene extends Phaser.Scene {
+  private availableModules: readonly PhonicsModule[] = [];
   private problem: PhonicsChallenge = PHONICS_CHALLENGES[0];
   private displayedChoices: readonly string[] = PHONICS_CHALLENGES[0]?.choices ?? [];
   private displayedCorrectChoice = PHONICS_CHALLENGES[0]?.correctChoice ?? 0;
@@ -134,6 +136,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.availableModules = PHONICS_MODULES.filter((module) => isPhonicsModuleEnabled(module));
     this.cameras.main.setBackgroundColor(NEON.dark);
     this.createBackground();
     this.bindKeyboard();
@@ -179,8 +182,8 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     layer.add(this.add.text(GAME_WIDTH / 2, 210, "Practice one skill at a time, then race!", {
       fontFamily: "Trebuchet MS, sans-serif", fontSize: "23px", color: "#45f6e5"
     }).setOrigin(0.5));
-    PHONICS_MODULES.forEach((module, index) => this.createModuleButton(layer, module, index));
-    layer.add(this.add.text(GAME_WIDTH / 2, 677, "CLICK A SKILL OR PRESS 1–4", {
+    this.availableModules.forEach((module, index) => this.createModuleButton(layer, module, index));
+    layer.add(this.add.text(GAME_WIDTH / 2, 677, `CLICK A SKILL OR PRESS 1–${this.availableModules.length}`, {
       fontFamily: "Trebuchet MS, sans-serif", fontSize: "18px", color: NEON.muted, letterSpacing: 1
     }).setOrigin(0.5));
     void speak("Choose one phonics skill to practice. You will practice one skill at a time.");
@@ -205,7 +208,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
   }
 
   private selectModule(index: number, pointerId?: number): void {
-    const module = PHONICS_MODULES[index];
+    const module = this.availableModules[index];
     if (this.phase !== "module-select" || !module) return;
     this.phase = "starting-module";
     this.selectedModule = module;
@@ -286,7 +289,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
 
   private repeatCurrentInstructions(): void {
     if (this.phase !== "learning") return;
-    void speak(this.problem.prompt);
+    void speak(this.problem.spokenPrompt ?? this.problem.prompt);
   }
 
   private selectChoice(choiceIndex: number, pointerId?: number): void {
@@ -313,7 +316,7 @@ export class PhonicsStarshipGameScene extends Phaser.Scene {
     this.answer = "";
     this.statusText?.setText("Choose an answer, or press 1, 2, or 3").setColor(NEON.muted);
     this.renderProblem();
-    void speak(this.problem.prompt);
+    void speak(this.problem.spokenPrompt ?? this.problem.prompt);
   }
 
   private renderProblem(): void {

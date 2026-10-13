@@ -34,6 +34,8 @@ import {
 } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { addGameNavigation } from "../utils/gameNavigation";
+import { isFossilDigModeEnabled } from "../settings/learningModeSettings";
+import { stopSpeaking } from "../../quiz/speech";
 
 interface FossilDigSceneData {
   stageTheme?: FossilDigStageTheme;
@@ -172,6 +174,11 @@ export class FossilDigScene extends Phaser.Scene {
   }
 
   create(): void {
+    if (!isFossilDigModeEnabled(this.moduleId)) {
+      stopSpeaking();
+      this.scene.start(SCENE_KEYS.MAIN_MENU, { family: "fossil-dig" });
+      return;
+    }
     this.mode = FossilDigMode.create(this.stageTheme, this.moduleId);
     this.startFossilDigBackgroundMusic();
     const worldWidth = this.mode.config.worldCols * this.mode.config.cellSize;

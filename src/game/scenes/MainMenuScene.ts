@@ -5,6 +5,8 @@ import type { FossilDigModuleId } from "../modes/fossil-dig/FossilDigContent";
 import { COLORS, GAME_WIDTH } from "../utils/constants";
 import { SCENE_KEYS } from "../utils/sceneKeys";
 import { playButtonClick, playButtonHover } from "../utils/uiSound";
+import { isFossilDigModeEnabled, loadLearningModeSettings } from "../settings/learningModeSettings";
+import { stopSpeaking } from "../../quiz/speech";
 
 type MenuFamily = "fossil-dig" | "cat-catch" | "barn-door-vowels";
 
@@ -45,6 +47,13 @@ export class MainMenuScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setBackgroundColor(COLORS.SKY);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      stopSpeaking();
+      this.input.keyboard?.removeAllKeys(true);
+      this.cursors = undefined;
+      this.enterKey = undefined;
+      this.escapeKey = undefined;
+    });
 
     let heading = "Kitten Catch";
     let subheading = "Choose whether to catch vowels or consonants.";
@@ -75,7 +84,7 @@ export class MainMenuScene extends Phaser.Scene {
       .text(
         GAME_WIDTH / 2,
         190,
-        `${subheading}\nUse arrow keys + Enter, or click a card.`,
+        this.options.length ? `${subheading}\nUse arrow keys + Enter, or click a card.` : "These lessons are disabled in parent & teacher settings.\nPress Esc to return to the title screen.",
         {
           fontFamily: "Trebuchet MS",
           fontSize: "24px",
@@ -155,9 +164,12 @@ export class MainMenuScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.escapeKey)) {
       playButtonClick(this);
+      stopSpeaking();
       this.scene.start(this.getTitleSceneForFamily());
       return;
     }
+
+    if (!this.options.length) return;
 
     if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
       this.selectedIndex = (this.selectedIndex + 1) % this.options.length;
@@ -195,6 +207,8 @@ export class MainMenuScene extends Phaser.Scene {
 
   private startSelectedMode(): void {
     const option = this.options[this.selectedIndex];
+    if (!option) return;
+    stopSpeaking();
     this.scene.start(option.sceneKey, option.sceneData);
   }
 
@@ -214,6 +228,7 @@ export class MainMenuScene extends Phaser.Scene {
       ];
     }
     else if (family === "barn-door-vowels") {
+      if (!loadLearningModeSettings().isCvcEnabled) return [];
       return [
         {
           label: "Open & Closed Vowels",
@@ -223,7 +238,7 @@ export class MainMenuScene extends Phaser.Scene {
       ]
     }
 
-    return [
+    const options: MenuOption[] = [
       {
         label: "CVC Words",
         sceneKey: SCENE_KEYS.FOSSIL_DIG,
@@ -234,6 +249,7 @@ export class MainMenuScene extends Phaser.Scene {
       { label: "Vowel Teams", sceneKey: SCENE_KEYS.FOSSIL_DIG, sceneData: { moduleId: "vowel-teams" } },
       { label: "Consonant Digraphs", sceneKey: SCENE_KEYS.FOSSIL_DIG, sceneData: { moduleId: "consonant-digraphs" } }
     ];
+    return options.filter((option) => option.sceneData?.moduleId && isFossilDigModeEnabled(option.sceneData.moduleId));
   }
 
   private getTitleSceneForFamily(): string {

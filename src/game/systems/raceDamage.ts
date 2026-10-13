@@ -1,4 +1,4 @@
-export const PLAYER_HIT_LIMIT = 4;
+export const PLAYER_HIT_LIMIT = 15;
 export const RIVAL_HIT_LIMIT = 2;
 
 export function applyRaceDamage(remainingHits: number): number {

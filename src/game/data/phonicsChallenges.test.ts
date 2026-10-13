@@ -61,4 +61,21 @@ describe("PHONICS_CHALLENGES", () => {
     expect(presented.choices).toEqual(["correct", "last", "first"]);
     expect(presented.choices[presented.correctChoice]).toBe("correct");
   });
+
+  it.each([
+    ["oa", "oh, ay"],
+    ["ai", "ay, eye"],
+    ["ay", "ay, why"],
+    ["ea", "ee, ay"],
+    ["ee", "ee, ee"],
+    ["ow", "oh, double you"],
+  ])("speaks the letters in %s separately while retaining their printed spelling", (team, letterNames) => {
+    const challenges = PHONICS_MODULES.find((module) => module.id === "vowel-teams")!.challenges
+      .filter((challenge) => challenge.prompt === `Which word has the vowel team ${team}?`);
+
+    expect(challenges.length).toBeGreaterThan(0);
+    for (const challenge of challenges) {
+      expect(challenge.spokenPrompt).toBe(`Which word has the vowel team ${letterNames}?`);
+    }
+  });
 });
